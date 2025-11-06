@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { supabase } from '../../supabase';
-import RentalCalendar from '../components/RentalCalendar';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -9,8 +8,6 @@ export default function ItemDetailsScreen({ route, navigation }) {
     const { item } = route.params;
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [calendarVisible, setCalendarVisible] = useState(false);
-    const [existingBookings, setExistingBookings] = useState([]);
 
     const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
 
@@ -30,37 +27,8 @@ export default function ItemDetailsScreen({ route, navigation }) {
         setLoading(false);
     }, [item.owner_id]);
 
-    // Busca reservas existentes para o item (assume tabela `bookings` com cols start_date, end_date, item_id)
-    const fetchBookings = useCallback(async () => {
-        try {
-            const { data, error } = await supabase
-                .from('bookings')
-                .select('start_date,end_date')
-                .eq('item_id', item.id);
-
-            if (error) {
-                // Se tabela não existir ou houver erro, logamos e mantemos lista vazia
-                console.warn('Não foi possível buscar bookings (pode não existir tabela):', error.message || error);
-                setExistingBookings([]);
-                return;
-            }
-
-            const mapped = (data || []).map(b => {
-                // Normaliza para YYYY-MM-DD
-                const s = b.start_date ? new Date(b.start_date).toISOString().slice(0, 10) : null;
-                const e = b.end_date ? new Date(b.end_date).toISOString().slice(0, 10) : null;
-                return { startDate: s, endDate: e };
-            });
-            setExistingBookings(mapped);
-        } catch (err) {
-            console.warn('Erro ao buscar bookings:', err.message || err);
-            setExistingBookings([]);
-        }
-    }, [item.id]);
-
     useEffect(() => {
         fetchOwnerProfile();
-        fetchBookings();
     }, [fetchOwnerProfile]);
 
     const handleContact = () => {
@@ -83,16 +51,6 @@ export default function ItemDetailsScreen({ route, navigation }) {
         navigation.navigate('RequestRental', {
             item: item,
             ownerProfile: ownerProfile
-        });
-    };
-
-    const handleSelectDates = (dates) => {
-        // dates: { startDate, endDate, totalDays }
-        // Encaminha para a tela de RequestRental com as datas selecionadas
-        navigation.navigate('RequestRental', {
-            item: item,
-            ownerProfile: ownerProfile,
-            bookingDates: dates,
         });
     };
 
@@ -188,13 +146,6 @@ export default function ItemDetailsScreen({ route, navigation }) {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.primaryButton, { backgroundColor: '#007bff', marginTop: 10 }]}
-                        onPress={() => setCalendarVisible(true)}
-                    >
-                        <Text style={styles.primaryButtonText}>📅 Selecionar Datas</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
                         style={styles.secondaryButton}
                         onPress={handleContact}
                     >
@@ -204,13 +155,6 @@ export default function ItemDetailsScreen({ route, navigation }) {
                     </TouchableOpacity>
                 </View>
             </View>
-
-            <RentalCalendar
-                visible={calendarVisible}
-                onClose={() => setCalendarVisible(false)}
-                existingBookings={existingBookings}
-                onSelectDates={handleSelectDates}
-            />
 
             <View style={{ height: 30 }} />
         </ScrollView>

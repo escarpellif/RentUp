@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Image, Modal, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Image, Modal, Alert, Platform, StatusBar } from 'react-native';
 
 export default function HomeScreen({ navigation, session }) {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -34,6 +34,7 @@ export default function HomeScreen({ navigation, session }) {
 
     return (
         <View style={styles.container}>
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
             {/* Header com Menu Hamburger */}
             <View style={styles.header}>
                 <TouchableOpacity
@@ -61,22 +62,24 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroTitle}>Alugue Qualquer Coisa</Text>
-                        <Text style={styles.heroTitle}>A Qualquer Momento</Text>
-                        <Text style={styles.heroSubtitle}>Possua Menos, Acesse Mais.</Text>
-                        <Text style={styles.heroSubtitle}>Obtenha o Que Voc Precisa</Text>
+                        <Text style={styles.heroTitle}>Por que comprar</Text>
+                        <Text style={styles.heroTitle}>Se voce pode alugar</Text>
+                        <Text style={styles.heroSubtitle}>Possua menos, Acesse Mais.</Text>
+                        <Text style={styles.heroSubtitle}>Obtenha o que voce Precisa</Text>
                         <Text style={styles.heroSubtitle}>Sem Quebrar o Banco</Text>
 
-                        <TouchableOpacity
-                            style={styles.discoverButton}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Text style={styles.discoverButtonText}>Descobrir Agora</Text>
-                        </TouchableOpacity>
-                    </View>
+                        <View style={styles.heroBottomRow}>
+                            <TouchableOpacity
+                                style={styles.discoverButton}
+                                onPress={() => navigation.navigate('Home')}
+                            >
+                                <Text style={styles.discoverButtonText}>Descobrir Agora</Text>
+                            </TouchableOpacity>
 
-                    <View style={styles.heroImageContainer}>
-                        <Text style={styles.heroImage}>🚚</Text>
+                            <View style={styles.heroImageContainer}>
+                                <Text style={styles.heroImage}>🚚</Text>
+                            </View>
+                        </View>
                     </View>
                 </View>
 
@@ -226,7 +229,7 @@ export default function HomeScreen({ navigation, session }) {
                                 <Text style={styles.menuItemIcon}>👤</Text>
                                 <Text style={styles.menuItemText}>Meu Perfil</Text>
                             </TouchableOpacity>
-
+e
                             <View style={styles.menuDivider} />
 
                             <TouchableOpacity
@@ -248,6 +251,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
+        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : 35,
     },
     header: {
         flexDirection: 'row',
@@ -295,6 +299,7 @@ const styles = StyleSheet.create({
     heroSection: {
         backgroundColor: '#FFF8E1',
         padding: 30,
+        paddingBottom: 5,
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
     },
@@ -310,15 +315,21 @@ const styles = StyleSheet.create({
     heroSubtitle: {
         fontSize: 14,
         color: '#666',
-        marginTop: 5,
+        marginTop: 10,
+    },
+    heroBottomRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 25,
     },
     discoverButton: {
+        marginTop: 10,
         backgroundColor: '#FF6B35',
         paddingVertical: 12,
         paddingHorizontal: 25,
         borderRadius: 25,
         alignSelf: 'flex-start',
-        marginTop: 20,
     },
     discoverButtonText: {
         color: '#fff',
@@ -327,10 +338,11 @@ const styles = StyleSheet.create({
     },
     heroImageContainer: {
         alignItems: 'center',
-        marginTop: 20,
+        justifyContent: 'flex-end',
+        marginTop: -40,
     },
     heroImage: {
-        fontSize: 100,
+        fontSize: 90,
     },
     searchContainer: {
         flexDirection: 'row',
@@ -512,4 +524,3 @@ const styles = StyleSheet.create({
         marginHorizontal: 20,
     },
 });
-

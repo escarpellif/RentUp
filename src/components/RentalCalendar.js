@@ -3,10 +3,37 @@ import { StyleSheet, View, Text, Modal, TouchableOpacity, Alert } from 'react-na
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 
-export default function RentalCalendar({ visible, onClose, existingBookings = [], onSelectDates }) {
+export default function RentalCalendar({
+    visible,
+    onClose,
+    existingBookings = [],
+    onSelectDates,
+    // Novas props para uso inline (sem modal)
+    itemId,
+    onDateRangeChange,
+    initialStartDate,
+    initialEndDate
+}) {
+    // Se não for modal (sem visible prop), renderiza inline
+    const isModal = visible !== undefined;
+
     const [markedDates, setMarkedDates] = useState({});
-    const [selectedStart, setSelectedStart] = useState(null);
-    const [selectedEnd, setSelectedEnd] = useState(null);
+    const [selectedStart, setSelectedStart] = useState(
+        initialStartDate ? moment(initialStartDate).format('YYYY-MM-DD') : null
+    );
+    const [selectedEnd, setSelectedEnd] = useState(
+        initialEndDate ? moment(initialEndDate).format('YYYY-MM-DD') : null
+    );
+
+    // Atualiza as datas quando as props iniciais mudam
+    useEffect(() => {
+        if (initialStartDate) {
+            setSelectedStart(moment(initialStartDate).format('YYYY-MM-DD'));
+        }
+        if (initialEndDate) {
+            setSelectedEnd(moment(initialEndDate).format('YYYY-MM-DD'));
+        }
+    }, [initialStartDate, initialEndDate]);
 
     useEffect(() => {
         const marked = {};
@@ -75,6 +102,13 @@ export default function RentalCalendar({ visible, onClose, existingBookings = []
                     return;
                 }
                 setSelectedEnd(dateStr);
+
+                // Se for inline (não modal), chama callback imediatamente
+                if (!isModal && onDateRangeChange) {
+                    const startDate = new Date(selectedStart);
+                    const endDate = new Date(dateStr);
+                    onDateRangeChange(startDate, endDate);
+                }
             }
         }
     };
@@ -85,11 +119,25 @@ export default function RentalCalendar({ visible, onClose, existingBookings = []
             return;
         }
         const days = moment(selectedEnd).diff(moment(selectedStart), 'days') + 1;
-        onSelectDates && onSelectDates({ startDate: selectedStart, endDate: selectedEnd, totalDays: days });
+
+        // Callback para modal
+        if (onSelectDates) {
+            onSelectDates({ startDate: selectedStart, endDate: selectedEnd, totalDays: days });
+        }
+
+        // Callback para inline
+        if (onDateRangeChange) {
+            const startDate = new Date(selectedStart);
+            const endDate = new Date(selectedEnd);
+            onDateRangeChange(startDate, endDate);
+        }
+
         // reset and close
-        setSelectedStart(null);
-        setSelectedEnd(null);
-        onClose && onClose();
+        if (isModal) {
+            setSelectedStart(null);
+            setSelectedEnd(null);
+            onClose && onClose();
+        }
     };
 
     const handleClose = () => {
@@ -98,6 +146,49 @@ export default function RentalCalendar({ visible, onClose, existingBookings = []
         onClose && onClose();
     };
 
+    // Renderização inline (sem modal)
+    const renderCalendar = () => (
+        <>
+            <View style={styles.legend}>
+                <View style={styles.legendItem}>
+                    <View style={[styles.legendBox, { backgroundColor: '#007bff' }]} />
+                    <Text style={styles.legendText}>Selecionado</Text>
+                </View>
+                <View style={styles.legendItem}>
+                    <View style={[styles.legendBox, { backgroundColor: '#ff4444' }]} />
+                    <Text style={styles.legendText}>Reservado</Text>
+                </View>
+            </View>
+
+            <Calendar
+                minDate={moment().format('YYYY-MM-DD')}
+                markingType={'period'}
+                markedDates={markedDates}
+                onDayPress={handleDayPress}
+                theme={{
+                    todayTextColor: '#007bff',
+                    arrowColor: '#007bff',
+                    monthTextColor: '#1a3a52',
+                    textMonthFontWeight: 'bold',
+                }}
+            />
+
+            {selectedStart && selectedEnd && (
+                <View style={styles.summary}>
+                    <Text>Check-in: {moment(selectedStart).format('DD/MM/YYYY')}</Text>
+                    <Text>Check-out: {moment(selectedEnd).format('DD/MM/YYYY')}</Text>
+                    <Text>Total: {moment(selectedEnd).diff(moment(selectedStart), 'days') + 1} dias</Text>
+                </View>
+            )}
+        </>
+    );
+
+    // Se não for modal, renderiza inline
+    if (!isModal) {
+        return <View style={styles.inlineContainer}>{renderCalendar()}</View>;
+    }
+
+    // Renderização modal (original)
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
             <View style={styles.overlay}>
@@ -107,37 +198,7 @@ export default function RentalCalendar({ visible, onClose, existingBookings = []
                         <TouchableOpacity onPress={handleClose}><Text style={styles.close}>✕</Text></TouchableOpacity>
                     </View>
 
-                    <View style={styles.legend}>
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendBox, { backgroundColor: '#007bff' }]} />
-                            <Text style={styles.legendText}>Selecionado</Text>
-                        </View>
-                        <View style={styles.legendItem}>
-                            <View style={[styles.legendBox, { backgroundColor: '#ff4444' }]} />
-                            <Text style={styles.legendText}>Reservado</Text>
-                        </View>
-                    </View>
-
-                    <Calendar
-                        minDate={moment().format('YYYY-MM-DD')}
-                        markingType={'period'}
-                        markedDates={markedDates}
-                        onDayPress={handleDayPress}
-                        theme={{
-                            todayTextColor: '#007bff',
-                            arrowColor: '#007bff',
-                            monthTextColor: '#1a3a52',
-                            textMonthFontWeight: 'bold',
-                        }}
-                    />
-
-                    {selectedStart && selectedEnd && (
-                        <View style={styles.summary}>
-                            <Text>Check-in: {moment(selectedStart).format('DD/MM/YYYY')}</Text>
-                            <Text>Check-out: {moment(selectedEnd).format('DD/MM/YYYY')}</Text>
-                            <Text>Total: {moment(selectedEnd).diff(moment(selectedStart), 'days') + 1} dias</Text>
-                        </View>
-                    )}
+                    {renderCalendar()}
 
                     <View style={styles.footer}>
                         <TouchableOpacity style={[styles.button, styles.cancel]} onPress={handleClose}><Text>Cancelar</Text></TouchableOpacity>
@@ -152,6 +213,7 @@ export default function RentalCalendar({ visible, onClose, existingBookings = []
 const styles = StyleSheet.create({
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
     container: { backgroundColor: '#fff', borderRadius: 12, padding: 16, maxHeight: '90%' },
+    inlineContainer: { backgroundColor: '#fff', borderRadius: 12, padding: 16 },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     title: { fontSize: 18, fontWeight: '700' },
     close: { fontSize: 22, color: '#666' },
@@ -165,4 +227,3 @@ const styles = StyleSheet.create({
     cancel: { backgroundColor: '#f0f0f0', marginRight: 8 },
     confirm: { backgroundColor: '#007bff' },
 });
-

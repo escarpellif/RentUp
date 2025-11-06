@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, Modal } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import RentalCalendar from '../components/RentalCalendar';
 
 export default function RequestRentalScreen({ route, navigation }) {
     const { item, ownerProfile, bookingDates } = route.params || {};
@@ -10,11 +10,17 @@ export default function RequestRentalScreen({ route, navigation }) {
     const initialEnd = bookingDates && bookingDates.endDate ? new Date(bookingDates.endDate) : new Date(Date.now() + 86400000);
 
     const [startDate, setStartDate] = useState(initialStart);
-    const [endDate, setEndDate] = useState(initialEnd); // +1 dia padrão
-    const [tempStartDate, setTempStartDate] = useState(initialStart);
-    const [tempEndDate, setTempEndDate] = useState(initialEnd);
-    const [showStartPicker, setShowStartPicker] = useState(false);
-    const [showEndPicker, setShowEndPicker] = useState(false);
+    const [endDate, setEndDate] = useState(initialEnd);
+    const [showCalendar, setShowCalendar] = useState(false);
+
+    // Callback do calendário
+    const handleDateRangeChange = (start, end) => {
+        if (start && end) {
+            setStartDate(start);
+            setEndDate(end);
+            setShowCalendar(false); // Esconde o calendário após seleção
+        }
+    };
 
     const calculateDays = () => {
         const diffTime = Math.abs(endDate - startDate);
@@ -61,72 +67,6 @@ export default function RequestRentalScreen({ route, navigation }) {
         );
     };
 
-    const onChangeStartDate = (event, selectedDate) => {
-        if (Platform.OS === 'android' && event.type === 'dismissed') {
-            setShowStartPicker(false);
-            return;
-        }
-        if (selectedDate) {
-            setTempStartDate(selectedDate);
-            if (Platform.OS === 'android') {
-                setStartDate(selectedDate);
-                setShowStartPicker(false);
-                // Se a data final for anterior à nova data inicial, ajusta
-                if (selectedDate >= endDate) {
-                    setEndDate(new Date(selectedDate.getTime() + 86400000));
-                }
-            }
-        }
-    };
-
-    const onChangeEndDate = (event, selectedDate) => {
-        if (Platform.OS === 'android' && event.type === 'dismissed') {
-            setShowEndPicker(false);
-            return;
-        }
-        if (selectedDate) {
-            setTempEndDate(selectedDate);
-            if (Platform.OS === 'android') {
-                if (selectedDate > startDate) {
-                    setEndDate(selectedDate);
-                    setShowEndPicker(false);
-                } else {
-                    Alert.alert('Atenção', 'A data final deve ser posterior à data inicial.');
-                    setShowEndPicker(false);
-                }
-            }
-        }
-    };
-
-    const handleConfirmStartDate = () => {
-        setStartDate(tempStartDate);
-        setShowStartPicker(false);
-        // Se a data final for anterior à nova data inicial, ajusta
-        if (tempStartDate >= endDate) {
-            setEndDate(new Date(tempStartDate.getTime() + 86400000));
-        }
-    };
-
-    const handleConfirmEndDate = () => {
-        if (tempEndDate > startDate) {
-            setEndDate(tempEndDate);
-            setShowEndPicker(false);
-        } else {
-            Alert.alert('Atenção', 'A data final deve ser posterior à data inicial.');
-            setShowEndPicker(false);
-        }
-    };
-
-    const handleCancelStartDate = () => {
-        setTempStartDate(startDate);
-        setShowStartPicker(false);
-    };
-
-    const handleCancelEndDate = () => {
-        setTempEndDate(endDate);
-        setShowEndPicker(false);
-    };
-
     const formatDate = (date) => {
         return date.toLocaleDateString('pt-BR', {
             day: '2-digit',
@@ -149,35 +89,34 @@ export default function RequestRentalScreen({ route, navigation }) {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Período do Aluguel</Text>
                     
-                    {/* Data Inicial */}
-                    <View style={styles.dateContainer}>
-                        <Text style={styles.dateLabel}>Data de Início</Text>
+                    {/* Botão para mostrar o calendário */}
+                    {!showCalendar && (
                         <TouchableOpacity
-                            style={styles.dateButton}
-                            onPress={() => {
-                                setTempStartDate(startDate);
-                                setShowStartPicker(true);
-                            }}
+                            style={styles.selectDatesButton}
+                            onPress={() => setShowCalendar(true)}
                         >
-                            <Text style={styles.dateIcon}>📅</Text>
-                            <Text style={styles.dateButtonText}>{formatDate(startDate)}</Text>
+                            <Text style={styles.selectDatesIcon}>📅</Text>
+                            <Text style={styles.selectDatesText}>Selecionar Datas no Calendário</Text>
                         </TouchableOpacity>
-                    </View>
+                    )}
 
-                    {/* Data Final */}
-                    <View style={styles.dateContainer}>
-                        <Text style={styles.dateLabel}>Data de Término</Text>
-                        <TouchableOpacity
-                            style={styles.dateButton}
-                            onPress={() => {
-                                setTempEndDate(endDate);
-                                setShowEndPicker(true);
-                            }}
-                        >
-                            <Text style={styles.dateIcon}>📅</Text>
-                            <Text style={styles.dateButtonText}>{formatDate(endDate)}</Text>
-                        </TouchableOpacity>
-                    </View>
+                    {/* Calendário (mostra apenas quando showCalendar = true) */}
+                    {showCalendar && (
+                        <View style={styles.calendarContainer}>
+                            <RentalCalendar
+                                itemId={item.id}
+                                onDateRangeChange={handleDateRangeChange}
+                                initialStartDate={startDate}
+                                initialEndDate={endDate}
+                            />
+                            <TouchableOpacity
+                                style={styles.hideCalendarButton}
+                                onPress={() => setShowCalendar(false)}
+                            >
+                                <Text style={styles.hideCalendarText}>Esconder Calendário</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
 
                 {/* Resumo do Aluguel */}
@@ -230,84 +169,6 @@ export default function RequestRentalScreen({ route, navigation }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Modal para Data Inicial */}
-            <Modal
-                visible={showStartPicker}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={handleCancelStartDate}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Selecione a Data de Início</Text>
-
-                        <DateTimePicker
-                            value={tempStartDate}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={onChangeStartDate}
-                            minimumDate={new Date()}
-                            style={styles.datePicker}
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={styles.modalButtonCancel}
-                                onPress={handleCancelStartDate}
-                            >
-                                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.modalButtonOk}
-                                onPress={handleConfirmStartDate}
-                            >
-                                <Text style={styles.modalButtonOkText}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Modal para Data Final */}
-            <Modal
-                visible={showEndPicker}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={handleCancelEndDate}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Selecione a Data de Término</Text>
-
-                        <DateTimePicker
-                            value={tempEndDate}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={onChangeEndDate}
-                            minimumDate={new Date(startDate.getTime() + 86400000)}
-                            style={styles.datePicker}
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={styles.modalButtonCancel}
-                                onPress={handleCancelEndDate}
-                            >
-                                <Text style={styles.modalButtonCancelText}>Cancelar</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.modalButtonOk}
-                                onPress={handleConfirmEndDate}
-                            >
-                                <Text style={styles.modalButtonOkText}>OK</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
             <View style={{ height: 30 }} />
         </ScrollView>
     );
@@ -352,31 +213,37 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 15,
     },
-    dateContainer: {
-        marginBottom: 20,
-    },
-    dateLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 10,
-    },
-    dateButton: {
+    selectDatesButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#007bff',
-        borderRadius: 10,
+        justifyContent: 'center',
+        backgroundColor: '#007bff',
         padding: 15,
-        gap: 10,
+        borderRadius: 10,
+        marginBottom: 15,
     },
-    dateIcon: {
+    selectDatesIcon: {
         fontSize: 24,
+        marginRight: 10,
     },
-    dateButtonText: {
-        fontSize: 18,
-        color: '#333',
+    selectDatesText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    calendarContainer: {
+        marginBottom: 15,
+    },
+    hideCalendarButton: {
+        backgroundColor: '#6c757d',
+        padding: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    hideCalendarText: {
+        color: '#fff',
+        fontSize: 14,
         fontWeight: '600',
     },
     summaryCard: {
@@ -442,61 +309,6 @@ const styles = StyleSheet.create({
     },
     cancelButtonText: {
         color: '#dc3545',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        padding: 20,
-        paddingBottom: 40,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    datePicker: {
-        width: '100%',
-        height: 200,
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-        gap: 10,
-    },
-    modalButtonCancel: {
-        flex: 1,
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#dc3545',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalButtonCancelText: {
-        color: '#dc3545',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    modalButtonOk: {
-        flex: 1,
-        backgroundColor: '#007bff',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    modalButtonOkText: {
-        color: '#fff',
         fontSize: 16,
         fontWeight: '600',
     },
