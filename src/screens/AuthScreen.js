@@ -18,7 +18,7 @@ export default function AuthScreen() {
       password: password,
     });
 
-    if (error) Alert.alert('Erro no Login', error.message);
+    if (error) Alert.alert('Error en el Login', error.message);
     setLoading(false);
     // Se for sucesso, a sessão é salva e o app recarrega ou navega para a tela principal
   }
@@ -36,11 +36,11 @@ export default function AuthScreen() {
       password: password,
     });
 
-    if (error) Alert.alert('Erro no Cadastro', error.message);
+    if (error) Alert.alert('Error en el Registro', error.message);
     if (!session) {
       Alert.alert(
-        'Verifique o E-mail',
-        'Confirme o link enviado para o seu e-mail para completar o cadastro.'
+        'Verifica tu E-mail',
+        'Confirma el enlace enviado a tu correo para completar el registro.'
       );
     }
     setLoading(false);
@@ -48,13 +48,13 @@ export default function AuthScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{isRegistering ? 'Cadastre-se' : 'Fazer Login'}</Text>
-      
+      <Text style={styles.title}>{isRegistering ? 'Regístrate' : 'Iniciar Sesión'}</Text>
+
       <TextInput
         style={styles.input}
         onChangeText={(text) => setEmail(text)}
         value={email}
-        placeholder="E-mail"
+        placeholder="Correo Electrónico"
         autoCapitalize={'none'}
       />
       <TextInput
@@ -62,14 +62,14 @@ export default function AuthScreen() {
         onChangeText={(text) => setPassword(text)}
         value={password}
         secureTextEntry={true}
-        placeholder="Senha"
+        placeholder="Contraseña"
         autoCapitalize={'none'}
       />
 
       <View style={styles.buttonContainer}>
         {isRegistering ? (
           <Button
-            title={loading ? 'Cadastrando...' : 'Cadastrar'}
+            title={loading ? 'Registrando...' : 'Registrarse'}
             onPress={signUpWithEmail}
             disabled={loading}
           />
@@ -84,7 +84,7 @@ export default function AuthScreen() {
       
       <View style={styles.toggleContainer}>
         <Text onPress={() => setIsRegistering(!isRegistering)} style={styles.toggleText}>
-          {isRegistering ? 'Já tem conta? Fazer Login' : 'Não tem conta? Cadastre-se'}
+          {isRegistering ? '¿Ya tienes cuenta? Iniciar Sesión' : '¿No tienes cuenta? Regístrate'}
         </Text>
       </View>
     </View>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Button, Alert, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Button, Alert, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../supabase';
@@ -20,7 +21,7 @@ export default function EditItemScreen({ route, navigation, session }) {
     const [photoUri, setPhotoUri] = useState(null);
     const [photoPath, setPhotoPath] = useState(item.photo_url);
 
-    const categories = ['Ferramentas', 'Eletrônicos', 'Esportes', 'Moda', 'Veículos', 'Outros'];
+    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Vehículos', 'Otros'];
 
     // URL da foto atual
     const currentPhotoUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
@@ -46,7 +47,7 @@ export default function EditItemScreen({ route, navigation, session }) {
 
         if (!user) {
             console.error('❌ Erro: Usuário não está logado');
-            Alert.alert('Erro de Sessão', 'Usuário não está logado.');
+            Alert.alert('Error de Sesión', 'El usuario no está conectado.');
             setLoading(false);
             return null;
         }
@@ -67,7 +68,7 @@ export default function EditItemScreen({ route, navigation, session }) {
 
             if (error) {
                 console.error("❌ ERRO NO UPLOAD DO STORAGE:", error.message);
-                Alert.alert('Erro no Upload', 'Falha ao subir a imagem: ' + error.message);
+                Alert.alert('Error en la Carga', 'Error al subir la imagen: ' + error.message);
                 setLoading(false);
                 return null;
             }
@@ -77,7 +78,7 @@ export default function EditItemScreen({ route, navigation, session }) {
             return data.path;
         } catch (err) {
             console.error('❌ Exceção durante upload:', err);
-            Alert.alert('Erro', 'Erro inesperado durante o upload: ' + err.message);
+            Alert.alert('Error', 'Error inesperado durante la carga: ' + err.message);
             setLoading(false);
             return null;
         }
@@ -87,7 +88,7 @@ export default function EditItemScreen({ route, navigation, session }) {
         console.log('🔵 Iniciando atualização do item...');
 
         if (!title || !description || !pricePerDay || !location) {
-            Alert.alert('Preencha todos os campos');
+            Alert.alert('Campos Incompletos', 'Por favor, completa todos los campos');
             return;
         }
 
@@ -132,10 +133,10 @@ export default function EditItemScreen({ route, navigation, session }) {
 
         if (error) {
             console.error("❌ ERRO DE ATUALIZAÇÃO NO SUPABASE:", error);
-            Alert.alert('Erro ao Atualizar', error.message);
+            Alert.alert('Error al Actualizar', error.message);
         } else {
             console.log('✅ Item atualizado com sucesso!', data);
-            Alert.alert('Sucesso!', 'Seu item foi atualizado!', [
+            Alert.alert('¡Éxito!', '¡Tu artículo ha sido actualizado!', [
                 {
                     text: 'OK',
                     onPress: () => navigation.goBack()
@@ -146,12 +147,12 @@ export default function EditItemScreen({ route, navigation, session }) {
 
     async function handleDelete() {
         Alert.alert(
-            'Confirmar Exclusão',
-            'Tem certeza que deseja deletar este item?',
+            'Confirmar Eliminación',
+            '¿Estás seguro de que deseas eliminar este artículo?',
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
-                    text: 'Deletar',
+                    text: 'Eliminar',
                     style: 'destructive',
                     onPress: async () => {
                         setLoading(true);
@@ -176,9 +177,9 @@ export default function EditItemScreen({ route, navigation, session }) {
                         setLoading(false);
 
                         if (error) {
-                            Alert.alert('Erro ao Deletar', error.message);
+                            Alert.alert('Error al Eliminar', error.message);
                         } else {
-                            Alert.alert('Deletado!', 'Item removido com sucesso.', [
+                            Alert.alert('¡Eliminado!', 'Artículo eliminado con éxito.', [
                                 {
                                     text: 'OK',
                                     onPress: () => navigation.goBack()
@@ -192,94 +193,136 @@ export default function EditItemScreen({ route, navigation, session }) {
     }
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Editar Item</Text>
-
-            <Text style={styles.label}>Título do Anúncio</Text>
-            <TextInput
-                style={styles.input}
-                onChangeText={setTitle}
-                value={title}
-                placeholder="Ex: Furadeira Bosch 18V - Aluguel"
-                maxLength={80}
-            />
-
-            <Text style={styles.label}>Descrição Completa</Text>
-            <TextInput
-                style={[styles.input, styles.multilineInput]}
-                onChangeText={setDescription}
-                value={description}
-                placeholder="Detalhe o estado do item, acessórios e regras de uso."
-                multiline
-                numberOfLines={4}
-            />
-
-            <Text style={styles.label}>Categoria</Text>
-            <View style={styles.pickerContainer}>
-                <Picker
-                    selectedValue={category}
-                    onValueChange={(itemValue) => setCategory(itemValue)}
+        <SafeAreaView style={styles.safeContainer}>
+            <StatusBar barStyle="dark-content" />
+            {/* Botão Voltar em Círculo */}
+            <View style={styles.headerContainer}>
+                <TouchableOpacity
+                    style={styles.backButtonCircle}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
                 >
-                    {categories.map((cat, index) => (
-                        <Picker.Item key={index} label={cat} value={cat} />
-                    ))}
-                </Picker>
+                    <Text style={styles.backArrow}>←</Text>
+                </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Preço do Aluguel por Dia (€)</Text>
-            <TextInput
-                style={styles.input}
-                onChangeText={setPricePerDay}
-                value={pricePerDay}
-                placeholder="Ex: 50.00"
-                keyboardType="numeric"
-            />
+            <ScrollView style={styles.container}>
+                <Text style={styles.header}>Editar Artículo</Text>
 
-            <Text style={styles.label}>Localização de Retirada</Text>
-            <TextInput
-                style={styles.input}
-                onChangeText={setLocation}
-                value={location}
-                placeholder="Ex: Lisboa - Chiado"
-            />
-
-            <Text style={styles.label}>Foto Principal do Item</Text>
-            <TouchableOpacity onPress={pickImage} style={styles.photoPlaceholder}>
-                {photoUri ? (
-                    <Image
-                        source={{ uri: photoUri }}
-                        style={styles.previewImage}
-                    />
-                ) : (
-                    <Image
-                        source={{ uri: currentPhotoUrl }}
-                        style={styles.previewImage}
-                    />
-                )}
-                <Text style={styles.changePhotoText}>Toque para alterar foto</Text>
-            </TouchableOpacity>
-
-            <Button
-                title={loading ? 'Salvando...' : 'Salvar Alterações'}
-                onPress={handleUpdate}
-                disabled={loading}
-            />
-
-            <View style={{ marginTop: 20, marginBottom: 10 }}>
-                <Button
-                    title="Deletar Item"
-                    onPress={handleDelete}
-                    disabled={loading}
-                    color="#dc3545"
+                <Text style={styles.label}>Título del Anuncio</Text>
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setTitle}
+                    value={title}
+                    placeholder="Ej: Taladro Bosch 18V - Alquiler"
+                    maxLength={80}
                 />
-            </View>
 
-            <View style={{ height: 50 }} />
-        </ScrollView>
+                <Text style={styles.label}>Descripción Completa</Text>
+                <TextInput
+                    style={[styles.input, styles.multilineInput]}
+                    onChangeText={setDescription}
+                    value={description}
+                    placeholder="Detalla el estado del artículo, accesorios y reglas de uso."
+                    multiline
+                    numberOfLines={4}
+                />
+
+                <Text style={styles.label}>Categoría</Text>
+                <View style={styles.pickerContainer}>
+                    <Picker
+                        selectedValue={category}
+                        onValueChange={(itemValue) => setCategory(itemValue)}
+                    >
+                        {categories.map((cat, index) => (
+                            <Picker.Item key={index} label={cat} value={cat} />
+                        ))}
+                    </Picker>
+                </View>
+
+                <Text style={styles.label}>Precio de Alquiler por Día (€)</Text>
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setPricePerDay}
+                    value={pricePerDay}
+                    placeholder="Ej: 50.00"
+                    keyboardType="numeric"
+                />
+
+                <Text style={styles.label}>Ubicación de Recogida</Text>
+                <TextInput
+                    style={styles.input}
+                    onChangeText={setLocation}
+                    value={location}
+                    placeholder="Ej: Lisboa - Chiado"
+                />
+
+                <Text style={styles.label}>Foto Principal del Artículo</Text>
+                <TouchableOpacity onPress={pickImage} style={styles.photoPlaceholder}>
+                    {photoUri ? (
+                        <Image
+                            source={{ uri: photoUri }}
+                            style={styles.previewImage}
+                        />
+                    ) : (
+                        <Image
+                            source={{ uri: currentPhotoUrl }}
+                            style={styles.previewImage}
+                        />
+                    )}
+                    <Text style={styles.changePhotoText}>Toca para cambiar la foto</Text>
+                </TouchableOpacity>
+
+                <Button
+                    title={loading ? 'Guardando...' : 'Guardar Cambios'}
+                    onPress={handleUpdate}
+                    disabled={loading}
+                />
+
+                <View style={{ marginTop: 20, marginBottom: 10 }}>
+                    <Button
+                        title="Eliminar Artículo"
+                        onPress={handleDelete}
+                        disabled={loading}
+                        color="#dc3545"
+                    />
+                </View>
+
+                <View style={{ height: 50 }} />
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeContainer: {
+        flex: 1,
+        backgroundColor: '#fff',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    headerContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+        paddingBottom: 10,
+        backgroundColor: '#fff',
+    },
+    backButtonCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#007bff',
+        elevation: 2,
+        shadowColor: '#007bff',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+    },
+    backArrow: {
+        fontSize: 18,
+        color: '#fff',
+    },
     container: {
         flex: 1,
         padding: 20,
@@ -340,4 +383,3 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
 });
-

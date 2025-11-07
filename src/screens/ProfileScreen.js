@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { Rating } from 'react-native-ratings'; // Para exibir a média de estrelas
 
@@ -35,7 +36,7 @@ export default function ProfileScreen({ session }) {
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('pt-BR', options);
+        return new Date(dateString).toLocaleDateString('es-ES', options);
     };
 
     if (loading) {
@@ -49,7 +50,7 @@ export default function ProfileScreen({ session }) {
     if (!profile) {
         return (
             <View style={styles.loadingContainer}>
-                <Text>Perfil não encontrado. Tente novamente.</Text>
+                <Text>Perfil no encontrado. Inténtalo de nuevo.</Text>
             </View>
         );
     }
@@ -70,7 +71,7 @@ export default function ProfileScreen({ session }) {
                     startingValue={ratingValue}
                     style={{ paddingHorizontal: 10 }}
                 />
-                <Text style={styles.ratingLabel}>Média de Estrelas</Text>
+                <Text style={styles.ratingLabel}>Promedio de Estrellas</Text>
             </View>
         );
     };
@@ -78,25 +79,25 @@ export default function ProfileScreen({ session }) {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.header}>Meu Perfil</Text>
+                <Text style={styles.header}>Mi Perfil</Text>
 
                 <View style={styles.infoCard}>
                     <Text style={styles.name}>{profile.full_name || profile.username}</Text>
                     <Text style={styles.username}>@{profile.username}</Text>
-                    <Text style={styles.memberSince}>Membro desde: {formatDate(profile.created_at)}</Text>
+                    <Text style={styles.memberSince}>Miembro desde: {formatDate(profile.created_at)}</Text>
                 </View>
 
                 {/* --- SEÇÃO DE AVALIAÇÕES --- */}
-                <Text style={styles.sectionHeader}>Minhas Avaliações</Text>
+                <Text style={styles.sectionHeader}>Mis Valoraciones</Text>
 
                 <View style={styles.ratingsContainer}>
                     <View style={styles.ratingSection}>
-                        <Text style={styles.roleTitle}>Como Locador (Dono do Item)</Text>
+                        <Text style={styles.roleTitle}>Como Arrendador (Dueño del Artículo)</Text>
                         {renderRating(profile.rating_avg_locador)}
                     </View>
 
                     <View style={styles.ratingSection}>
-                        <Text style={styles.roleTitle}>Como Locatário (Cliente)</Text>
+                        <Text style={styles.roleTitle}>Como Arrendatario (Cliente)</Text>
                         {renderRating(profile.rating_avg_locatario)}
                     </View>
                 </View>

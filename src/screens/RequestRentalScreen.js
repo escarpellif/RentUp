@@ -38,13 +38,13 @@ export default function RequestRentalScreen({ route, navigation }) {
         const total = calculateTotal();
         
         if (days < 1) {
-            Alert.alert('Atenção', 'O período de aluguel deve ser de pelo menos 1 dia.');
+            Alert.alert('Atención', 'El período de alquiler debe ser de al menos 1 día.');
             return;
         }
 
         Alert.alert(
-            'Confirmar Solicitação',
-            `Deseja confirmar o aluguel?\n\nItem: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'dia' : 'dias'}\nValor Total: €${total}\n\nO anunciante receberá sua solicitação.`,
+            'Confirmar Solicitud',
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
@@ -52,8 +52,8 @@ export default function RequestRentalScreen({ route, navigation }) {
                     onPress: () => {
                         // Aqui você vai salvar a solicitação no banco de dados
                         Alert.alert(
-                            'Sucesso!',
-                            'Sua solicitação foi enviada ao anunciante.',
+                            '¡Éxito!',
+                            'Tu solicitud ha sido enviada al anunciante.',
                             [
                                 {
                                     text: 'OK',
@@ -68,7 +68,7 @@ export default function RequestRentalScreen({ route, navigation }) {
     };
 
     const formatDate = (date) => {
-        return date.toLocaleDateString('pt-BR', {
+        return date.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
@@ -81,14 +81,14 @@ export default function RequestRentalScreen({ route, navigation }) {
                 {/* Informações do Item */}
                 <View style={styles.itemCard}>
                     <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemPrice}>€{parseFloat(item.price_per_day).toFixed(2)} / dia</Text>
-                    <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuário'}</Text>
+                    <Text style={styles.itemPrice}>€{parseFloat(item.price_per_day).toFixed(2)} / día</Text>
+                    <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
                 </View>
 
                 {/* Seleção de Período */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Período do Aluguel</Text>
-                    
+                    <Text style={styles.sectionTitle}>Período del Alquiler</Text>
+
                     {/* Botão para mostrar o calendário */}
                     {!showCalendar && (
                         <TouchableOpacity
@@ -96,7 +96,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                             onPress={() => setShowCalendar(true)}
                         >
                             <Text style={styles.selectDatesIcon}>📅</Text>
-                            <Text style={styles.selectDatesText}>Selecionar Datas no Calendário</Text>
+                            <Text style={styles.selectDatesText}>Seleccionar Fechas en el Calendario</Text>
                         </TouchableOpacity>
                     )}
 
@@ -113,7 +113,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                                 style={styles.hideCalendarButton}
                                 onPress={() => setShowCalendar(false)}
                             >
-                                <Text style={styles.hideCalendarText}>Esconder Calendário</Text>
+                                <Text style={styles.hideCalendarText}>Ocultar Calendario</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -121,25 +121,25 @@ export default function RequestRentalScreen({ route, navigation }) {
 
                 {/* Resumo do Aluguel */}
                 <View style={styles.summaryCard}>
-                    <Text style={styles.summaryTitle}>Resumo</Text>
-                    
+                    <Text style={styles.summaryTitle}>Resumen</Text>
+
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Data de início:</Text>
+                        <Text style={styles.summaryLabel}>Fecha de inicio:</Text>
                         <Text style={styles.summaryValue}>{formatDate(startDate)}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Data de término:</Text>
+                        <Text style={styles.summaryLabel}>Fecha de término:</Text>
                         <Text style={styles.summaryValue}>{formatDate(endDate)}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Período:</Text>
-                        <Text style={styles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'dia' : 'dias'}</Text>
+                        <Text style={styles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Preço por dia:</Text>
+                        <Text style={styles.summaryLabel}>Precio por día:</Text>
                         <Text style={styles.summaryValue}>€{parseFloat(item.price_per_day).toFixed(2)}</Text>
                     </View>
 
@@ -157,7 +157,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                     onPress={handleConfirmRental}
                 >
                     <Text style={styles.confirmButtonText}>
-                        🔑 Solicitar Aluguel
+                        🔑 Solicitar Alquiler
                     </Text>
                 </TouchableOpacity>
 

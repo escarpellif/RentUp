@@ -11,6 +11,7 @@ import AddItemScreen from './src/screens/AddItemScreen'; // Tela de cadastro de 
 import EditItemScreen from './src/screens/EditItemScreen'; // Tela de edição de item
 import ItemDetailsScreen from './src/screens/ItemDetailsScreen'; // Tela de detalhes do item
 import RequestRentalScreen from './src/screens/RequestRentalScreen'; // Tela de solicitação de aluguel
+import ProfileScreen from './src/screens/ProfileScreen'; // Tela de perfil do usuário
 
 const Stack = createNativeStackNavigator();
 
@@ -47,32 +48,46 @@ export default function App() {
     if (session && session.user) {
         return (
             <NavigationContainer>
-                <Stack.Navigator>
+                <Stack.Navigator
+                    screenOptions={{
+                        headerShown: true,
+                        headerTitle: '',
+                        headerBackTitleVisible: false,
+                        headerTransparent: true,
+                        headerStyle: {
+                            backgroundColor: 'transparent',
+                        },
+                        headerTintColor: '#007bff',
+                        headerShadowVisible: false,
+                    }}
+                >
                     <Stack.Screen name="HomeScreen" options={{ headerShown: false }}>
                         {(props) => <HomeScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="Home" options={{ title: 'Marketplace' }}>
+                    <Stack.Screen name="Home" options={{ headerShown: false }}>
                         {(props) => <MainMarketplace {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="AddItem" options={{ title: 'Anunciar Item' }}>
+                    <Stack.Screen name="AddItem">
                         {(props) => <AddItemScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="EditItem" options={{ title: 'Editar Item' }}>
+                    <Stack.Screen name="EditItem">
                         {(props) => <EditItemScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="ItemDetails" options={{ title: 'Detalhes do Item' }}>
+                    <Stack.Screen name="ItemDetails">
                         {(props) => <ItemDetailsScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="RequestRental" options={{ title: 'Solicitar Aluguel' }}>
+                    <Stack.Screen name="RequestRental">
                         {(props) => <RequestRentalScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    {/* Você adicionará Profile, etc., aqui */}
+                    <Stack.Screen name="Profile">
+                        {(props) => <ProfileScreen {...props} session={session} />}
+                    </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         );

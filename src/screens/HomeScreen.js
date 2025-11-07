@@ -6,14 +6,14 @@ export default function HomeScreen({ navigation, session }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const categories = [
-        { id: '1', name: 'Eletrnicos', icon: '🎮', color: '#FF6B6B' },
-        { id: '2', name: 'Esportes', icon: '🏀', color: '#FF9F43' },
-        { id: '3', name: 'Veculos', icon: '🚗', color: '#48DBFB' },
-        { id: '4', name: 'Mveis', icon: '🛋️', color: '#FFC312' },
-        { id: '5', name: 'Ferramentas', icon: '🔧', color: '#A29BFE' },
-        { id: '6', name: 'Festas', icon: '🎉', color: '#FF6348' },
-        { id: '7', name: 'Jardim', icon: '🌱', color: '#26DE81' },
-        { id: '8', name: 'Outros', icon: '📦', color: '#95A5A6' },
+        { id: '1', name: 'Electrónicos', icon: '🎮', color: '#FF6B6B' },
+        { id: '2', name: 'Deportes', icon: '🏀', color: '#FF9F43' },
+        { id: '3', name: 'Vehículos', icon: '🚗', color: '#48DBFB' },
+        { id: '4', name: 'Muebles', icon: '🛋️', color: '#FFC312' },
+        { id: '5', name: 'Herramientas', icon: '🔧', color: '#A29BFE' },
+        { id: '6', name: 'Fiestas', icon: '🎉', color: '#FF6348' },
+        { id: '7', name: 'Jardín', icon: '🌱', color: '#26DE81' },
+        { id: '8', name: 'Otros', icon: '📦', color: '#95A5A6' },
     ];
 
     const handleCategoryPress = (category) => {
@@ -29,7 +29,7 @@ export default function HomeScreen({ navigation, session }) {
     const handleLogout = async () => {
         setMenuVisible(false);
         // Implementar logout do Supabase
-        Alert.alert('Logout', 'Função de logout será implementada');
+        Alert.alert('Cerrar Sesión', 'La función de cerrar sesión será implementada');
     };
 
     return (
@@ -62,18 +62,18 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Hero Section */}
                 <View style={styles.heroSection}>
                     <View style={styles.heroContent}>
-                        <Text style={styles.heroTitle}>Por que comprar</Text>
-                        <Text style={styles.heroTitle}>Se voce pode alugar</Text>
-                        <Text style={styles.heroSubtitle}>Possua menos, Acesse Mais.</Text>
-                        <Text style={styles.heroSubtitle}>Obtenha o que voce Precisa</Text>
-                        <Text style={styles.heroSubtitle}>Sem Quebrar o Banco</Text>
+                        <Text style={styles.heroTitle}>¿Por qué comprar</Text>
+                        <Text style={styles.heroTitle}>si puedes alquilar?</Text>
+                        <Text style={styles.heroSubtitle}>Posee menos, Accede a más.</Text>
+                        <Text style={styles.heroSubtitle}>Obtén lo que necesitas</Text>
+                        <Text style={styles.heroSubtitle}>sin gastar de más</Text>
 
                         <View style={styles.heroBottomRow}>
                             <TouchableOpacity
                                 style={styles.discoverButton}
                                 onPress={() => navigation.navigate('Home')}
                             >
-                                <Text style={styles.discoverButtonText}>Descobrir Agora</Text>
+                                <Text style={styles.discoverButtonText}>Descubrir Ahora</Text>
                             </TouchableOpacity>
 
                             <View style={styles.heroImageContainer}>
@@ -103,7 +103,7 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Categories Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Explore Nossas Categorias</Text>
+                        <Text style={styles.sectionTitle}>Explora Nuestras Categorías</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
                             <Text style={styles.viewAllLink}>Ver Todas</Text>
                         </TouchableOpacity>
@@ -126,9 +126,9 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Listings Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Anncios de Indivduos</Text>
+                        <Text style={styles.sectionTitle}>Anuncios de Particulares</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                            <Text style={styles.viewAllLink}>Ver Mais</Text>
+                            <Text style={styles.viewAllLink}>Ver Más</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -136,7 +136,7 @@ export default function HomeScreen({ navigation, session }) {
                         style={styles.browseButton}
                         onPress={() => navigation.navigate('Home')}
                     >
-                        <Text style={styles.browseButtonText}>📋 Navegar pelos Anncios</Text>
+                        <Text style={styles.browseButtonText}>📋 Explorar los Anuncios</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -147,7 +147,7 @@ export default function HomeScreen({ navigation, session }) {
                         onPress={() => navigation.navigate('AddItem')}
                     >
                         <Text style={styles.quickActionIcon}>➕</Text>
-                        <Text style={styles.quickActionText}>Anunciar Item</Text>
+                        <Text style={styles.quickActionText}>Anunciar Artículo</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -155,7 +155,7 @@ export default function HomeScreen({ navigation, session }) {
                         onPress={() => navigation.navigate('Profile')}
                     >
                         <Text style={styles.quickActionIcon}>📦</Text>
-                        <Text style={styles.quickActionText}>Meus Itens</Text>
+                        <Text style={styles.quickActionText}>Mis Artículos</Text>
                     </TouchableOpacity>
                 </View>
             </ScrollView>
@@ -182,7 +182,7 @@ export default function HomeScreen({ navigation, session }) {
 
                         <View style={styles.menuHeader}>
                             <Text style={styles.menuTitle}>Rentalfy</Text>
-                            <Text style={styles.menuSubtitle}>Bem-vindo!</Text>
+                            <Text style={styles.menuSubtitle}>¡Bienvenido!</Text>
                         </View>
 
                         <View style={styles.menuItems}>
@@ -193,8 +193,8 @@ export default function HomeScreen({ navigation, session }) {
                                     navigation.navigate('HomeScreen');
                                 }}
                             >
-                                <Text style={styles.menuItemIcon}>🏠</Text>
-                                <Text style={styles.menuItemText}>Incio</Text>
+                                <Text style={styles.menuItemIcon}>←</Text>
+                                <Text style={styles.menuItemText}>Volver</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -216,7 +216,7 @@ export default function HomeScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={styles.menuItemIcon}>➕</Text>
-                                <Text style={styles.menuItemText}>Anunciar Item</Text>
+                                <Text style={styles.menuItemText}>Anunciar Artículo</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -227,9 +227,9 @@ export default function HomeScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={styles.menuItemIcon}>👤</Text>
-                                <Text style={styles.menuItemText}>Meu Perfil</Text>
+                                <Text style={styles.menuItemText}>Mi Perfil</Text>
                             </TouchableOpacity>
-e
+
                             <View style={styles.menuDivider} />
 
                             <TouchableOpacity
@@ -237,7 +237,7 @@ e
                                 onPress={handleLogout}
                             >
                                 <Text style={styles.menuItemIcon}>🚪</Text>
-                                <Text style={styles.menuItemText}>Sair</Text>
+                                <Text style={styles.menuItemText}>Salir</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity, SafeAreaView, TextInput, ScrollView, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, Image, TouchableOpacity, TextInput, ScrollView, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 // Mapeamento de ícones e cores por categoria
 const categoryConfig = {
-    'Eletrônicos': { icon: '🎮', color: '#FF6B6B', gradient: ['#FF6B6B', '#EE5A6F'] },
-    'Esportes': { icon: '🏀', color: '#FF9F43', gradient: ['#FF9F43', '#FF8C00'] },
-    'Veículos': { icon: '🚗', color: '#48DBFB', gradient: ['#48DBFB', '#0FB9E0'] },
-    'Móveis': { icon: '🛋️', color: '#FFC312', gradient: ['#FFC312', '#EEA500'] },
-    'Ferramentas': { icon: '🔧', color: '#A29BFE', gradient: ['#A29BFE', '#8B7FEE'] },
-    'Festas': { icon: '🎉', color: '#FF6348', gradient: ['#FF6348', '#E84118'] },
-    'Jardim': { icon: '🌱', color: '#26DE81', gradient: ['#26DE81', '#20BF6B'] },
-    'Outros': { icon: '📦', color: '#95A5A6', gradient: ['#95A5A6', '#7F8C8D'] },
+    'Electrónicos': { icon: '🎮', color: '#FF6B6B', gradient: ['#FF6B6B', '#EE5A6F'] },
+    'Deportes': { icon: '🏀', color: '#FF9F43', gradient: ['#FF9F43', '#FF8C00'] },
+    'Vehículos': { icon: '🚗', color: '#48DBFB', gradient: ['#48DBFB', '#0FB9E0'] },
+    'Muebles': { icon: '🛋️', color: '#FFC312', gradient: ['#FFC312', '#EEA500'] },
+    'Herramientas': { icon: '🔧', color: '#A29BFE', gradient: ['#A29BFE', '#8B7FEE'] },
+    'Fiestas': { icon: '🎉', color: '#FF6348', gradient: ['#FF6348', '#E84118'] },
+    'Jardín': { icon: '🌱', color: '#26DE81', gradient: ['#26DE81', '#20BF6B'] },
+    'Otros': { icon: '📦', color: '#95A5A6', gradient: ['#95A5A6', '#7F8C8D'] },
 };
 
 // Componente para renderizar cada item em formato de card moderno
 const ItemCard = ({ item, onDetailsPress }) => {
     const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
-    const categoryInfo = categoryConfig[item.category] || categoryConfig['Outros'];
+    const categoryInfo = categoryConfig[item.category] || categoryConfig['Otros'];
 
     return (
         <TouchableOpacity
@@ -48,12 +49,12 @@ const ItemCard = ({ item, onDetailsPress }) => {
                 {item.is_available ? (
                     <View style={styles.availableBadge}>
                         <View style={styles.availableDot} />
-                        <Text style={styles.availableBadgeText}>Disponível</Text>
+                        <Text style={styles.availableBadgeText}>Disponible</Text>
                     </View>
                 ) : (
                     <View style={styles.unavailableBadge}>
                         <View style={styles.unavailableDot} />
-                        <Text style={styles.unavailableBadgeText}>Alugado</Text>
+                        <Text style={styles.unavailableBadgeText}>Alquilado</Text>
                     </View>
                 )}
 
@@ -100,24 +101,27 @@ export default function MainMarketplace({ session, navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Todos');
-    const [sortBy, setSortBy] = useState('recent'); // recent, price_low, price_high, title
+    const [sortBy, setSortBy] = useState('recent');
+    const [showCategories, setShowCategories] = useState(false);
+    const [showSort, setShowSort] = useState(false);
+    const [itemsToShow, setItemsToShow] = useState(6); // Mostrar apenas 6 itens inicialmente
 
     const categories = [
         'Todos',
-        'Eletrônicos',
-        'Esportes',
-        'Veículos',
-        'Móveis',
-        'Ferramentas',
-        'Festas',
-        'Jardim',
-        'Outros'
+        'Electrónicos',
+        'Deportes',
+        'Vehículos',
+        'Muebles',
+        'Herramientas',
+        'Fiestas',
+        'Jardín',
+        'Otros'
     ];
 
     const sortOptions = [
-        { id: 'recent', label: 'Mais Recentes', icon: '🕐' },
-        { id: 'price_low', label: 'Menor Preço', icon: '💰' },
-        { id: 'price_high', label: 'Maior Preço', icon: '💎' },
+        { id: 'recent', label: 'Más Recientes', icon: '🕐' },
+        { id: 'price_low', label: 'Menor Precio', icon: '💰' },
+        { id: 'price_high', label: 'Mayor Precio', icon: '💎' },
         { id: 'title', label: 'A-Z', icon: '🔤' },
     ];
 
@@ -208,8 +212,8 @@ export default function MainMarketplace({ session, navigation, route }) {
             <View style={styles.loadingContainer}>
                 <View style={styles.loadingContent}>
                     <ActivityIndicator size="large" color="#007bff" />
-                    <Text style={styles.loadingText}>Carregando itens...</Text>
-                    <Text style={styles.loadingSubtext}>Preparando o marketplace para você</Text>
+                    <Text style={styles.loadingText}>Cargando artículos...</Text>
+                    <Text style={styles.loadingSubtext}>Preparando el marketplace para ti</Text>
                 </View>
             </View>
         );
@@ -217,29 +221,28 @@ export default function MainMarketplace({ session, navigation, route }) {
 
     return (
         <SafeAreaView style={styles.fullContainer}>
-            {/* Header simplificado */}
-            <View style={styles.header}>
-                <View style={styles.headerContent}>
-                    <View style={styles.headerInfo}>
-                        <Text style={styles.headerSubtitle}>
-                            {filteredItems.length} {filteredItems.length === 1 ? 'item disponível' : 'itens disponíveis'}
-                        </Text>
-                        {(searchQuery || selectedCategory !== 'Todos') && (
-                            <View style={styles.filterActiveBadge}>
-                                <Text style={styles.filterActiveBadgeText}>Filtrado</Text>
-                            </View>
-                        )}
-                    </View>
-                </View>
-            </View>
+            {/* Header com Título e Botão Voltar */}
+            <View style={styles.headerContainer}>
+                <View style={styles.headerTopRow}>
+                    {/* Botão Voltar em Círculo */}
+                    <TouchableOpacity
+                        style={styles.backButtonCircle}
+                        onPress={() => navigation.goBack()}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.backArrow}>←</Text>
+                    </TouchableOpacity>
 
-            {/* Barra de Busca aprimorada */}
-            <View style={styles.searchContainer}>
+                    {/* Título Marketplace */}
+                    <Text style={styles.headerTitle}>Marketplace</Text>
+                </View>
+
+                {/* Barra de Pesquisa */}
                 <View style={styles.searchInputContainer}>
                     <Text style={styles.searchIcon}>🔍</Text>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Buscar por título, descrição ou local..."
+                        placeholder="Buscar por título, descripción o ubicación..."
                         placeholderTextColor="#999"
                         value={searchQuery}
                         onChangeText={setSearchQuery}
@@ -255,101 +258,122 @@ export default function MainMarketplace({ session, navigation, route }) {
                 </View>
             </View>
 
-            {/* Filtros de Categoria melhorados */}
-            <View style={styles.categoriesSection}>
-                <Text style={styles.categoriesLabel}>Categorias</Text>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.categoriesContainer}
-                    contentContainerStyle={styles.categoriesContent}
-                >
-                    {categories.map((category) => {
-                        const isActive = selectedCategory === category;
-                        const config = categoryConfig[category] || categoryConfig['Outros'];
+            {/* Filtros Compactos */}
+            <View style={styles.compactFiltersRow}>
+                {/* Categorias - Expansível */}
+                <View style={styles.filterSection}>
+                    <TouchableOpacity
+                        style={styles.filterHeader}
+                        onPress={() => setShowCategories(!showCategories)}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.filterHeaderText}>
+                            📂 {selectedCategory === 'Todos' ? 'Categorías' : selectedCategory}
+                        </Text>
+                        <Text style={styles.filterHeaderArrow}>{showCategories ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
 
-                        return (
-                            <TouchableOpacity
-                                key={category}
-                                style={[
-                                    styles.categoryChip,
-                                    isActive && {
-                                        backgroundColor: config.color,
-                                        borderColor: config.color,
-                                    }
-                                ]}
-                                onPress={() => setSelectedCategory(category)}
-                                activeOpacity={0.8}
-                            >
-                                {category !== 'Todos' && (
-                                    <Text style={styles.categoryChipIcon}>{config.icon}</Text>
-                                )}
-                                <Text style={[
-                                    styles.categoryChipText,
-                                    isActive && styles.categoryChipTextActive
-                                ]}>
-                                    {category}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
-            </View>
+                    {showCategories && (
+                        <View style={styles.filterContent}>
+                            {categories.map((category) => {
+                                const isActive = selectedCategory === category;
+                                const config = categoryConfig[category] || categoryConfig['Outros'];
 
-            {/* Seção de Ordenação (Sorted By) */}
-            <View style={styles.sortSection}>
-                <Text style={styles.sortLabel}>Ordenar por</Text>
-                <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    style={styles.sortContainer}
-                    contentContainerStyle={styles.sortContent}
-                >
-                    {sortOptions.map((option) => {
-                        const isActive = sortBy === option.id;
+                                return (
+                                    <TouchableOpacity
+                                        key={category}
+                                        style={[styles.filterOption, isActive && styles.filterOptionActive]}
+                                        onPress={() => {
+                                            setSelectedCategory(category);
+                                            setShowCategories(false);
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        {category !== 'Todos' && (
+                                            <Text style={styles.filterOptionIcon}>{config.icon}</Text>
+                                        )}
+                                        <Text style={[styles.filterOptionText, isActive && styles.filterOptionTextActive]}>
+                                            {category}
+                                        </Text>
+                                        {isActive && <Text style={styles.filterOptionCheck}>✓</Text>}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    )}
+                </View>
 
-                        return (
-                            <TouchableOpacity
-                                key={option.id}
-                                style={[
-                                    styles.sortChip,
-                                    isActive && styles.sortChipActive
-                                ]}
-                                onPress={() => setSortBy(option.id)}
-                                activeOpacity={0.8}
-                            >
-                                <Text style={styles.sortChipIcon}>{option.icon}</Text>
-                                <Text style={[
-                                    styles.sortChipText,
-                                    isActive && styles.sortChipTextActive
-                                ]}>
-                                    {option.label}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </ScrollView>
+                {/* Ordenação - Expansível */}
+                <View style={styles.filterSection}>
+                    <TouchableOpacity
+                        style={styles.filterHeader}
+                        onPress={() => setShowSort(!showSort)}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.filterHeaderText}>
+                            🔄 {sortOptions.find(o => o.id === sortBy)?.label || 'Ordenar'}
+                        </Text>
+                        <Text style={styles.filterHeaderArrow}>{showSort ? '▲' : '▼'}</Text>
+                    </TouchableOpacity>
+
+                    {showSort && (
+                        <View style={styles.filterContent}>
+                            {sortOptions.map((option) => {
+                                const isActive = sortBy === option.id;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={option.id}
+                                        style={[styles.filterOption, isActive && styles.filterOptionActive]}
+                                        onPress={() => {
+                                            setSortBy(option.id);
+                                            setShowSort(false);
+                                        }}
+                                        activeOpacity={0.7}
+                                    >
+                                        <Text style={styles.filterOptionIcon}>{option.icon}</Text>
+                                        <Text style={[styles.filterOptionText, isActive && styles.filterOptionTextActive]}>
+                                            {option.label}
+                                        </Text>
+                                        {isActive && <Text style={styles.filterOptionCheck}>✓</Text>}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    )}
+                </View>
             </View>
 
             {/* Lista de Itens em Grid melhorado */}
             <FlatList
-                data={filteredItems}
+                data={filteredItems.slice(0, itemsToShow)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                     <ItemCard item={item} onDetailsPress={navigateToDetails} />
-                )}
+                )
+                }
                 numColumns={2}
                 columnWrapperStyle={styles.row}
                 contentContainerStyle={styles.list}
+                ListFooterComponent={() => (
+                    itemsToShow < filteredItems.length ? (
+                        <TouchableOpacity
+                            style={styles.loadMoreButton}
+                            onPress={() => setItemsToShow(itemsToShow + 6)}
+                        >
+                            <Text style={styles.loadMoreText}>Ver Mais ({filteredItems.length - itemsToShow} restantes)</Text>
+                        </TouchableOpacity>
+                    ) : null
+                )}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
                         <View style={styles.emptyContent}>
                             <Text style={styles.emptyIcon}>🔍</Text>
-                            <Text style={styles.emptyTitle}>Nenhum item encontrado</Text>
+                            <Text style={styles.emptyTitle}>Ningún artículo encontrado</Text>
                             <Text style={styles.emptyText}>
                                 {searchQuery || selectedCategory !== 'Todos'
-                                    ? 'Tente ajustar os filtros de busca'
-                                    : 'Seja o primeiro a anunciar um item!'}
+                                    ? 'Intenta ajustar los filtros de búsqueda'
+                                    : '¡Sé el primero en anunciar un artículo!'}
                             </Text>
                             {(searchQuery || selectedCategory !== 'Todos') && (
                                 <TouchableOpacity
@@ -359,7 +383,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                                         setSelectedCategory('Todos');
                                     }}
                                 >
-                                    <Text style={styles.clearFiltersButtonText}>Limpar Filtros</Text>
+                                    <Text style={styles.clearFiltersButtonText}>Limpiar Filtros</Text>
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -409,7 +433,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#999',
     },
-    header: {
+    headerContainer: {
         backgroundColor: '#fff',
         paddingTop: 20,
         paddingBottom: 15,
@@ -422,46 +446,34 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 3,
     },
-    headerContent: {
+    headerTopRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'space-between',
     },
-    headerInfo: {
-        flex: 1,
+    backButtonCircle: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#007bff',
+        elevation: 2,
+        shadowColor: '#007bff',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+    },
+    backArrow: {
+        fontSize: 18,
+        color: '#fff',
     },
     headerTitle: {
-        fontSize: 32,
+        fontSize: 18,
         fontWeight: 'bold',
-        color: '#1a3a52',
-        letterSpacing: -0.5,
-    },
-    headerSubtitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 5,
-    },
-    headerSubtitle: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '500',
-    },
-    filterActiveBadge: {
-        backgroundColor: '#007bff',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 10,
-        marginLeft: 8,
-    },
-    filterActiveBadgeText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    searchContainer: {
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        backgroundColor: '#fff',
+        color: '#333',
+        flex: 1,
+        textAlign: 'center',
     },
     searchInputContainer: {
         flexDirection: 'row',
@@ -471,6 +483,7 @@ const styles = StyleSheet.create({
         borderRadius: 15,
         borderWidth: 1,
         borderColor: '#E8E8E8',
+        marginTop: 10,
     },
     searchIcon: {
         fontSize: 18,
@@ -489,107 +502,88 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: '#999',
     },
-    categoriesSection: {
+    compactFiltersRow: {
         backgroundColor: '#fff',
-        paddingBottom: 15,
         borderBottomWidth: 1,
         borderBottomColor: '#E8E8E8',
+        marginBottom: 10,
+        flexDirection: 'row',
+        gap: 10,
+        paddingHorizontal: 15,
+        paddingVertical: 12,
     },
-    categoriesLabel: {
+    filterSection: {
+        flex: 1,
+        position: 'relative',
+    },
+    filterHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+    },
+    filterHeaderText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#666',
-        paddingHorizontal: 20,
-        marginBottom: 10,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        color: '#333',
+        flex: 1,
     },
-    categoriesContainer: {
-        flexGrow: 0,
-    },
-    categoriesContent: {
-        paddingHorizontal: 20,
-    },
-    categoryChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 25,
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        marginRight: 10,
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-    },
-    categoryChipIcon: {
-        fontSize: 16,
-        marginRight: 6,
-    },
-    categoryChipText: {
+    filterHeaderArrow: {
         fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
+        color: '#007bff',
+        marginLeft: 5,
     },
-    categoryChipTextActive: {
-        color: '#fff',
-    },
-    sortSection: {
+    filterContent: {
+        position: 'absolute',
+        top: 45,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
         backgroundColor: '#fff',
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
         paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
+        paddingHorizontal: 10,
+        maxHeight: 250,
     },
-    sortLabel: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#666',
-        paddingHorizontal: 20,
-        marginBottom: 10,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    sortContainer: {
-        flexGrow: 0,
-    },
-    sortContent: {
-        paddingHorizontal: 20,
-    },
-    sortChip: {
+    filterOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        marginRight: 10,
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 10,
+        backgroundColor: '#F8F9FA',
+        marginBottom: 8,
     },
-    sortChipActive: {
+    filterOptionActive: {
         backgroundColor: '#007bff',
-        borderColor: '#007bff',
     },
-    sortChipIcon: {
+    filterOptionIcon: {
         fontSize: 16,
-        marginRight: 4,
+        marginRight: 8,
         color: '#007bff',
     },
-    sortChipText: {
+    filterOptionText: {
         fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
+        color: '#333',
+        flex: 1,
     },
-    sortChipTextActive: {
+    filterOptionTextActive: {
+        color: '#fff',
+    },
+    filterOptionCheck: {
+        fontSize: 16,
         color: '#fff',
     },
     list: {
@@ -797,14 +791,18 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.3)',
     },
     emptyContainer: {
-        flex: 1,
+        width: '100%',
+        minHeight: 400,
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 80,
+        paddingHorizontal: 20,
     },
     emptyContent: {
         alignItems: 'center',
+        justifyContent: 'center',
         paddingHorizontal: 40,
+        width: '100%',
     },
     emptyIcon: {
         fontSize: 80,
@@ -816,6 +814,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
+        textAlign: 'center',
     },
     emptyText: {
         fontSize: 15,
@@ -865,5 +864,24 @@ const styles = StyleSheet.create({
         fontSize: 32,
         color: '#fff',
         fontWeight: '300',
+    },
+    loadMoreButton: {
+        backgroundColor: '#007bff',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 25,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 10,
+        elevation: 2,
+        shadowColor: '#007bff',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+    },
+    loadMoreText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
 });

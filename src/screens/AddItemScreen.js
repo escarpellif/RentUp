@@ -13,13 +13,13 @@ export default function AddItemScreen({ session }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [pricePerDay, setPricePerDay] = useState('');
-    const [category, setCategory] = useState('Ferramentas');
+    const [category, setCategory] = useState('Herramientas');
     const [location, setLocation] = useState('');
     const [loading, setLoading] = useState(false);
     const [photoUri, setPhotoUri] = useState(null); // URI local da foto selecionada
     const [photoPath, setPhotoPath] = useState(null); // Caminho da foto no Supabase Storage
 
-    const categories = ['Ferramentas', 'Eletrônicos', 'Esportes', 'Moda', 'Veículos', 'Outros'];
+    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Vehículos', 'Otros'];
 
     // ----------------------------------------------------
     // LÓGICA DE SELEÇÃO DA IMAGEM
@@ -50,7 +50,7 @@ export default function AddItemScreen({ session }) {
         // VERIFICAÇÃO CRÍTICA
         if (!user) {
             console.error('❌ Erro: Usuário não está logado');
-            Alert.alert('Erro de Sessão', 'Usuário não está logado.');
+            Alert.alert('Error de Sesión', 'El usuario no está conectado.');
             setLoading(false);
             return null;
         }
@@ -80,7 +80,7 @@ export default function AddItemScreen({ session }) {
 
             if (error) {
                 console.error("❌ ERRO NO UPLOAD DO STORAGE:", error.message);
-                Alert.alert('Erro no Upload', 'Falha ao subir a imagem: ' + error.message);
+                Alert.alert('Error en la Carga', 'Error al subir la imagen: ' + error.message);
                 setLoading(false);
                 return null;
             }
@@ -90,7 +90,7 @@ export default function AddItemScreen({ session }) {
             return data.path;
         } catch (err) {
             console.error('❌ Exceção durante upload:', err);
-            Alert.alert('Erro', 'Erro inesperado durante o upload: ' + err.message);
+            Alert.alert('Error', 'Error inesperado durante la carga: ' + err.message);
             setLoading(false);
             return null;
         }
@@ -103,7 +103,7 @@ export default function AddItemScreen({ session }) {
         console.log('🔵 Iniciando handleSubmit...');
 
         if (!title || !description || !pricePerDay || !location || !photoUri) {
-            Alert.alert('Preencha todos os campos', 'Lembre-se de adicionar uma foto!');
+            Alert.alert('Completa Todos los Campos', '¡Recuerda añadir una foto!');
             return;
         }
 
@@ -151,10 +151,10 @@ export default function AddItemScreen({ session }) {
 
         if (error) {
             console.error("❌ ERRO DE INSERÇÃO NO SUPABASE:", error);
-            Alert.alert('Erro ao Anunciar', error.message);
+            Alert.alert('Error al Anunciar', error.message);
         } else {
             console.log('✅ Item inserido com sucesso!', data);
-            Alert.alert('Sucesso!', 'Seu item foi anunciado no marketplace!');
+            Alert.alert('¡Éxito!', '¡Tu artículo ha sido anunciado en el marketplace!');
             // 3. LIMPA O FORMULÁRIO
             setTitle('');
             setDescription('');
@@ -173,31 +173,31 @@ export default function AddItemScreen({ session }) {
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.header}>Anunciar Novo Item</Text>
+            <Text style={styles.header}>Anunciar Nuevo Artículo</Text>
 
             {/* 1. Título do Item */}
-            <Text style={styles.label}>Título do Anúncio (Curto e Chamativo)</Text>
+            <Text style={styles.label}>Título del Anuncio (Corto y Atractivo)</Text>
             <TextInput
                 style={styles.input}
                 onChangeText={setTitle}
                 value={title}
-                placeholder="Ex: Furadeira Bosch 18V - Aluguel"
+                placeholder="Ej: Taladro Bosch 18V - Alquiler"
                 maxLength={80}
             />
 
             {/* 2. Descrição */}
-            <Text style={styles.label}>Descrição Completa</Text>
+            <Text style={styles.label}>Descripción Completa</Text>
             <TextInput
                 style={[styles.input, styles.multilineInput]}
                 onChangeText={setDescription}
                 value={description}
-                placeholder="Detalhe o estado do item, acessórios e regras de uso."
+                placeholder="Detalla el estado del artículo, accesorios y reglas de uso."
                 multiline
                 numberOfLines={4}
             />
 
             {/* 3. Categoria */}
-            <Text style={styles.label}>Categoria</Text>
+            <Text style={styles.label}>Categoría</Text>
             <View style={styles.pickerContainer}>
                 <Picker
                     selectedValue={category}
@@ -210,26 +210,26 @@ export default function AddItemScreen({ session }) {
             </View>
 
             {/* 4. Preço por Dia */}
-            <Text style={styles.label}>Preço do Aluguel por Dia (€)</Text>
+            <Text style={styles.label}>Precio de Alquiler por Día (€)</Text>
             <TextInput
                 style={styles.input}
                 onChangeText={setPricePerDay}
                 value={pricePerDay}
-                placeholder="Ex: 50.00"
+                placeholder="Ej: 50.00"
                 keyboardType="numeric"
             />
 
             {/* 5. Localização */}
-            <Text style={styles.label}>Sua Localização de Retirada (Cidade/Bairro)</Text>
+            <Text style={styles.label}>Tu Ubicación de Recogida (Ciudad/Barrio)</Text>
             <TextInput
                 style={styles.input}
                 onChangeText={setLocation}
                 value={location}
-                placeholder="Ex: Dubai Marina ou São Paulo - Pinheiros"
+                placeholder="Ej: Dubai Marina o São Paulo - Pinheiros"
             />
 
             {/* 6. Botão e Preview da Foto */}
-            <Text style={styles.label}>Foto Principal do Item</Text>
+            <Text style={styles.label}>Foto Principal del Artículo</Text>
             <TouchableOpacity onPress={pickImage} style={styles.photoPlaceholder}>
                 {photoUri ? (
                     <Image
@@ -237,12 +237,12 @@ export default function AddItemScreen({ session }) {
                         style={styles.previewImage}
                     />
                 ) : (
-                    <Text style={{color: 'gray'}}>Clique para selecionar a foto</Text>
+                    <Text style={{color: 'gray'}}>Haz clic para seleccionar la foto</Text>
                 )}
             </TouchableOpacity>
 
             <Button
-                title={loading ? 'Processando...' : 'Anunciar Item'}
+                title={loading ? 'Procesando...' : 'Anunciar Artículo'}
                 onPress={handleSubmit}
                 disabled={loading}
             />

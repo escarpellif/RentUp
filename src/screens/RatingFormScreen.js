@@ -17,7 +17,7 @@ export default function RatingFormScreen({ route, navigation, session }) {
 
     // A função avaliada (importante para o cálculo da média no backend)
     const roleRated = isLocadorRating ? 'LOCATARIO' : 'LOCADOR';
-    const targetName = isLocadorRating ? 'o Locatário' : 'o Locador';
+    const targetName = isLocadorRating ? 'el Arrendatario' : 'el Arrendador';
 
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -28,7 +28,7 @@ export default function RatingFormScreen({ route, navigation, session }) {
     // ----------------------------------------------------
     async function submitRating() {
         if (rating === 0) {
-            Alert.alert('Erro', 'Por favor, selecione uma nota.');
+            Alert.alert('Error', 'Por favor, selecciona una puntuación.');
             return;
         }
 
@@ -61,7 +61,7 @@ export default function RatingFormScreen({ route, navigation, session }) {
 
         if (ratingError) {
             setLoading(false);
-            Alert.alert('Erro no Envio da Nota', ratingError.message);
+            Alert.alert('Error al Enviar la Puntuación', ratingError.message);
             return;
         }
 
@@ -77,21 +77,21 @@ export default function RatingFormScreen({ route, navigation, session }) {
             // A nota foi salva, mas o status da transação não.
             // Isso requer atenção, mas o usuário deve seguir em frente.
             Alert.alert(
-                'Atenção',
-                'Sua nota foi salva, mas houve um erro ao finalizar a transação. Nossa equipe verificará.'
+                'Atención',
+                'Tu puntuación fue guardada, pero hubo un error al finalizar la transacción. Nuestro equipo lo verificará.'
             );
         } else {
-            Alert.alert('Obrigado!', `Você avaliou ${targetName}. Sua nota será revelada quando a outra parte avaliar.`);
+            Alert.alert('¡Gracias!', `Has valorado a ${targetName}. Tu puntuación será revelada cuando la otra parte valore.`);
             navigation.goBack(); // Volta para a tela anterior
         }
     }
 
     return (
         <ScrollView style={styles.container}>
-            <Text style={styles.header}>Avalie a Transação</Text>
+            <Text style={styles.header}>Valora la Transacción</Text>
 
             <Text style={styles.prompt}>
-                Como foi sua experiência com **{targetName}**?
+                ¿Cómo fue tu experiencia con **{targetName}**?
             </Text>
 
             {/* Componente de Estrelas */}
@@ -107,18 +107,18 @@ export default function RatingFormScreen({ route, navigation, session }) {
             </View>
 
             {/* Comentário */}
-            <Text style={styles.label}>Seu Comentário Público (Opcional)</Text>
+            <Text style={styles.label}>Tu Comentario Público (Opcional)</Text>
             <TextInput
                 style={[styles.input, styles.multilineInput]}
                 onChangeText={setComment}
                 value={comment}
-                placeholder={`Conte-nos sobre sua experiência com ${targetName}...`}
+                placeholder={`Cuéntanos sobre tu experiencia con ${targetName}...`}
                 multiline
                 numberOfLines={4}
             />
 
             <Button
-                title={loading ? 'Enviando...' : 'Finalizar Avaliação'}
+                title={loading ? 'Enviando...' : 'Finalizar Valoración'}
                 onPress={submitRating}
                 disabled={loading}
             />

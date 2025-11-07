@@ -34,13 +34,13 @@ export default function ItemDetailsScreen({ route, navigation }) {
     const handleContact = () => {
         Alert.alert(
             'Chat Interno',
-            `Deseja iniciar uma conversa com ${ownerProfile?.full_name || 'o anunciante'}?`,
+            `¿Deseas iniciar una conversación con ${ownerProfile?.full_name || 'el anunciante'}?`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
                     text: 'Iniciar Chat',
                     onPress: () => {
-                        Alert.alert('Em breve!', 'Sistema de chat será implementado.');
+                        Alert.alert('¡Próximamente!', 'El sistema de chat será implementado.');
                     }
                 }
             ]
@@ -61,7 +61,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
                     <Text key={star} style={styles.starIcon}>⭐</Text>
                 ))}
                 <Text style={styles.ratingNumber}>
-                    {rating > 0 ? parseFloat(rating).toFixed(1) : `(${count || 0} ${count === 1 ? 'avaliação' : 'avaliações'})`}
+                    {rating > 0 ? parseFloat(rating).toFixed(1) : `(${count || 0} ${count === 1 ? 'valoración' : 'valoraciones'})`}
                 </Text>
             </View>
         );
@@ -90,7 +90,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
 
                 {/* Descrição */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Descrição</Text>
+                    <Text style={styles.sectionTitle}>Descripción</Text>
                     <Text style={styles.description}>{item.description}</Text>
                 </View>
 
@@ -98,12 +98,12 @@ export default function ItemDetailsScreen({ route, navigation }) {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Anunciante</Text>
                     {loading ? (
-                        <Text>Carregando...</Text>
+                        <Text>Cargando...</Text>
                     ) : (
                         <View style={styles.ownerCard}>
                             <View style={styles.ownerInfo}>
                                 <Text style={styles.ownerName}>
-                                    {ownerProfile?.full_name || 'Usuário'}
+                                    {ownerProfile?.full_name || 'Usuario'}
                                 </Text>
                                 {renderStars(ownerProfile?.rating_avg_locador || 0, ownerProfile?.rating_count_locador || 0)}
                             </View>
@@ -111,7 +111,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
                                 style={styles.contactButton}
                                 onPress={handleContact}
                             >
-                                <Text style={styles.contactButtonText}>💬 Contato</Text>
+                                <Text style={styles.contactButtonText}>💬 Contacto</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -119,17 +119,17 @@ export default function ItemDetailsScreen({ route, navigation }) {
 
                 {/* Informações Adicionais */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Informações</Text>
+                    <Text style={styles.sectionTitle}>Información</Text>
                     <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>Disponível:</Text>
+                        <Text style={styles.infoLabel}>Disponible:</Text>
                         <Text style={styles.infoValue}>
-                            {item.is_available ? '✅ Sim' : '❌ Não disponível'}
+                            {item.is_available ? '✅ Sí' : '❌ No disponible'}
                         </Text>
                     </View>
                     <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>Anunciado em:</Text>
+                        <Text style={styles.infoLabel}>Anunciado el:</Text>
                         <Text style={styles.infoValue}>
-                            {new Date(item.created_at).toLocaleDateString('pt-BR')}
+                            {new Date(item.created_at).toLocaleDateString('es-ES')}
                         </Text>
                     </View>
                 </View>
@@ -141,7 +141,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
                         onPress={handleRequestRental}
                     >
                         <Text style={styles.primaryButtonText}>
-                            🔑 Solicitar Aluguel
+                            🔑 Solicitar Alquiler
                         </Text>
                     </TouchableOpacity>
 
@@ -150,7 +150,7 @@ export default function ItemDetailsScreen({ route, navigation }) {
                         onPress={handleContact}
                     >
                         <Text style={styles.secondaryButtonText}>
-                            💬 Falar com Anunciante
+                            💬 Hablar con Anunciante
                         </Text>
                     </TouchableOpacity>
                 </View>
