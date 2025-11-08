@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, AppRegistry } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { supabase } from './supabase'; // Ajuste o caminho conforme sua estrutura
+import { supabase } from './supabase';
 
 import AuthScreen from './src/screens/AuthScreen';
-import HomeScreen from './src/screens/HomeScreen'; // Nova tela Home
-import MainMarketplace from './src/screens/MainMarketplace'; // Tela que acabamos de criar
-import AddItemScreen from './src/screens/AddItemScreen'; // Tela de cadastro de item
-import EditItemScreen from './src/screens/EditItemScreen'; // Tela de edição de item
-import ItemDetailsScreen from './src/screens/ItemDetailsScreen'; // Tela de detalhes do item
-import RequestRentalScreen from './src/screens/RequestRentalScreen'; // Tela de solicitação de aluguel
-import ProfileScreen from './src/screens/ProfileScreen'; // Tela de perfil do usuário
+import HomeScreen from './src/screens/HomeScreen';
+import MainMarketplace from './src/screens/MainMarketplace';
+import TipsBeforeAddingScreen from './src/screens/TipsBeforeAddingScreen';
+import AddItemFormScreen from './src/screens/AddItemFormScreen';
+import EditItemScreen from './src/screens/EditItemScreen';
+import ItemDetailsScreen from './src/screens/ItemDetailsScreen';
+import RequestRentalScreen from './src/screens/RequestRentalScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -50,27 +51,23 @@ export default function App() {
             <NavigationContainer>
                 <Stack.Navigator
                     screenOptions={{
-                        headerShown: true,
-                        headerTitle: '',
-                        headerBackTitleVisible: false,
-                        headerTransparent: true,
-                        headerStyle: {
-                            backgroundColor: 'transparent',
-                        },
-                        headerTintColor: '#007bff',
-                        headerShadowVisible: false,
+                        headerShown: false,
                     }}
                 >
-                    <Stack.Screen name="HomeScreen" options={{ headerShown: false }}>
+                    <Stack.Screen name="HomeScreen">
                         {(props) => <HomeScreen {...props} session={session} />}
                     </Stack.Screen>
 
-                    <Stack.Screen name="Home" options={{ headerShown: false }}>
+                    <Stack.Screen name="Home">
                         {(props) => <MainMarketplace {...props} session={session} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="AddItem">
-                        {(props) => <AddItemScreen {...props} session={session} />}
+                        {(props) => <TipsBeforeAddingScreen {...props} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AddItemForm">
+                        {(props) => <AddItemFormScreen {...props} session={session} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="EditItem">
@@ -99,3 +96,4 @@ export default function App() {
 
 // Registrar o componente para Expo
 AppRegistry.registerComponent('main', () => App);
+

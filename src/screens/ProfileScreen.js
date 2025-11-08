@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
-import { Rating } from 'react-native-ratings'; // Para exibir a média de estrelas
+import { Rating } from 'react-native-ratings';
 
-export default function ProfileScreen({ session }) {
+export default function ProfileScreen({ session, navigation }) {
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const userId = session.user.id; // O ID do usuário logado
@@ -78,8 +78,24 @@ export default function ProfileScreen({ session }) {
 
     return (
         <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+
+            {/* Header com Botão Voltar */}
+            <View style={styles.headerContainer}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.backArrow}>←</Text>
+                </TouchableOpacity>
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>Mi Perfil</Text>
+                </View>
+                <View style={styles.headerSpacer} />
+            </View>
+
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <Text style={styles.header}>Mi Perfil</Text>
 
                 <View style={styles.infoCard}>
                     <Text style={styles.name}>{profile.full_name || profile.username}</Text>
@@ -112,7 +128,44 @@ export default function ProfileScreen({ session }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#F8F9FA',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E8E8E8',
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F8F9FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+    },
+    backArrow: {
+        fontSize: 22,
+        color: '#333',
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    headerSpacer: {
+        width: 40,
     },
     loadingContainer: {
         flex: 1,
@@ -157,6 +210,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 15,
         color: '#333',
+        textAlign: 'center',
     },
     ratingsContainer: {
         flexDirection: 'row',

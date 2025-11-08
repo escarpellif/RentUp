@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Image, Modal, Alert, Platform, StatusBar } from 'react-native';
+import { supabase } from '../../supabase';
 
 export default function HomeScreen({ navigation, session }) {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -28,8 +29,28 @@ export default function HomeScreen({ navigation, session }) {
 
     const handleLogout = async () => {
         setMenuVisible(false);
-        // Implementar logout do Supabase
-        Alert.alert('Cerrar Sesión', 'La función de cerrar sesión será implementada');
+
+        Alert.alert(
+            'Cerrar Sesión',
+            '¿Estás seguro de que deseas salir?',
+            [
+                {
+                    text: 'Cancelar',
+                    style: 'cancel'
+                },
+                {
+                    text: 'Salir',
+                    style: 'destructive',
+                    onPress: async () => {
+                        const { error } = await supabase.auth.signOut();
+                        if (error) {
+                            Alert.alert('Error', 'No se pudo cerrar sesión: ' + error.message);
+                        }
+                        // O App.js detectará a mudança de sessão e voltará para AuthScreen
+                    }
+                }
+            ]
+        );
     };
 
     return (

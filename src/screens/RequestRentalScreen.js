@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import RentalCalendar from '../components/RentalCalendar';
 
 export default function RequestRentalScreen({ route, navigation }) {
@@ -76,7 +77,25 @@ export default function RequestRentalScreen({ route, navigation }) {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <SafeAreaView style={styles.safeContainer}>
+            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+
+            {/* Header com Botão Voltar */}
+            <View style={styles.headerContainer}>
+                <TouchableOpacity
+                    style={styles.backButton}
+                    onPress={() => navigation.goBack()}
+                    activeOpacity={0.7}
+                >
+                    <Text style={styles.backArrow}>←</Text>
+                </TouchableOpacity>
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>Solicitar Alquiler</Text>
+                </View>
+                <View style={styles.headerSpacer} />
+            </View>
+
+            <ScrollView style={styles.container}>
             <View style={styles.content}>
                 {/* Informações do Item */}
                 <View style={styles.itemCard}>
@@ -170,11 +189,53 @@ export default function RequestRentalScreen({ route, navigation }) {
             </View>
 
             <View style={{ height: 30 }} />
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeContainer: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E8E8E8',
+    },
+    backButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#F8F9FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+    },
+    backArrow: {
+        fontSize: 22,
+        color: '#333',
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    headerSpacer: {
+        width: 40,
+    },
     container: {
         flex: 1,
         backgroundColor: '#fff',

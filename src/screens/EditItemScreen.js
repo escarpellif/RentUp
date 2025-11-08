@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Button, Alert, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, Platform, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
@@ -17,16 +18,26 @@ export default function EditItemScreen({ route, navigation, session }) {
     const [pricePerDay, setPricePerDay] = useState(item.price_per_day.toString());
     const [category, setCategory] = useState(item.category);
     const [location, setLocation] = useState(item.location);
+    const [deliveryType, setDeliveryType] = useState(item.delivery_type || 'pickup');
     const [loading, setLoading] = useState(false);
-    const [photoUri, setPhotoUri] = useState(null);
-    const [photoPath, setPhotoPath] = useState(item.photo_url);
+
+    // Inicializa com as fotos existentes ou array vazio
+    const existingPhotos = item.photos || (item.photo_url ? [item.photo_url] : []);
+    const [photos, setPhotos] = useState([
+        existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
+        existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
+        existingPhotos[2] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[2]}` : null,
+    ]);
+    const [photoPaths, setPhotoPaths] = useState([
+        existingPhotos[0] || null,
+        existingPhotos[1] || null,
+        existingPhotos[2] || null,
+    ]);
+    const [newPhotos, setNewPhotos] = useState([false, false, false]); // Track which photos are new
 
     const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Vehículos', 'Otros'];
 
-    // URL da foto atual
-    const currentPhotoUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
-
-    const pickImage = async () => {
+    const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
@@ -35,9 +46,27 @@ export default function EditItemScreen({ route, navigation, session }) {
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setPhotoUri(result.assets[0].uri);
+            const newPhotosArray = [...photos];
+            newPhotosArray[index] = result.assets[0].uri;
+            setPhotos(newPhotosArray);
+
+            const newPhotosFlags = [...newPhotos];
+            newPhotosFlags[index] = true;
+            setNewPhotos(newPhotosFlags);
         }
     };
+
+    const removePhoto = (index) => {
+        const newPhotosArray = [...photos];
+        newPhotosArray[index] = null;
+        setPhotos(newPhotosArray);
+
+        const newPathsArray = [...photoPaths];
+        newPathsArray[index] = null;
+        setPhotoPaths(newPathsArray);
+    };
+
+    // URL da foto atual - removida pois agora usamos array
 
     const uploadImage = async (uri) => {
         console.log('🔵 Iniciando upload da nova imagem...');
@@ -87,32 +116,54 @@ export default function EditItemScreen({ route, navigation, session }) {
     async function handleUpdate() {
         console.log('🔵 Iniciando atualização do item...');
 
-        if (!title || !description || !pricePerDay || !location) {
-            Alert.alert('Campos Incompletos', 'Por favor, completa todos los campos');
+        // Verificar se há pelo menos uma foto
+        const hasAtLeastOnePhoto = photos.some(photo => photo !== null);
+
+        if (!title || !description || !pricePerDay || !location || !hasAtLeastOnePhoto) {
+            Alert.alert('Campos Incompletos', 'Por favor, completa todos los campos y añade al menos una foto');
             return;
         }
 
         setLoading(true);
-        let newPhotoPath = photoPath;
+        const finalPhotoPaths = [...photoPaths];
 
-        // Se o usuário selecionou uma nova foto, faz upload
-        if (photoUri) {
-            console.log('🔵 Nova foto selecionada, fazendo upload...');
-            const uploadedPath = await uploadImage(photoUri);
-            if (uploadedPath) {
-                newPhotoPath = uploadedPath;
-                
-                // Opcional: deletar a foto antiga
-                try {
-                    await supabase.storage
-                        .from('item_photos')
-                        .remove([item.photo_url]);
-                    console.log('✅ Foto antiga deletada');
-                } catch (err) {
-                    console.log('⚠️ Não foi possível deletar a foto antiga:', err);
+        // Fazer upload das novas fotos
+        for (let i = 0; i < photos.length; i++) {
+            if (newPhotos[i] && photos[i]) {
+                console.log(`🔵 Nova foto ${i + 1} selecionada, fazendo upload...`);
+                const uploadedPath = await uploadImage(photos[i]);
+                if (uploadedPath) {
+                    // Deletar foto antiga se existir
+                    if (photoPaths[i]) {
+                        try {
+                            await supabase.storage
+                                .from('item_photos')
+                                .remove([photoPaths[i]]);
+                            console.log(`✅ Foto antiga ${i + 1} deletada`);
+                        } catch (err) {
+                            console.log(`⚠️ Não foi possível deletar a foto antiga ${i + 1}:`, err);
+                        }
+                    }
+                    finalPhotoPaths[i] = uploadedPath;
                 }
+            } else if (!photos[i]) {
+                // Se a foto foi removida, deletar do storage
+                if (photoPaths[i]) {
+                    try {
+                        await supabase.storage
+                            .from('item_photos')
+                            .remove([photoPaths[i]]);
+                        console.log(`✅ Foto ${i + 1} removida do storage`);
+                    } catch (err) {
+                        console.log(`⚠️ Erro ao remover foto ${i + 1}:`, err);
+                    }
+                }
+                finalPhotoPaths[i] = null;
             }
         }
+
+        // Filtrar apenas fotos não nulas
+        const validPhotoPaths = finalPhotoPaths.filter(path => path !== null);
 
         console.log('🔵 Atualizando dados na tabela items...');
 
@@ -124,7 +175,9 @@ export default function EditItemScreen({ route, navigation, session }) {
                 price_per_day: parseFloat(pricePerDay),
                 category: category,
                 location: location,
-                photo_url: newPhotoPath,
+                photo_url: validPhotoPaths[0] || null, // Primeira foto como principal
+                photos: validPhotoPaths, // Array com todas as fotos
+                delivery_type: deliveryType,
             })
             .eq('id', item.id)
             .eq('owner_id', session.user.id); // Garante que só o dono pode editar
@@ -157,14 +210,17 @@ export default function EditItemScreen({ route, navigation, session }) {
                     onPress: async () => {
                         setLoading(true);
 
-                        // Deletar a foto do storage
-                        try {
-                            await supabase.storage
-                                .from('item_photos')
-                                .remove([item.photo_url]);
-                            console.log('✅ Foto deletada');
-                        } catch (err) {
-                            console.log('⚠️ Erro ao deletar foto:', err);
+                        // Deletar todas as fotos do storage
+                        const photosToDelete = item.photos || (item.photo_url ? [item.photo_url] : []);
+                        if (photosToDelete.length > 0) {
+                            try {
+                                await supabase.storage
+                                    .from('item_photos')
+                                    .remove(photosToDelete);
+                                console.log('✅ Fotos deletadas');
+                            } catch (err) {
+                                console.log('⚠️ Erro ao deletar fotos:', err);
+                            }
                         }
 
                         // Deletar o item do banco
@@ -194,20 +250,24 @@ export default function EditItemScreen({ route, navigation, session }) {
 
     return (
         <SafeAreaView style={styles.safeContainer}>
-            <StatusBar barStyle="dark-content" />
-            {/* Botão Voltar em Círculo */}
+            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+
+            {/* Header com Botão Voltar */}
             <View style={styles.headerContainer}>
                 <TouchableOpacity
-                    style={styles.backButtonCircle}
+                    style={styles.backButton}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>Editar Artículo</Text>
+                </View>
+                <View style={styles.headerSpacer} />
             </View>
 
             <ScrollView style={styles.container}>
-                <Text style={styles.header}>Editar Artículo</Text>
 
                 <Text style={styles.label}>Título del Anuncio</Text>
                 <TextInput
@@ -257,36 +317,167 @@ export default function EditItemScreen({ route, navigation, session }) {
                     placeholder="Ej: Lisboa - Chiado"
                 />
 
-                <Text style={styles.label}>Foto Principal del Artículo</Text>
-                <TouchableOpacity onPress={pickImage} style={styles.photoPlaceholder}>
-                    {photoUri ? (
-                        <Image
-                            source={{ uri: photoUri }}
-                            style={styles.previewImage}
-                        />
-                    ) : (
-                        <Image
-                            source={{ uri: currentPhotoUrl }}
-                            style={styles.previewImage}
-                        />
-                    )}
-                    <Text style={styles.changePhotoText}>Toca para cambiar la foto</Text>
-                </TouchableOpacity>
+                {/* Tipo de Entrega */}
+                <Text style={styles.label}>Tipo de Entrega</Text>
+                <View style={styles.deliveryTypeContainer}>
+                    <TouchableOpacity
+                        style={[
+                            styles.deliveryOption,
+                            deliveryType === 'pickup' && styles.deliveryOptionActive
+                        ]}
+                        onPress={() => setDeliveryType('pickup')}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.deliveryOptionIcon}>📍</Text>
+                        <Text style={[
+                            styles.deliveryOptionText,
+                            deliveryType === 'pickup' && styles.deliveryOptionTextActive
+                        ]}>
+                            Retira en Lugar
+                        </Text>
+                        {deliveryType === 'pickup' && (
+                            <View style={styles.deliveryCheckmark}>
+                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
 
-                <Button
-                    title={loading ? 'Guardando...' : 'Guardar Cambios'}
+                    <TouchableOpacity
+                        style={[
+                            styles.deliveryOption,
+                            deliveryType === 'delivery' && styles.deliveryOptionActive
+                        ]}
+                        onPress={() => setDeliveryType('delivery')}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.deliveryOptionIcon}>🚚</Text>
+                        <Text style={[
+                            styles.deliveryOptionText,
+                            deliveryType === 'delivery' && styles.deliveryOptionTextActive
+                        ]}>
+                            Entrego en Casa
+                        </Text>
+                        {deliveryType === 'delivery' && (
+                            <View style={styles.deliveryCheckmark}>
+                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[
+                            styles.deliveryOption,
+                            deliveryType === 'both' && styles.deliveryOptionActive
+                        ]}
+                        onPress={() => setDeliveryType('both')}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.deliveryOptionIcon}>🔄</Text>
+                        <Text style={[
+                            styles.deliveryOptionText,
+                            deliveryType === 'both' && styles.deliveryOptionTextActive
+                        ]}>
+                            Ambas Opciones
+                        </Text>
+                        {deliveryType === 'both' && (
+                            <View style={styles.deliveryCheckmark}>
+                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                </View>
+
+                {/* Fotos del Artículo (até 3) */}
+                <Text style={styles.label}>Fotos del Artículo (hasta 3)</Text>
+                <Text style={styles.sublabel}>La primera foto será la principal</Text>
+
+                <View style={styles.photosGrid}>
+                    {photos.map((photo, index) => (
+                        <View key={index} style={styles.photoContainer}>
+                            <TouchableOpacity
+                                onPress={() => pickImage(index)}
+                                style={[
+                                    styles.photoPlaceholder,
+                                    index === 0 && styles.photoPlaceholderPrimary
+                                ]}
+                            >
+                                {photo ? (
+                                    <>
+                                        <Image
+                                            source={{ uri: photo }}
+                                            style={styles.previewImage}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.removePhotoButton}
+                                            onPress={() => removePhoto(index)}
+                                        >
+                                            <Text style={styles.removePhotoText}>✕</Text>
+                                        </TouchableOpacity>
+                                        {index === 0 && (
+                                            <View style={styles.primaryBadge}>
+                                                <Text style={styles.primaryBadgeText}>Principal</Text>
+                                            </View>
+                                        )}
+                                    </>
+                                ) : (
+                                    <View style={styles.addPhotoContent}>
+                                        <Text style={styles.addPhotoIcon}>📷</Text>
+                                        <Text style={styles.addPhotoText}>
+                                            {index === 0 ? 'Foto Principal' : `Foto ${index + 1}`}
+                                        </Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    ))}
+                </View>
+
+                {/* Botão Guardar Cambios */}
+                <TouchableOpacity
+                    style={[styles.saveButton, loading && styles.saveButtonDisabled]}
                     onPress={handleUpdate}
                     disabled={loading}
-                />
+                    activeOpacity={0.8}
+                >
+                    <LinearGradient
+                        colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#28a745', '#20c997']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.saveButtonGradient}
+                    >
+                        {loading ? (
+                            <View style={styles.buttonContent}>
+                                <ActivityIndicator color="#fff" size="small" />
+                                <Text style={styles.buttonText}>Guardando...</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.buttonContent}>
+                                <Text style={styles.buttonIcon}>💾</Text>
+                                <Text style={styles.buttonText}>Guardar Cambios</Text>
+                            </View>
+                        )}
+                    </LinearGradient>
+                </TouchableOpacity>
 
-                <View style={{ marginTop: 20, marginBottom: 10 }}>
-                    <Button
-                        title="Eliminar Artículo"
-                        onPress={handleDelete}
-                        disabled={loading}
-                        color="#dc3545"
-                    />
-                </View>
+                {/* Botão Eliminar Artículo */}
+                <TouchableOpacity
+                    style={[styles.deleteButton, loading && styles.deleteButtonDisabled]}
+                    onPress={handleDelete}
+                    disabled={loading}
+                    activeOpacity={0.8}
+                >
+                    <LinearGradient
+                        colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#dc3545', '#c82333']}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.deleteButtonGradient}
+                    >
+                        <View style={styles.buttonContent}>
+                            <Text style={styles.buttonIcon}>🗑️</Text>
+                            <Text style={styles.buttonText}>Eliminar Artículo</Text>
+                        </View>
+                    </LinearGradient>
+                </TouchableOpacity>
 
                 <View style={{ height: 50 }} />
             </ScrollView>
@@ -297,48 +488,61 @@ export default function EditItemScreen({ route, navigation, session }) {
 const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#F8F9FA',
         paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
     headerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 10,
+        paddingVertical: 16,
         backgroundColor: '#fff',
+        borderBottomWidth: 1,
+        borderBottomColor: '#E8E8E8',
     },
-    backButtonCircle: {
+    backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
+        backgroundColor: '#F8F9FA',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#007bff',
-        elevation: 2,
-        shadowColor: '#007bff',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
     },
     backArrow: {
+        fontSize: 22,
+        color: '#333',
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
         fontSize: 18,
-        color: '#fff',
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    headerSpacer: {
+        width: 40,
     },
     container: {
         flex: 1,
         padding: 20,
-        backgroundColor: '#fff',
-    },
-    header: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        backgroundColor: '#F8F9FA',
     },
     label: {
         fontSize: 16,
         fontWeight: '600',
         marginTop: 15,
         marginBottom: 5,
+    },
+    sublabel: {
+        fontSize: 13,
+        color: '#666',
+        marginBottom: 12,
+        fontStyle: 'italic',
     },
     input: {
         borderWidth: 1,
@@ -357,29 +561,183 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         marginBottom: 10,
     },
+    photosGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+        gap: 10,
+    },
+    photoContainer: {
+        width: '31%',
+        aspectRatio: 1,
+    },
     photoPlaceholder: {
-        borderWidth: 1,
+        width: '100%',
+        height: '100%',
+        borderWidth: 2,
         borderColor: '#ccc',
-        borderRadius: 5,
-        height: 200,
+        borderStyle: 'dashed',
+        borderRadius: 10,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
+        backgroundColor: '#F8F9FA',
+        overflow: 'hidden',
         position: 'relative',
+    },
+    photoPlaceholderPrimary: {
+        borderColor: '#007bff',
+        borderWidth: 2,
+        borderStyle: 'solid',
+    },
+    addPhotoContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    addPhotoIcon: {
+        fontSize: 30,
+        marginBottom: 5,
+    },
+    addPhotoText: {
+        fontSize: 10,
+        color: '#666',
+        textAlign: 'center',
+        fontWeight: '600',
     },
     previewImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 5,
+        borderRadius: 8,
         resizeMode: 'cover',
     },
-    changePhotoText: {
+    removePhotoButton: {
         position: 'absolute',
-        bottom: 10,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        top: 5,
+        right: 5,
+        backgroundColor: 'rgba(220, 53, 69, 0.9)',
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+    },
+    removePhotoText: {
         color: '#fff',
-        padding: 5,
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    primaryBadge: {
+        position: 'absolute',
+        bottom: 5,
+        left: 5,
+        backgroundColor: 'rgba(0, 123, 255, 0.9)',
+        paddingHorizontal: 8,
+        paddingVertical: 3,
         borderRadius: 5,
-        fontSize: 12,
+    },
+
+    deliveryTypeContainer: {
+        marginBottom: 20,
+        gap: 12,
+    },
+    deliveryOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F5F5F5',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#E0E0E0',
+        position: 'relative',
+    },
+    deliveryOptionActive: {
+        backgroundColor: '#E3F2FD',
+        borderColor: '#007bff',
+    },
+    deliveryOptionIcon: {
+        fontSize: 24,
+        marginRight: 12,
+    },
+    deliveryOptionText: {
+        fontSize: 15,
+        color: '#666',
+        fontWeight: '500',
+        flex: 1,
+    },
+    deliveryOptionTextActive: {
+        color: '#007bff',
+        fontWeight: '700',
+    },
+    deliveryCheckmark: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#007bff',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    primaryBadgeText: {
+        color: '#fff',
+        fontSize: 9,
+        fontWeight: 'bold',
+    },
+    saveButton: {
+        marginTop: 30,
+        marginBottom: 15,
+        borderRadius: 15,
+        overflow: 'hidden',
+        elevation: 8,
+        shadowColor: '#28a745',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+    },
+    saveButtonDisabled: {
+        opacity: 0.7,
+    },
+    saveButtonGradient: {
+        paddingVertical: 18,
+        paddingHorizontal: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    deleteButton: {
+        marginBottom: 10,
+        borderRadius: 15,
+        overflow: 'hidden',
+        elevation: 8,
+        shadowColor: '#dc3545',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 6,
+    },
+    deleteButtonDisabled: {
+        opacity: 0.7,
+    },
+    deleteButtonGradient: {
+        paddingVertical: 18,
+        paddingHorizontal: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    buttonContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+    },
+    buttonIcon: {
+        fontSize: 24,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        letterSpacing: 0.5,
     },
 });

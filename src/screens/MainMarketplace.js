@@ -277,7 +277,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                         <View style={styles.filterContent}>
                             {categories.map((category) => {
                                 const isActive = selectedCategory === category;
-                                const config = categoryConfig[category] || categoryConfig['Outros'];
+                                const config = category !== 'Todos' ? (categoryConfig[category] || categoryConfig['Otros']) : null;
 
                                 return (
                                     <TouchableOpacity
@@ -289,7 +289,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                                         }}
                                         activeOpacity={0.7}
                                     >
-                                        {category !== 'Todos' && (
+                                        {category !== 'Todos' && config && (
                                             <Text style={styles.filterOptionIcon}>{config.icon}</Text>
                                         )}
                                         <Text style={[styles.filterOptionText, isActive && styles.filterOptionTextActive]}>
@@ -393,7 +393,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                 onRefresh={fetchItems}
             />
 
-            {/* Botão Flutuante melhorado */}
+            {/* Botão Flutuante */}
             <TouchableOpacity
                 style={styles.addButton}
                 onPress={() => navigation.navigate('AddItem')}
@@ -455,18 +455,15 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 20,
+        backgroundColor: '#F8F9FA',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#007bff',
-        elevation: 2,
-        shadowColor: '#007bff',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
     },
     backArrow: {
-        fontSize: 18,
-        color: '#fff',
+        fontSize: 22,
+        color: '#333',
     },
     headerTitle: {
         fontSize: 18,
@@ -791,6 +788,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.3)',
     },
     emptyContainer: {
+        flex: 1,
         width: '100%',
         minHeight: 400,
         alignItems: 'center',
@@ -803,6 +801,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         paddingHorizontal: 40,
         width: '100%',
+        maxWidth: 400,
     },
     emptyIcon: {
         fontSize: 80,
