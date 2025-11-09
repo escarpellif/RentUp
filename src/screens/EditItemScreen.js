@@ -35,7 +35,7 @@ export default function EditItemScreen({ route, navigation, session }) {
     ]);
     const [newPhotos, setNewPhotos] = useState([false, false, false]); // Track which photos are new
 
-    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Vehículos', 'Otros'];
+    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Accesorios de Vehículos', 'Otros'];
 
     const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({

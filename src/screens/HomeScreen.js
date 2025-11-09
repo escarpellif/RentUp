@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Image, Modal, Alert, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, StatusBar, Image } from 'react-native';
 import { supabase } from '../../supabase';
+import { useAdminNotifications } from '../hooks/useAdminNotifications';
+import RecentItemsCarousel from '../components/RecentItemsCarousel';
+import BenefitsSection from '../components/BenefitsSection';
+import TestimonialsSection from '../components/TestimonialsSection';
 
 export default function HomeScreen({ navigation, session }) {
     const [menuVisible, setMenuVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Hook de notificações
+    const { unreadCount } = useAdminNotifications();
+
     const categories = [
-        { id: '1', name: 'Electrónicos', icon: '🎮', color: '#FF6B6B' },
-        { id: '2', name: 'Deportes', icon: '🏀', color: '#FF9F43' },
-        { id: '3', name: 'Vehículos', icon: '🚗', color: '#48DBFB' },
-        { id: '4', name: 'Muebles', icon: '🛋️', color: '#FFC312' },
-        { id: '5', name: 'Herramientas', icon: '🔧', color: '#A29BFE' },
-        { id: '6', name: 'Fiestas', icon: '🎉', color: '#FF6348' },
-        { id: '7', name: 'Jardín', icon: '🌱', color: '#26DE81' },
-        { id: '8', name: 'Otros', icon: '📦', color: '#95A5A6' },
+        { id: '1', name: 'Electrónicos', icon: '🎮', color: '#fff' },
+        { id: '2', name: 'Deportes', icon: '🏀', color: '#fff' },
+        { id: '3', name: 'Accesorios de Vehículos', icon: '🔧', color: '#fff' },
+        { id: '4', name: 'Muebles', icon: '🛋️', color: '#fff' },
+        { id: '5', name: 'Herramientas', icon: '🔨', color: '#fff' },
+        { id: '6', name: 'Fiestas', icon: '🎉', color: '#fff' },
+        { id: '7', name: 'Jardín', icon: '🌱', color: '#fff' },
+        { id: '8', name: 'Ropa', icon: '👕', color: '#fff' },
+        { id: '9', name: 'Otros', icon: '📦', color: '#fff' },
     ];
 
     const handleCategoryPress = (category) => {
@@ -67,9 +75,21 @@ export default function HomeScreen({ navigation, session }) {
                         <View style={styles.hamburgerLine} />
                         <View style={styles.hamburgerLine} />
                     </View>
+                    {unreadCount > 0 && (
+                        <View style={styles.notificationDot}>
+                            <Text style={styles.notificationDotText}>{unreadCount}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
 
-                <Text style={styles.headerTitle}>RentUp</Text>
+                <View style={styles.headerTitleContainer}>
+                    <Image
+                        source={require('../../assets/images/app-icon.png')}
+                        style={styles.headerIcon}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.headerTitle}>RentUp</Text>
+                </View>
 
                 <TouchableOpacity
                     style={styles.profileButton}
@@ -80,26 +100,42 @@ export default function HomeScreen({ navigation, session }) {
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Hero Section */}
+                {/* Hero Section - Single Card */}
                 <View style={styles.heroSection}>
-                    <View style={styles.heroContent}>
+                    <View style={styles.heroCard}>
                         <Text style={styles.heroTitle}>¿Por qué comprar</Text>
                         <Text style={styles.heroTitle}>si puedes alquilar?</Text>
-                        <Text style={styles.heroSubtitle}>Posee menos, Accede a más.</Text>
-                        <Text style={styles.heroSubtitle}>Obtén lo que necesitas</Text>
-                        <Text style={styles.heroSubtitle}>sin gastar de más</Text>
 
-                        <View style={styles.heroBottomRow}>
+                        <Text style={styles.heroSubtitle}>Posee menos, accede a más.</Text>
+                        <Text style={styles.heroSubtitle}>Obtén lo que necesitas, cuando</Text>
+                        <Text style={styles.heroSubtitle}>lo necesitas, sin gastar de más.</Text>
+
+                        <Image
+                            source={require('../../assets/images/img-circular-no-back.png')}
+                            style={styles.heroImage}
+                            resizeMode="contain"
+                        />
+
+                        <Text style={styles.heroTitle}>¿Por qué dejar parado</Text>
+                        <Text style={styles.heroTitle}>si puedes ganar dinero?</Text>
+
+                        <Text style={styles.heroSubtitle}>Tus artículos sin uso pueden generar</Text>
+                        <Text style={styles.heroSubtitle}>ingresos extra.</Text>
+
+                        <View style={styles.heroButtonsContainer}>
                             <TouchableOpacity
-                                style={styles.discoverButton}
+                                style={[styles.heroButton, styles.heroButtonAnunciar]}
                                 onPress={() => navigation.navigate('Home')}
                             >
-                                <Text style={styles.discoverButtonText}>Descubrir Ahora</Text>
+                                <Text style={styles.heroButtonText}>Explorar</Text>
                             </TouchableOpacity>
 
-                            <View style={styles.heroImageContainer}>
-                                <Text style={styles.heroImage}>🚚</Text>
-                            </View>
+                            <TouchableOpacity
+                                style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                onPress={() => navigation.navigate('AddItem')}
+                            >
+                                <Text style={styles.heroButtonText}>Anunciar</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -124,86 +160,63 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Categories Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Explora Nuestras Categorías</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                            <Text style={styles.viewAllLink}>Ver Todas</Text>
+                        <Text style={styles.sectionTitle}>Categorías</Text>
+                        <TouchableOpacity
+                            style={styles.viewAllButton}
+                            onPress={() => navigation.navigate('Home')}
+                        >
+                            <Text style={styles.viewAllButtonText}>Ver Todas</Text>
+                            <Text style={styles.viewAllButtonIcon}>→</Text>
                         </TouchableOpacity>
                     </View>
 
-                    <View style={styles.categoriesGrid}>
-                        {categories.map((category) => (
-                            <TouchableOpacity
-                                key={category.id}
-                                style={[styles.categoryCard, { backgroundColor: category.color }]}
-                                onPress={() => handleCategoryPress(category)}
-                            >
-                                <Text style={styles.categoryIcon}>{category.icon}</Text>
-                                <Text style={styles.categoryName}>{category.name}</Text>
-                            </TouchableOpacity>
-                        ))}
+                    <View style={styles.categoriesContainer}>
+                        <View style={styles.categoriesGrid}>
+                            {categories.map((category) => (
+                                <TouchableOpacity
+                                    key={category.id}
+                                    style={[styles.categoryCard, { backgroundColor: category.color }]}
+                                    onPress={() => handleCategoryPress(category)}
+                                >
+                                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                                    <Text style={styles.categoryName}>{category.name}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
                 </View>
 
-                {/* Listings Section */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Anuncios de Particulares</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Home')}>
-                            <Text style={styles.viewAllLink}>Ver Más</Text>
-                        </TouchableOpacity>
-                    </View>
+                {/* Recent Items Carousel */}
+                <RecentItemsCarousel navigation={navigation} />
 
-                    <TouchableOpacity
-                        style={styles.browseButton}
-                        onPress={() => navigation.navigate('Home')}
-                    >
-                        <Text style={styles.browseButtonText}>📋 Explorar los Anuncios</Text>
-                    </TouchableOpacity>
-                </View>
+                {/* Benefits Section */}
+                <BenefitsSection />
 
-                {/* Quick Actions */}
-                <View style={styles.quickActions}>
-                    <TouchableOpacity
-                        style={styles.quickActionButton}
-                        onPress={() => navigation.navigate('AddItem')}
-                    >
-                        <Text style={styles.quickActionIcon}>➕</Text>
-                        <Text style={styles.quickActionText}>Anunciar Artículo</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.quickActionButton}
-                        onPress={() => navigation.navigate('Profile')}
-                    >
-                        <Text style={styles.quickActionIcon}>📦</Text>
-                        <Text style={styles.quickActionText}>Mis Artículos</Text>
-                    </TouchableOpacity>
-                </View>
+                {/* Testimonials Section */}
+                <TestimonialsSection />
             </ScrollView>
 
-            {/* Menu Lateral */}
+            {/* Menu Modal */}
             <Modal
                 visible={menuVisible}
                 transparent={true}
-                animationType="slide"
+                animationType="fade"
                 onRequestClose={() => setMenuVisible(false)}
             >
                 <TouchableOpacity
-                    style={styles.menuOverlay}
+                    style={styles.modalOverlay}
                     activeOpacity={1}
                     onPress={() => setMenuVisible(false)}
                 >
-                    <View style={styles.menuDrawer}>
-                        <TouchableOpacity
-                            style={styles.closeButton}
-                            onPress={() => setMenuVisible(false)}
-                        >
-                            <Text style={styles.closeButtonText}>✕</Text>
-                        </TouchableOpacity>
-
+                    <View style={styles.menuContainer}>
                         <View style={styles.menuHeader}>
-                            <Text style={styles.menuTitle}>RentUp</Text>
-                            <Text style={styles.menuSubtitle}>¡Bienvenido!</Text>
+                            <Text style={styles.menuTitle}>Menú</Text>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={() => setMenuVisible(false)}
+                            >
+                                <Text style={styles.closeButtonText}>✕</Text>
+                            </TouchableOpacity>
                         </View>
 
                         <View style={styles.menuItems}>
@@ -304,6 +317,25 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         padding: 5,
+        position: 'relative',
+    },
+    notificationDot: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: '#dc3545',
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    notificationDotText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 'bold',
     },
     hamburger: {
         width: 30,
@@ -316,10 +348,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
         borderRadius: 2,
     },
+    headerTitleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    headerIcon: {
+        width: 28,
+        height: 28,
+    },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#007bff',
+        color: '#2c4455',
     },
     profileButton: {
         padding: 5,
@@ -331,52 +372,61 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     heroSection: {
-        backgroundColor: '#FFF8E1',
-        padding: 30,
-        paddingBottom: 5,
-        borderBottomLeftRadius: 30,
-        borderBottomRightRadius: 30,
+        padding: 20,
+        backgroundColor: '#fff',
     },
-    heroContent: {
-        marginBottom: 20,
+    heroCard: {
+        backgroundColor: '#F8F9FA',
+        borderRadius: 20,
+        padding: 30,
+        alignItems: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
     },
     heroTitle: {
-        fontSize: 28,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#1a3a52',
-        lineHeight: 34,
+        textAlign: 'center',
+        lineHeight: 28,
     },
     heroSubtitle: {
         fontSize: 14,
         color: '#666',
-        marginTop: 10,
-    },
-    heroBottomRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: 25,
-    },
-    discoverButton: {
-        marginTop: 10,
-        backgroundColor: '#FF6B35',
-        paddingVertical: 12,
-        paddingHorizontal: 25,
-        borderRadius: 25,
-        alignSelf: 'flex-start',
-    },
-    discoverButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    heroImageContainer: {
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        marginTop: -40,
+        textAlign: 'center',
+        marginTop: 4,
+        lineHeight: 20,
     },
     heroImage: {
-        fontSize: 90,
+        width: 150,
+        height: 150,
+        marginVertical: 20,
+    },
+    heroButtonsContainer: {
+        flexDirection: 'row',
+        marginTop: 20,
+        gap: 12,
+    },
+    heroButton: {
+        flex: 1,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 25,
+    },
+    heroButtonExplorar: {
+        backgroundColor: '#FF6347',
+    },
+    heroButtonAnunciar: {
+        backgroundColor: '#10B981',
+    },
+    heroButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
     searchContainer: {
         flexDirection: 'row',
@@ -416,12 +466,38 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#1a3a52',
+        color: '#2c4455',
     },
-    viewAllLink: {
-        fontSize: 14,
-        color: '#FF6B35',
+    viewAllButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#10B981',
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 16,
+        gap: 4,
+    },
+    viewAllButtonText: {
+        fontSize: 12,
+        color: '#fff',
         fontWeight: '600',
+    },
+    viewAllButtonIcon: {
+        fontSize: 14,
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    categoriesContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        paddingTop: 35,
+        paddingHorizontal: 16,
+        paddingBottom: 0,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
     },
     categoriesGrid: {
         flexDirection: 'row',
@@ -429,16 +505,16 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     categoryCard: {
-        width: '23%',
+        width: '31%',
         aspectRatio: 1,
-        borderRadius: 15,
+        borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 12,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.2,
+        shadowOpacity: 0.15,
         shadowRadius: 2,
     },
     categoryIcon: {
@@ -448,7 +524,7 @@ const styles = StyleSheet.create({
     categoryName: {
         fontSize: 11,
         fontWeight: '600',
-        color: '#fff',
+        color: '#2c4455',
         textAlign: 'center',
     },
     browseButton: {
@@ -495,6 +571,18 @@ const styles = StyleSheet.create({
     menuOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-start',
+    },
+    menuContainer: {
+        width: '75%',
+        height: '100%',
+        backgroundColor: '#fff',
+        paddingTop: 50,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 0 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
     },
     menuDrawer: {
         width: '75%',
@@ -503,20 +591,16 @@ const styles = StyleSheet.create({
         paddingTop: 50,
     },
     closeButton: {
-        position: 'absolute',
-        top: 15,
-        right: 15,
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 1,
+        padding: 8,
     },
     closeButtonText: {
         fontSize: 24,
         color: '#666',
     },
     menuHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: 20,
         paddingBottom: 20,
         borderBottomWidth: 1,
@@ -525,8 +609,7 @@ const styles = StyleSheet.create({
     menuTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#007bff',
-        marginBottom: 5,
+        color: '#2c4455',
     },
     menuSubtitle: {
         fontSize: 14,

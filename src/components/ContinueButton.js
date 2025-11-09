@@ -12,12 +12,12 @@ export default function ContinueButton({ onPress }) {
                 activeOpacity={0.9}
             >
                 <LinearGradient
-                    colors={['#667eea', '#764ba2']}
+                    colors={['#10B981', '#059669']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.continueButtonGradient}
                 >
-                    <Text style={styles.continueButtonText}>Entendido, Continuar</Text>
+                    <Text style={styles.continueButtonText}>Continuar</Text>
                     <Text style={styles.continueButtonIcon}>→</Text>
                 </LinearGradient>
             </TouchableOpacity>

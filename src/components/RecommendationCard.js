@@ -12,7 +12,8 @@ export default function RecommendationCard() {
                 • Artículos electrónicos funcionales{'\n'}
                 • Equipamiento deportivo{'\n'}
                 • Muebles y decoración{'\n'}
-                • Vehículos con documentación{'\n'}
+                • Accesorios de vehículos{'\n'}
+                • Ropa, zapatos y accesorios de moda{'\n'}
                 • Cualquier cosa que esté bien cuidada y sea segura
             </Text>
         </View>

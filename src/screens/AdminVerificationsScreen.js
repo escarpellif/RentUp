@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Linking } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
+import { useAdminNotifications } from '../hooks/useAdminNotifications';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -9,6 +10,10 @@ export default function AdminVerificationsScreen({ navigation, session }) {
     const [verifications, setVerifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('pending'); // pending, approved, rejected, all
+    const [filterMenuVisible, setFilterMenuVisible] = useState(false);
+
+    // Hook de notificações
+    const { unreadCount, statusCounts, markAllAsRead, refresh: refreshNotifications } = useAdminNotifications();
 
     useEffect(() => {
         fetchVerifications();
@@ -102,6 +107,7 @@ export default function AdminVerificationsScreen({ navigation, session }) {
 
                             Alert.alert('¡Éxito!', 'Verificación aprobada correctamente');
                             fetchVerifications();
+                            refreshNotifications(); // Atualiza contador de notificações
                         } catch (error) {
                             console.error('Error approving:', error);
                             Alert.alert('Error', 'No se pudo aprobar la verificación');
@@ -146,6 +152,7 @@ export default function AdminVerificationsScreen({ navigation, session }) {
 
                             Alert.alert('Verificación Rechazada', 'El usuario será notificado');
                             fetchVerifications();
+                            refreshNotifications(); // Atualiza contador de notificações
                         } catch (error) {
                             console.error('Error rejecting:', error);
                             Alert.alert('Error', 'No se pudo rechazar la verificación');
@@ -314,49 +321,69 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>Verificaciones</Text>
-                    <Text style={styles.headerSubtitle}>Panel de Administración</Text>
+                    {unreadCount > 0 && (
+                        <View style={styles.notificationBadge}>
+                            <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+                        </View>
+                    )}
                 </View>
-                <View style={styles.headerSpacer} />
-            </View>
-
-            {/* Filters */}
-            <View style={styles.filtersContainer}>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'pending' && styles.filterButtonActive]}
-                    onPress={() => setFilter('pending')}
+                    style={styles.filterButton}
+                    onPress={() => setFilterMenuVisible(true)}
                 >
-                    <Text style={[styles.filterButtonText, filter === 'pending' && styles.filterButtonTextActive]}>
-                        Pendientes
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.filterButton, filter === 'approved' && styles.filterButtonActive]}
-                    onPress={() => setFilter('approved')}
-                >
-                    <Text style={[styles.filterButtonText, filter === 'approved' && styles.filterButtonTextActive]}>
-                        Aprobados
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.filterButton, filter === 'rejected' && styles.filterButtonActive]}
-                    onPress={() => setFilter('rejected')}
-                >
-                    <Text style={[styles.filterButtonText, filter === 'rejected' && styles.filterButtonTextActive]}>
-                        Rechazados
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
-                    onPress={() => setFilter('all')}
-                >
-                    <Text style={[styles.filterButtonText, filter === 'all' && styles.filterButtonTextActive]}>
-                        Todos
-                    </Text>
+                    <Text style={styles.filterIcon}>🔽</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Modal de Filtros */}
+            <Modal
+                visible={filterMenuVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setFilterMenuVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPress={() => setFilterMenuVisible(false)}
+                >
+                    <View style={styles.filterDropdown}>
+                        <Text style={styles.filterDropdownTitle}>Filtrar por:</Text>
+
+                        {[
+                            { key: 'pending', label: '⏳ Pendientes', count: statusCounts.pending },
+                            { key: 'approved', label: '✅ Aprobados', count: statusCounts.approved },
+                            { key: 'rejected', label: '❌ Rechazados', count: statusCounts.rejected },
+                            { key: 'all', label: '📋 Todos', count: statusCounts.all }
+                        ].map(option => (
+                            <TouchableOpacity
+                                key={option.key}
+                                style={[
+                                    styles.filterOption,
+                                    filter === option.key && styles.filterOptionActive
+                                ]}
+                                onPress={() => {
+                                    setFilter(option.key);
+                                    setFilterMenuVisible(false);
+                                    if (option.key === 'pending') {
+                                        markAllAsRead();
+                                    }
+                                }}
+                            >
+                                <Text style={[
+                                    styles.filterOptionText,
+                                    filter === option.key && styles.filterOptionTextActive
+                                ]}>
+                                    {option.label}
+                                </Text>
+                                <View style={styles.filterCount}>
+                                    <Text style={styles.filterCountText}>{option.count}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </TouchableOpacity>
+            </Modal>
 
             {/* List */}
             <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -418,48 +445,99 @@ const styles = StyleSheet.create({
     headerTitleContainer: {
         flex: 1,
         alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 8,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         color: '#333',
     },
-    headerSubtitle: {
+    notificationBadge: {
+        backgroundColor: '#dc3545',
+        borderRadius: 12,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        minWidth: 24,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    notificationBadgeText: {
+        color: '#fff',
         fontSize: 12,
-        color: '#666',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    filtersContainer: {
-        flexDirection: 'row',
-        padding: 16,
-        gap: 8,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
+        fontWeight: 'bold',
     },
     filterButton: {
-        flex: 1,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        backgroundColor: '#F8F9FA',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#007bff',
+        justifyContent: 'center',
         alignItems: 'center',
     },
-    filterButtonActive: {
-        backgroundColor: '#007bff',
-        borderColor: '#007bff',
-    },
-    filterButtonText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#666',
-    },
-    filterButtonTextActive: {
+    filterIcon: {
+        fontSize: 16,
         color: '#fff',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    filterDropdown: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        width: '100%',
+        maxWidth: 300,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 10,
+    },
+    filterDropdownTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    filterOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 8,
+        backgroundColor: '#F8F9FA',
+    },
+    filterOptionActive: {
+        backgroundColor: '#007bff',
+    },
+    filterOptionText: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+    },
+    filterOptionTextActive: {
+        color: '#fff',
+    },
+    filterCount: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        minWidth: 32,
+        alignItems: 'center',
+    },
+    filterCountText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#007bff',
     },
     scrollContent: {
         flex: 1,

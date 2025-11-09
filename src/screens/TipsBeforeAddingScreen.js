@@ -38,7 +38,7 @@ export default function TipsBeforeAddingScreen({ navigation, session }) {
 
     return (
         <SafeAreaView style={styles.safeContainer}>
-            <StatusBar barStyle="light-content" backgroundColor="#667eea" />
+            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             <TipsHeader onBack={handleGoBack} />
 

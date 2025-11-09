@@ -118,6 +118,29 @@ export default function ProfileScreen({ session, navigation }) {
                     </View>
                 </View>
 
+                {/* --- SEÇÃO MIS ANUNCIOS --- */}
+                <Text style={styles.sectionHeader}>Mis Anuncios</Text>
+
+                <View style={styles.actionsContainer}>
+                    <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={() => navigation.navigate('Profile')}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.actionIcon}>📦</Text>
+                        <Text style={styles.actionText}>Ver Mis Artículos</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={[styles.actionButton, styles.actionButtonPrimary]}
+                        onPress={() => navigation.navigate('AddItem')}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.actionIcon}>➕</Text>
+                        <Text style={[styles.actionText, styles.actionTextWhite]}>Anunciar Artículo</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Espaço para um futuro botão de edição ou listagem de itens */}
 
             </ScrollView>
@@ -243,5 +266,42 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#6c757d',
         marginTop: 5,
-    }
+    },
+    actionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        gap: 12,
+    },
+    actionButton: {
+        flex: 1,
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 12,
+        alignItems: 'center',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+    },
+    actionButtonPrimary: {
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+    },
+    actionIcon: {
+        fontSize: 32,
+        marginBottom: 8,
+    },
+    actionText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2c4455',
+        textAlign: 'center',
+    },
+    actionTextWhite: {
+        color: '#fff',
+    },
 });

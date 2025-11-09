@@ -21,7 +21,7 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [photos, setPhotos] = useState([null, null, null]);
     const [photoPaths, setPhotoPaths] = useState([null, null, null]);
 
-    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Vehículos', 'Otros'];
+    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Accesorios de Vehículos', 'Otros'];
 
     const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({
