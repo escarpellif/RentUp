@@ -13,6 +13,8 @@ export default function RequestRentalScreen({ route, navigation }) {
     const [startDate, setStartDate] = useState(initialStart);
     const [endDate, setEndDate] = useState(initialEnd);
     const [showCalendar, setShowCalendar] = useState(false);
+    const [pickupTime, setPickupTime] = useState('10:00');
+    const [returnTime, setReturnTime] = useState('18:00');
 
     // Callback do calendário
     const handleDateRangeChange = (start, end) => {
@@ -29,13 +31,26 @@ export default function RequestRentalScreen({ route, navigation }) {
         return diffDays > 0 ? diffDays : 1;
     };
 
-    const calculateTotal = () => {
+    const calculateSubtotal = () => {
         const days = calculateDays();
-        return (parseFloat(item.price_per_day) * days).toFixed(2);
+        return parseFloat(item.price_per_day) * days;
+    };
+
+    const calculateServiceFee = () => {
+        const subtotal = calculateSubtotal();
+        return subtotal * 0.18; // 18% de taxa de serviço
+    };
+
+    const calculateTotal = () => {
+        const subtotal = calculateSubtotal();
+        const serviceFee = calculateServiceFee();
+        return (subtotal + serviceFee).toFixed(2);
     };
 
     const handleConfirmRental = () => {
         const days = calculateDays();
+        const subtotal = calculateSubtotal();
+        const serviceFee = calculateServiceFee();
         const total = calculateTotal();
         
         if (days < 1) {
@@ -45,7 +60,7 @@ export default function RequestRentalScreen({ route, navigation }) {
 
         Alert.alert(
             'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio (18%): €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
@@ -138,18 +153,71 @@ export default function RequestRentalScreen({ route, navigation }) {
                     )}
                 </View>
 
+                {/* Horários de Retirada e Devolución */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>⏰ Horarios</Text>
+
+                    {/* Hora de Retirada */}
+                    <View style={styles.timeContainer}>
+                        <Text style={styles.timeLabel}>Hora de Recogida:</Text>
+                        <View style={styles.timeSelector}>
+                            <TouchableOpacity
+                                style={styles.timeButton}
+                                onPress={() => {
+                                    const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+                                    Alert.alert(
+                                        'Selecciona Hora de Recogida',
+                                        '',
+                                        hours.map(hour => ({
+                                            text: hour,
+                                            onPress: () => setPickupTime(hour)
+                                        }))
+                                    );
+                                }}
+                            >
+                                <Text style={styles.timeIcon}>🕐</Text>
+                                <Text style={styles.timeValue}>{pickupTime}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* Hora de Devolución */}
+                    <View style={styles.timeContainer}>
+                        <Text style={styles.timeLabel}>Hora de Devolución:</Text>
+                        <View style={styles.timeSelector}>
+                            <TouchableOpacity
+                                style={styles.timeButton}
+                                onPress={() => {
+                                    const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+                                    Alert.alert(
+                                        'Selecciona Hora de Devolución',
+                                        '',
+                                        hours.map(hour => ({
+                                            text: hour,
+                                            onPress: () => setReturnTime(hour)
+                                        }))
+                                    );
+                                }}
+                            >
+                                <Text style={styles.timeIcon}>🕐</Text>
+                                <Text style={styles.timeValue}>{returnTime}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+
                 {/* Resumo do Aluguel */}
                 <View style={styles.summaryCard}>
                     <Text style={styles.summaryTitle}>Resumen</Text>
 
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Fecha de inicio:</Text>
-                        <Text style={styles.summaryValue}>{formatDate(startDate)}</Text>
+                        <Text style={styles.summaryValue}>{formatDate(startDate)} {pickupTime}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Fecha de término:</Text>
-                        <Text style={styles.summaryValue}>{formatDate(endDate)}</Text>
+                        <Text style={styles.summaryValue}>{formatDate(endDate)} {returnTime}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
@@ -162,11 +230,28 @@ export default function RequestRentalScreen({ route, navigation }) {
                         <Text style={styles.summaryValue}>€{parseFloat(item.price_per_day).toFixed(2)}</Text>
                     </View>
 
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Subtotal ({calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}):</Text>
+                        <Text style={styles.summaryValue}>€{calculateSubtotal().toFixed(2)}</Text>
+                    </View>
+
+                    <View style={styles.summaryRow}>
+                        <Text style={styles.summaryLabel}>Tasa de servicio (18%):</Text>
+                        <Text style={styles.summaryValue}>€{calculateServiceFee().toFixed(2)}</Text>
+                    </View>
+
                     <View style={styles.divider} />
 
                     <View style={styles.summaryRow}>
                         <Text style={styles.totalLabel}>Valor Total:</Text>
                         <Text style={styles.totalValue}>€{calculateTotal()}</Text>
+                    </View>
+
+                    <View style={styles.serviceFeeNote}>
+                        <Text style={styles.serviceFeeNoteIcon}>ℹ️</Text>
+                        <Text style={styles.serviceFeeNoteText}>
+                            Tasa de servicio de €{calculateServiceFee().toFixed(2)} ya incluida
+                        </Text>
                     </View>
                 </View>
 
@@ -307,6 +392,36 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
     },
+    timeContainer: {
+        marginBottom: 20,
+    },
+    timeLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: 10,
+    },
+    timeSelector: {
+        marginTop: 5,
+    },
+    timeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#007bff',
+        gap: 12,
+    },
+    timeIcon: {
+        fontSize: 24,
+    },
+    timeValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#007bff',
+    },
     summaryCard: {
         backgroundColor: '#e7f5ff',
         padding: 20,
@@ -347,6 +462,26 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: '#28a745',
+    },
+    serviceFeeNote: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff3cd',
+        padding: 12,
+        borderRadius: 8,
+        marginTop: 15,
+        borderLeftWidth: 4,
+        borderLeftColor: '#ffc107',
+    },
+    serviceFeeNoteIcon: {
+        fontSize: 18,
+        marginRight: 8,
+    },
+    serviceFeeNoteText: {
+        flex: 1,
+        fontSize: 13,
+        color: '#856404',
+        fontWeight: '500',
     },
     confirmButton: {
         backgroundColor: '#28a745',

@@ -69,7 +69,7 @@ export default function HomeScreen({ navigation, session }) {
                     </View>
                 </TouchableOpacity>
 
-                <Text style={styles.headerTitle}>Rentalfy</Text>
+                <Text style={styles.headerTitle}>RentUp</Text>
 
                 <TouchableOpacity
                     style={styles.profileButton}
@@ -202,7 +202,7 @@ export default function HomeScreen({ navigation, session }) {
                         </TouchableOpacity>
 
                         <View style={styles.menuHeader}>
-                            <Text style={styles.menuTitle}>Rentalfy</Text>
+                            <Text style={styles.menuTitle}>RentUp</Text>
                             <Text style={styles.menuSubtitle}>¡Bienvenido!</Text>
                         </View>
 
@@ -249,6 +249,19 @@ export default function HomeScreen({ navigation, session }) {
                             >
                                 <Text style={styles.menuItemIcon}>👤</Text>
                                 <Text style={styles.menuItemText}>Mi Perfil</Text>
+                            </TouchableOpacity>
+
+                            <View style={styles.menuDivider} />
+
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuVisible(false);
+                                    navigation.navigate('AdminVerifications');
+                                }}
+                            >
+                                <Text style={styles.menuItemIcon}>🔐</Text>
+                                <Text style={styles.menuItemText}>Admin - Verificaciones</Text>
                             </TouchableOpacity>
 
                             <View style={styles.menuDivider} />

@@ -100,7 +100,7 @@ export default function AuthScreen() {
             <View style={styles.logoCircle}>
               <Text style={styles.logoIcon}>🏠</Text>
             </View>
-            <Text style={styles.brandName}>Rentalfy</Text>
+            <Text style={styles.brandName}>RentUp</Text>
             <Text style={styles.brandTagline}>
               {isRegistering ? 'Crea tu cuenta' : 'Bienvenido de nuevo'}
             </Text>

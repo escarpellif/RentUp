@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, Image, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
+import PhotoCarousel from '../components/PhotoCarousel';
+import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-export default function ItemDetailsScreen({ route, navigation }) {
+export default function ItemDetailsScreen({ route, navigation, session }) {
     const { item } = route.params;
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
+    // Preparar array de fotos (compatível com items antigos e novos)
+    const photos = item.photos && item.photos.length > 0
+        ? item.photos
+        : item.photo_url
+        ? [item.photo_url]
+        : [];
 
     const fetchOwnerProfile = useCallback(async () => {
         setLoading(true);
@@ -48,7 +55,16 @@ export default function ItemDetailsScreen({ route, navigation }) {
         );
     };
 
-    const handleRequestRental = () => {
+    const handleRequestRental = async () => {
+        // Verificar se o usuário tem verificação aprovada
+        const { isVerified, status } = await checkUserVerification(session.user.id);
+
+        if (!isVerified) {
+            handleVerificationAlert(status, navigation);
+            return;
+        }
+
+        // Se verificado, continuar para solicitar aluguel
         navigation.navigate('RequestRental', {
             item: item,
             ownerProfile: ownerProfile
@@ -88,11 +104,18 @@ export default function ItemDetailsScreen({ route, navigation }) {
             </View>
 
             <ScrollView style={styles.container}>
-                {/* Imagem Principal */}
-                <Image source={{ uri: imageUrl }} style={styles.mainImage} />
+                {/* Carrossel de Fotos */}
+                {photos.length > 0 ? (
+                    <PhotoCarousel photos={photos} supabaseUrl={SUPABASE_URL} />
+                ) : (
+                    <View style={styles.noPhotoContainer}>
+                        <Text style={styles.noPhotoText}>📷</Text>
+                        <Text style={styles.noPhotoLabel}>Sin foto disponible</Text>
+                    </View>
+                )}
 
-            {/* Informações Principais */}
-            <View style={styles.contentContainer}>
+                {/* Informações Principais */}
+                <View style={styles.contentContainer}>
                 <Text style={styles.title}>{item.title}</Text>
                 
                 <View style={styles.priceContainer}>
@@ -227,10 +250,20 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    mainImage: {
+    noPhotoContainer: {
         width: '100%',
         height: 300,
-        resizeMode: 'cover',
+        backgroundColor: '#F8F9FA',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    noPhotoText: {
+        fontSize: 60,
+        marginBottom: 10,
+    },
+    noPhotoLabel: {
+        fontSize: 16,
+        color: '#666',
     },
     contentContainer: {
         padding: 20,
