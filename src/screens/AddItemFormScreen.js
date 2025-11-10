@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
+import { getApproximateLocation, getCoordinatesFromAddress, addRandomOffset } from '../utils/locationHelper';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -14,14 +15,77 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [pricePerDay, setPricePerDay] = useState('');
-    const [category, setCategory] = useState('Herramientas');
-    const [location, setLocation] = useState('');
+    const [category, setCategory] = useState('Electrónicos');
+    const [location, setLocation] = useState(''); // Endereço completo
+    const [locationFull, setLocationFull] = useState(''); // Endereço completo detalhado
+    const [locationApprox, setLocationApprox] = useState(''); // Localização aproximada para mostrar
+    const [coordinates, setCoordinates] = useState(null); // Coordenadas exatas
+    const [postalCode, setPostalCode] = useState('');
+    const [addressSuggestions, setAddressSuggestions] = useState([]);
+    const [loadingAddress, setLoadingAddress] = useState(false);
     const [deliveryType, setDeliveryType] = useState('pickup');
     const [loading, setLoading] = useState(false);
     const [photos, setPhotos] = useState([null, null, null]);
     const [photoPaths, setPhotoPaths] = useState([null, null, null]);
 
-    const categories = ['Herramientas', 'Electrónicos', 'Deportes', 'Moda', 'Accesorios de Vehículos', 'Otros'];
+    const categories = [
+        'Electrónicos',
+        'Deportes',
+        'Accesorios de Vehículos',
+        'Muebles',
+        'Herramientas',
+        'Fiestas',
+        'Jardín',
+        'Ropa',
+        'Otros'
+    ];
+
+    // Função para buscar endereços por código postal
+    const searchAddressByPostalCode = async (code) => {
+        if (code.length < 4) {
+            setAddressSuggestions([]);
+            return;
+        }
+
+        setLoadingAddress(true);
+        try {
+            // Usando Nominatim API (OpenStreetMap) para buscar endereços na Espanha
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?postalcode=${code}&country=Spain&format=json&addressdetails=1&limit=5`,
+                {
+                    headers: {
+                        'User-Agent': 'RentUpApp/1.0'
+                    }
+                }
+            );
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const suggestions = data.map(item => {
+                    const address = item.address;
+                    const street = address.road || address.pedestrian || address.suburb || '';
+                    const city = address.city || address.town || address.village || address.municipality || '';
+                    const postalCode = address.postcode || code;
+
+                    return {
+                        display: `${street}${street && city ? ', ' : ''}${city}${postalCode ? ' - ' + postalCode : ''}`,
+                        full: item.display_name,
+                        lat: parseFloat(item.lat),
+                        lon: parseFloat(item.lon),
+                        city: city,
+                        postalCode: postalCode
+                    };
+                });
+                setAddressSuggestions(suggestions);
+            } else {
+                setAddressSuggestions([]);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar endereço:', error);
+            setAddressSuggestions([]);
+        }
+        setLoadingAddress(false);
+    };
 
     const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -109,6 +173,10 @@ export default function AddItemFormScreen({ session, navigation }) {
                 price_per_day: parseFloat(pricePerDay),
                 category,
                 location,
+                location_full: locationFull,
+                location_approx: locationApprox,
+                coordinates: coordinates,
+                coordinates_approx: coordinates ? addRandomOffset(coordinates) : null,
                 photo_url: uploadedPaths[0],
                 photos: uploadedPaths,
                 delivery_type: deliveryType,
@@ -119,11 +187,24 @@ export default function AddItemFormScreen({ session, navigation }) {
         if (error) {
             Alert.alert('Error al Anunciar', error.message);
         } else {
-            Alert.alert('¡Éxito!', '¡Tu artículo ha sido anunciado en el marketplace!');
+            Alert.alert(
+                '¡Éxito!',
+                '¡Tu artículo ha sido anunciado en el marketplace!',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('Home')
+                    }
+                ]
+            );
+            // Limpar os campos após o sucesso
             setTitle('');
             setDescription('');
             setPricePerDay('');
             setLocation('');
+            setLocationFull('');
+            setLocationApprox('');
+            setCoordinates(null);
             setPhotos([null, null, null]);
             setPhotoPaths([null, null, null]);
         }
@@ -207,13 +288,73 @@ export default function AddItemFormScreen({ session, navigation }) {
                     </View>
 
                     <Text style={styles.label}>Ubicación</Text>
+                    <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
+
                     <TextInput
                         style={styles.input}
-                        onChangeText={setLocation}
-                        value={location}
-                        placeholder="Ej: Madrid - Centro"
+                        onChangeText={(text) => {
+                            setPostalCode(text);
+                            searchAddressByPostalCode(text);
+                        }}
+                        value={postalCode}
+                        placeholder="Ej: 28001"
                         placeholderTextColor="#999"
+                        keyboardType="numeric"
                     />
+
+                    {loadingAddress && (
+                        <View style={styles.loadingAddressContainer}>
+                            <ActivityIndicator size="small" color="#2c4455" />
+                            <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                        </View>
+                    )}
+
+                    {addressSuggestions.length > 0 && (
+                        <View style={styles.suggestionsContainer}>
+                            <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
+                            {addressSuggestions.map((suggestion, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    style={styles.suggestionItem}
+                                    onPress={() => {
+                                        setLocation(suggestion.display);
+                                        setLocationFull(suggestion.full);
+                                        setLocationApprox(`${suggestion.city} - ${suggestion.postalCode}`);
+                                        setCoordinates({
+                                            latitude: suggestion.lat,
+                                            longitude: suggestion.lon
+                                        });
+                                        setAddressSuggestions([]);
+                                        setPostalCode('');
+                                    }}
+                                >
+                                    <Text style={styles.suggestionIcon}>📍</Text>
+                                    <Text style={styles.suggestionText}>{suggestion.display}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    )}
+
+                    {location !== '' && (
+                        <View style={styles.selectedLocationContainer}>
+                            <Text style={styles.selectedLocationLabel}>Dirección seleccionada:</Text>
+                            <View style={styles.selectedLocationBox}>
+                                <Text style={styles.selectedLocationIcon}>📍</Text>
+                                <Text style={styles.selectedLocationText}>{location}</Text>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setLocation('');
+                                        setLocationFull('');
+                                        setLocationApprox('');
+                                        setCoordinates(null);
+                                    }}
+                                    style={styles.clearLocationButton}
+                                >
+                                    <Text style={styles.clearLocationText}>✕</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )}
                 </View>
 
                 {/* Card: Tipo de Entrega */}
@@ -316,7 +457,7 @@ export default function AddItemFormScreen({ session, navigation }) {
                     activeOpacity={0.8}
                 >
                     <LinearGradient
-                        colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#FF6B35', '#F7931E']}
+                        colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#10B981', '#059669']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.publishButtonGradient}
@@ -378,7 +519,7 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#2c4455',
     },
     headerSubtitle: {
         fontSize: 12,
@@ -420,6 +561,12 @@ const styles = StyleSheet.create({
         color: '#333',
         marginTop: 12,
         marginBottom: 8,
+    },
+    sublabel: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
+        fontStyle: 'italic',
     },
     input: {
         borderWidth: 1,
@@ -482,7 +629,7 @@ const styles = StyleSheet.create({
     },
     deliveryOptionActive: {
         backgroundColor: '#E3F2FD',
-        borderColor: '#007bff',
+        borderColor: '#2c4455',
     },
     deliveryOptionIcon: {
         fontSize: 20,
@@ -495,14 +642,14 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     deliveryOptionTextActive: {
-        color: '#007bff',
+        color: '#2c4455',
         fontWeight: '700',
     },
     deliveryCheckmark: {
         width: 22,
         height: 22,
         borderRadius: 11,
-        backgroundColor: '#007bff',
+        backgroundColor: '#2c4455',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -535,7 +682,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
     },
     photoPlaceholderPrimary: {
-        borderColor: '#007bff',
+        borderColor: '#2c4455',
         borderStyle: 'solid',
         borderWidth: 2,
     },
@@ -578,7 +725,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 4,
         left: 4,
-        backgroundColor: 'rgba(0, 123, 255, 0.9)',
+        backgroundColor: 'rgba(44, 68, 85, 0.9)',
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 4,
@@ -594,7 +741,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         overflow: 'hidden',
         elevation: 8,
-        shadowColor: '#FF6B35',
+        shadowColor: '#10B981',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
         shadowRadius: 6,
@@ -622,6 +769,99 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         letterSpacing: 0.5,
+    },
+    loadingAddressContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 8,
+        marginTop: 8,
+        gap: 10,
+    },
+    loadingAddressText: {
+        fontSize: 14,
+        color: '#666',
+        fontStyle: 'italic',
+    },
+    suggestionsContainer: {
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+        marginTop: 12,
+        padding: 12,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    suggestionsTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2c4455',
+        marginBottom: 10,
+    },
+    suggestionItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 8,
+        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+    },
+    suggestionIcon: {
+        fontSize: 18,
+        marginRight: 10,
+    },
+    suggestionText: {
+        fontSize: 14,
+        color: '#333',
+        flex: 1,
+    },
+    selectedLocationContainer: {
+        marginTop: 12,
+    },
+    selectedLocationLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#2c4455',
+        marginBottom: 8,
+    },
+    selectedLocationBox: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#E8F5E9',
+        padding: 14,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#10B981',
+    },
+    selectedLocationIcon: {
+        fontSize: 20,
+        marginRight: 10,
+    },
+    selectedLocationText: {
+        fontSize: 15,
+        color: '#2c4455',
+        fontWeight: '500',
+        flex: 1,
+    },
+    clearLocationButton: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#dc3545',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    clearLocationText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

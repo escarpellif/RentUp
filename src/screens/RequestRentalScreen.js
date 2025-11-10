@@ -21,7 +21,7 @@ export default function RequestRentalScreen({ route, navigation }) {
         if (start && end) {
             setStartDate(start);
             setEndDate(end);
-            setShowCalendar(false); // Esconde o calendário após seleção
+            // Não fecha mais automaticamente - usuário deve clicar em OK
         }
     };
 
@@ -60,7 +60,7 @@ export default function RequestRentalScreen({ route, navigation }) {
 
         Alert.alert(
             'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio (18%): €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
@@ -147,7 +147,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                                 style={styles.hideCalendarButton}
                                 onPress={() => setShowCalendar(false)}
                             >
-                                <Text style={styles.hideCalendarText}>Ocultar Calendario</Text>
+                                <Text style={styles.hideCalendarText}>OK</Text>
                             </TouchableOpacity>
                         </View>
                     )}
@@ -236,7 +236,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                     </View>
 
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Tasa de servicio (18%):</Text>
+                        <Text style={styles.summaryLabel}>Tasa de servicio:</Text>
                         <Text style={styles.summaryValue}>€{calculateServiceFee().toFixed(2)}</Text>
                     </View>
 
@@ -245,13 +245,6 @@ export default function RequestRentalScreen({ route, navigation }) {
                     <View style={styles.summaryRow}>
                         <Text style={styles.totalLabel}>Valor Total:</Text>
                         <Text style={styles.totalValue}>€{calculateTotal()}</Text>
-                    </View>
-
-                    <View style={styles.serviceFeeNote}>
-                        <Text style={styles.serviceFeeNoteIcon}>ℹ️</Text>
-                        <Text style={styles.serviceFeeNoteText}>
-                            Tasa de servicio de €{calculateServiceFee().toFixed(2)} ya incluida
-                        </Text>
                     </View>
                 </View>
 
@@ -381,7 +374,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     hideCalendarButton: {
-        backgroundColor: '#6c757d',
+        backgroundColor: '#10B981',
         padding: 12,
         borderRadius: 8,
         alignItems: 'center',
@@ -462,26 +455,6 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: '#28a745',
-    },
-    serviceFeeNote: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff3cd',
-        padding: 12,
-        borderRadius: 8,
-        marginTop: 15,
-        borderLeftWidth: 4,
-        borderLeftColor: '#ffc107',
-    },
-    serviceFeeNoteIcon: {
-        fontSize: 18,
-        marginRight: 8,
-    },
-    serviceFeeNoteText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#856404',
-        fontWeight: '500',
     },
     confirmButton: {
         backgroundColor: '#28a745',

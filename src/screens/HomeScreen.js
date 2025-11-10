@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, StatusBar, Image } from 'react-native';
 import { supabase } from '../../supabase';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
@@ -9,9 +9,19 @@ import TestimonialsSection from '../components/TestimonialsSection';
 export default function HomeScreen({ navigation, session }) {
     const [menuVisible, setMenuVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [refreshKey, setRefreshKey] = useState(0);
 
     // Hook de notificações
     const { unreadCount } = useAdminNotifications();
+
+    // Adicionar listener para atualizar quando a tela voltar ao foco
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('focus', () => {
+            setRefreshKey(prev => prev + 1);
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const categories = [
         { id: '1', name: 'Electrónicos', icon: '🎮', color: '#fff' },
@@ -187,7 +197,7 @@ export default function HomeScreen({ navigation, session }) {
                 </View>
 
                 {/* Recent Items Carousel */}
-                <RecentItemsCarousel navigation={navigation} />
+                <RecentItemsCarousel key={refreshKey} navigation={navigation} />
 
                 {/* Benefits Section */}
                 <BenefitsSection />

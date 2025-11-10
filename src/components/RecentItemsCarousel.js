@@ -15,7 +15,14 @@ export default function RecentItemsCarousel({ navigation }) {
 
     useEffect(() => {
         fetchRecentItems();
-    }, []);
+
+        // Adicionar listener para atualizar quando a tela voltar ao foco
+        const unsubscribe = navigation.addListener('focus', () => {
+            fetchRecentItems();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const fetchRecentItems = async () => {
         try {

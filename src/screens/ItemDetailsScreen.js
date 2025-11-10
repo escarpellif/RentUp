@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
+import ApproximateLocationMap from '../components/ApproximateLocationMap';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
@@ -127,7 +128,6 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{item.category}</Text>
                     </View>
-                    <Text style={styles.location}>📍 {item.location}</Text>
                 </View>
 
                 {/* Descrição */}
@@ -135,6 +135,12 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                     <Text style={styles.sectionTitle}>Descripción</Text>
                     <Text style={styles.description}>{item.description}</Text>
                 </View>
+
+                {/* Approximate Location Map */}
+                <ApproximateLocationMap
+                    coordinates={item.coordinates_approx}
+                    locationApprox={item.location_approx || item.location}
+                />
 
                 {/* Informações do Dono */}
                 <View style={styles.section}>

@@ -11,7 +11,7 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
-  Animated
+  Image
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../supabase';
@@ -85,10 +85,10 @@ export default function AuthScreen() {
     >
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#f093fb']}
+        colors={['#34D399', '#10B981', '#059669']}
         style={styles.gradientBackground}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        end={{ x: 0, y: 1 }}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -98,7 +98,11 @@ export default function AuthScreen() {
           {/* Logo/Brand Section */}
           <View style={styles.brandContainer}>
             <View style={styles.logoCircle}>
-              <Text style={styles.logoIcon}>🏠</Text>
+              <Image
+                source={require('../../assets/images/app-icon.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
             </View>
             <Text style={styles.brandName}>RentUp</Text>
             <Text style={styles.brandTagline}>
@@ -160,7 +164,7 @@ export default function AuthScreen() {
               activeOpacity={0.8}
             >
               <LinearGradient
-                colors={loading ? ['#ccc', '#999'] : ['#667eea', '#764ba2']}
+                colors={loading ? ['#ccc', '#999'] : ['#10B981', '#059669']}
                 style={styles.submitButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
@@ -221,12 +225,21 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
     borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  logoImage: {
+    width: 70,
+    height: 70,
   },
   logoIcon: {
     fontSize: 50,
@@ -295,7 +308,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     elevation: 5,
-    shadowColor: '#667eea',
+    shadowColor: '#10B981',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
@@ -327,7 +340,7 @@ const styles = StyleSheet.create({
   },
   toggleLink: {
     fontSize: 14,
-    color: '#667eea',
+    color: '#10B981',
     fontWeight: 'bold',
   },
   footer: {
