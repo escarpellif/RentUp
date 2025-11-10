@@ -98,9 +98,19 @@ export default function ProfileScreen({ session, navigation }) {
             <ScrollView contentContainerStyle={styles.scrollContent}>
 
                 <View style={styles.infoCard}>
-                    <Text style={styles.name}>{profile.full_name || profile.username}</Text>
-                    <Text style={styles.username}>@{profile.username}</Text>
+                    <Text style={styles.name}>{profile.username}</Text>
+                    <Text style={styles.email}>{session.user.email}</Text>
                     <Text style={styles.memberSince}>Miembro desde: {formatDate(profile.created_at)}</Text>
+
+                    {/* Botão Editar Perfil */}
+                    <TouchableOpacity
+                        style={styles.editProfileButton}
+                        onPress={() => navigation.navigate('EditProfile')}
+                        activeOpacity={0.8}
+                    >
+                        <Text style={styles.editProfileIcon}>✏️</Text>
+                        <Text style={styles.editProfileText}>Editar Perfil</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* --- SEÇÃO DE AVALIAÇÕES --- */}
@@ -217,6 +227,12 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: '700',
         marginBottom: 5,
+        color: '#333',
+    },
+    email: {
+        fontSize: 14,
+        color: '#666',
+        marginBottom: 10,
     },
     username: {
         fontSize: 14,
@@ -226,6 +242,24 @@ const styles = StyleSheet.create({
     memberSince: {
         fontSize: 12,
         color: '#aaa',
+    },
+    editProfileButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#2c4455',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginTop: 15,
+        gap: 8,
+    },
+    editProfileIcon: {
+        fontSize: 16,
+    },
+    editProfileText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: '600',
     },
     sectionHeader: {
         fontSize: 20,

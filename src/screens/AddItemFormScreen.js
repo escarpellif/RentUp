@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
@@ -28,6 +28,13 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [photos, setPhotos] = useState([null, null, null]);
     const [photoPaths, setPhotoPaths] = useState([null, null, null]);
 
+    // Novos estados para dados pessoais
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [useProfileAddress, setUseProfileAddress] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+    const [loadingProfile, setLoadingProfile] = useState(true);
+
     const categories = [
         'Electrónicos',
         'Deportes',
@@ -39,6 +46,69 @@ export default function AddItemFormScreen({ session, navigation }) {
         'Ropa',
         'Otros'
     ];
+
+    // Carregar perfil do usuário ao montar o componente
+    useEffect(() => {
+        fetchUserProfile();
+    }, []);
+
+    // Função para buscar o perfil do usuário
+    const fetchUserProfile = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, phone, address, postal_code, city')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) {
+                console.error('Erro ao buscar perfil:', error);
+            } else {
+                setUserProfile(data);
+                // Preencher campos se já existirem no perfil
+                if (data.full_name) setFullName(data.full_name);
+                if (data.phone) setPhone(data.phone);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar perfil:', error);
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
+
+    // Efeito para usar endereço do perfil quando checkbox for marcado
+    useEffect(() => {
+        if (useProfileAddress && userProfile) {
+            if (userProfile.address && userProfile.postal_code && userProfile.city) {
+                setLocation(userProfile.address);
+                setLocationFull(userProfile.address);
+                setLocationApprox(`${userProfile.city} - ${userProfile.postal_code}`);
+                setPostalCode(userProfile.postal_code);
+
+                // Buscar coordenadas do endereço
+                const fullAddress = `${userProfile.address}, ${userProfile.city}, ${userProfile.postal_code}, España`;
+                getCoordinatesFromAddress(fullAddress).then(coords => {
+                    if (coords) {
+                        setCoordinates(coords);
+                    }
+                });
+            } else {
+                Alert.alert(
+                    'Endereço Incompleto',
+                    'Seu perfil não possui endereço completo cadastrado. Por favor, preencha manualmente.',
+                    [{ text: 'OK', onPress: () => setUseProfileAddress(false) }]
+                );
+            }
+        } else if (!useProfileAddress) {
+            // Limpar campos de endereço quando desmarcar
+            setLocation('');
+            setLocationFull('');
+            setLocationApprox('');
+            setCoordinates(null);
+            setPostalCode('');
+        }
+    }, [useProfileAddress]);
+
 
     // Função para buscar endereços por código postal
     const searchAddressByPostalCode = async (code) => {
@@ -141,12 +211,47 @@ export default function AddItemFormScreen({ session, navigation }) {
     async function handleSubmit() {
         const hasAtLeastOnePhoto = photos.some(photo => photo !== null);
         
-        if (!title || !description || !pricePerDay || !location || !hasAtLeastOnePhoto) {
-            Alert.alert('Completa Todos los Campos', '¡Recuerda añadir al menos una foto!');
+        // Validação completa de todos os campos obrigatórios
+        if (!title || !description || !pricePerDay || !hasAtLeastOnePhoto) {
+            Alert.alert('Campos Incompletos', 'Por favor, preencha título, descrição, preço e adicione pelo menos uma foto.');
+            return;
+        }
+
+        if (!fullName || fullName.trim() === '') {
+            Alert.alert('Nome Completo Obrigatório', 'Por favor, preencha seu nome completo.');
+            return;
+        }
+
+        if (!phone || phone.trim() === '') {
+            Alert.alert('Telefone Obrigatório', 'Por favor, preencha seu telefone de contato.');
+            return;
+        }
+
+        if (!location || !locationFull || !coordinates) {
+            Alert.alert('Endereço Obrigatório', 'Por favor, selecione o endereço completo de retirada do item.');
             return;
         }
 
         setLoading(true);
+
+        // Atualizar perfil do usuário com nome completo, telefone e endereço
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                full_name: fullName,
+                phone: phone,
+                address: location,
+                postal_code: postalCode || locationApprox.split(' - ')[1],
+                city: locationApprox.split(' - ')[0],
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', session.user.id);
+
+        if (profileError) {
+            console.error('Erro ao atualizar perfil:', profileError);
+            Alert.alert('Aviso', 'Houve um problema ao salvar seus dados pessoais, mas continuaremos com o anúncio.');
+        }
+
         const uploadedPaths = [];
 
         for (let i = 0; i < photos.length; i++) {
@@ -269,6 +374,31 @@ export default function AddItemFormScreen({ session, navigation }) {
                     </View>
                 </View>
 
+                {/* Card: Datos Personales */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>👤 Datos de Contacto</Text>
+                    <Text style={styles.cardSubtitle}>Información necesaria para el alquiler</Text>
+
+                    <Text style={styles.label}>Nombre Completo *</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setFullName}
+                        value={fullName}
+                        placeholder="Ej: Juan Pérez García"
+                        placeholderTextColor="#999"
+                    />
+
+                    <Text style={styles.label}>Teléfono de Contacto *</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setPhone}
+                        value={phone}
+                        placeholder="Ej: +34 600 123 456"
+                        placeholderTextColor="#999"
+                        keyboardType="phone-pad"
+                    />
+                </View>
+
                 {/* Card: Precio y Ubicación */}
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>💰 Precio y Ubicación</Text>
@@ -287,52 +417,69 @@ export default function AddItemFormScreen({ session, navigation }) {
                         <Text style={styles.perDay}>/día</Text>
                     </View>
 
-                    <Text style={styles.label}>Ubicación</Text>
-                    <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
+                    <Text style={styles.label}>Ubicación de Recogida *</Text>
 
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => {
-                            setPostalCode(text);
-                            searchAddressByPostalCode(text);
-                        }}
-                        value={postalCode}
-                        placeholder="Ej: 28001"
-                        placeholderTextColor="#999"
-                        keyboardType="numeric"
-                    />
-
-                    {loadingAddress && (
-                        <View style={styles.loadingAddressContainer}>
-                            <ActivityIndicator size="small" color="#2c4455" />
-                            <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                    {/* Checkbox para usar endereço de cadastro */}
+                    <TouchableOpacity
+                        style={styles.checkboxContainer}
+                        onPress={() => setUseProfileAddress(!useProfileAddress)}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.checkbox, useProfileAddress && styles.checkboxChecked]}>
+                            {useProfileAddress && <Text style={styles.checkboxIcon}>✓</Text>}
                         </View>
-                    )}
+                        <Text style={styles.checkboxLabel}>Usar mi dirección de cadastro</Text>
+                    </TouchableOpacity>
 
-                    {addressSuggestions.length > 0 && (
-                        <View style={styles.suggestionsContainer}>
-                            <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
-                            {addressSuggestions.map((suggestion, index) => (
-                                <TouchableOpacity
-                                    key={index}
-                                    style={styles.suggestionItem}
-                                    onPress={() => {
-                                        setLocation(suggestion.display);
-                                        setLocationFull(suggestion.full);
-                                        setLocationApprox(`${suggestion.city} - ${suggestion.postalCode}`);
-                                        setCoordinates({
-                                            latitude: suggestion.lat,
-                                            longitude: suggestion.lon
-                                        });
-                                        setAddressSuggestions([]);
-                                        setPostalCode('');
-                                    }}
-                                >
-                                    <Text style={styles.suggestionIcon}>📍</Text>
-                                    <Text style={styles.suggestionText}>{suggestion.display}</Text>
-                                </TouchableOpacity>
-                            ))}
-                        </View>
+                    {!useProfileAddress && (
+                        <>
+                            <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
+
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={(text) => {
+                                    setPostalCode(text);
+                                    searchAddressByPostalCode(text);
+                                }}
+                                value={postalCode}
+                                placeholder="Ej: 28001"
+                                placeholderTextColor="#999"
+                                keyboardType="numeric"
+                            />
+
+                            {loadingAddress && (
+                                <View style={styles.loadingAddressContainer}>
+                                    <ActivityIndicator size="small" color="#2c4455" />
+                                    <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                                </View>
+                            )}
+
+                            {addressSuggestions.length > 0 && (
+                                <View style={styles.suggestionsContainer}>
+                                    <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
+                                    {addressSuggestions.map((suggestion, index) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={styles.suggestionItem}
+                                            onPress={() => {
+                                                setLocation(suggestion.display);
+                                                setLocationFull(suggestion.full);
+                                                setLocationApprox(`${suggestion.city} - ${suggestion.postalCode}`);
+                                                setCoordinates({
+                                                    latitude: suggestion.lat,
+                                                    longitude: suggestion.lon
+                                                });
+                                                setAddressSuggestions([]);
+                                                setPostalCode('');
+                                            }}
+                                        >
+                                            <Text style={styles.suggestionIcon}>📍</Text>
+                                            <Text style={styles.suggestionText}>{suggestion.display}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+                        </>
                     )}
 
                     {location !== '' && (
@@ -341,17 +488,19 @@ export default function AddItemFormScreen({ session, navigation }) {
                             <View style={styles.selectedLocationBox}>
                                 <Text style={styles.selectedLocationIcon}>📍</Text>
                                 <Text style={styles.selectedLocationText}>{location}</Text>
-                                <TouchableOpacity
-                                    onPress={() => {
-                                        setLocation('');
-                                        setLocationFull('');
-                                        setLocationApprox('');
-                                        setCoordinates(null);
-                                    }}
-                                    style={styles.clearLocationButton}
-                                >
-                                    <Text style={styles.clearLocationText}>✕</Text>
-                                </TouchableOpacity>
+                                {!useProfileAddress && (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setLocation('');
+                                            setLocationFull('');
+                                            setLocationApprox('');
+                                            setCoordinates(null);
+                                        }}
+                                        style={styles.clearLocationButton}
+                                    >
+                                        <Text style={styles.clearLocationText}>✕</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     )}
@@ -613,6 +762,37 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginLeft: 8,
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 12,
+        paddingVertical: 8,
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#2c4455',
+        backgroundColor: '#fff',
+        marginRight: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    checkboxChecked: {
+        backgroundColor: '#2c4455',
+    },
+    checkboxIcon: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    checkboxLabel: {
+        fontSize: 15,
+        color: '#333',
+        fontWeight: '500',
     },
     deliveryTypeContainer: {
         marginTop: 12,

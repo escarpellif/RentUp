@@ -13,6 +13,7 @@ import EditItemScreen from './src/screens/EditItemScreen';
 import ItemDetailsScreen from './src/screens/ItemDetailsScreen';
 import RequestRentalScreen from './src/screens/RequestRentalScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
 import DocumentVerificationScreen from './src/screens/DocumentVerificationScreen';
 import AdminVerificationsScreen from './src/screens/AdminVerificationsScreen';
 
@@ -86,6 +87,10 @@ export default function App() {
 
                     <Stack.Screen name="Profile">
                         {(props) => <ProfileScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="EditProfile">
+                        {(props) => <EditProfileScreen {...props} session={session} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="DocumentVerification">
