@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentUp - Restablecer Contraseña</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo-circle {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            font-size: 50px;
+        }
+
+        h1 {
+            color: #10B981;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+
+        .tagline {
+            color: #6B7280;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 8px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #D1FAE5;
+            color: #059669;
+            border: 1px solid #6EE7B7;
+        }
+
+        .message.error {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FCA5A5;
+        }
+
+        .requirements {
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .requirements-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 10px;
+        }
+
+        .requirement {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 12px;
+        }
+
+        .requirement-icon {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .requirement.met {
+            color: #059669;
+        }
+
+        .requirement.unmet {
+            color: #9CA3AF;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .footer-text {
+            color: #6B7280;
+            font-size: 13px;
+        }
+
+        .back-to-app {
+            display: inline-block;
+            margin-top: 15px;
+            color: #10B981;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .back-to-app:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container">
+            <div class="logo-circle">
+                🏠
+            </div>
+            <h1>RentUp</h1>
+            <p class="tagline">Posee menos, accede a más.</p>
+        </div>
+
+        <h2>Restablecer Contraseña</h2>
+
+        <div id="message" class="message"></div>
+
+        <form id="resetForm">
+            <div class="form-group">
+                <label for="newPassword">Nueva Contraseña</label>
+                <div class="input-container">
+                    <input
+                        type="password"
+                        id="newPassword"
+                        placeholder="Ingresa tu nueva contraseña"
+                        required
+                    >
+                    <button type="button" class="password-toggle" onclick="togglePassword('newPassword', this)">
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <div id="requirements" class="requirements" style="display: none;">
+                <div class="requirements-title">La contraseña debe contener:</div>
+                <div class="requirement" id="req-length">
+                    <span class="requirement-icon">○</span>
+                    <span>Mínimo 8 caracteres</span>
+                </div>
+                <div class="requirement" id="req-upper">
+                    <span class="requirement-icon">○</span>
+                    <span>Una letra mayúscula (A-Z)</span>
+                </div>
+                <div class="requirement" id="req-lower">
+                    <span class="requirement-icon">○</span>
+                    <span>Una letra minúscula (a-z)</span>
+                </div>
+                <div class="requirement" id="req-number">
+                    <span class="requirement-icon">○</span>
+                    <span>Un número (0-9)</span>
+                </div>
+                <div class="requirement" id="req-special">
+                    <span class="requirement-icon">○</span>
+                    <span>Un carácter especial (!@#$...)</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirmar Contraseña</label>
+                <div class="input-container">
+                    <input
+                        type="password"
+                        id="confirmPassword"
+                        placeholder="Confirma tu nueva contraseña"
+                        required
+                    >
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                        👁️
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                Restablecer Contraseña
+            </button>
+        </form>
+
+        <div class="footer">
+            <p class="footer-text">Después de restablecer tu contraseña,</p>
+            <a href="#" class="back-to-app" onclick="closeWindow()">vuelve al app para iniciar sesión</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2aG5rd3h2eG5zYXRxbWxqbnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTgwNzksImV4cCI6MjA3NzgzNDA3OX0.TmV3OI1OitcdLvFcGYTm2hclZ8aI-2zwtsI8Ar6GQaU';
+
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        // Toggle password visibility
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = '👁️‍🗨️';
+            } else {
+                input.type = 'password';
+                button.textContent = '👁️';
+            }
+        }
+
+        // Show/hide requirements
+        const passwordInput = document.getElementById('newPassword');
+        const requirements = document.getElementById('requirements');
+
+        passwordInput.addEventListener('focus', () => {
+            requirements.style.display = 'block';
+        });
+
+        passwordInput.addEventListener('input', () => {
+            const password = passwordInput.value;
+
+            updateRequirement('req-length', password.length >= 8);
+            updateRequirement('req-upper', /[A-Z]/.test(password));
+            updateRequirement('req-lower', /[a-z]/.test(password));
+            updateRequirement('req-number', /\d/.test(password));
+            updateRequirement('req-special', /[!@#$%^&*(),.?":{}|<>]/.test(password));
+        });
+
+        function updateRequirement(id, met) {
+            const element = document.getElementById(id);
+            const icon = element.querySelector('.requirement-icon');
+
+            if (met) {
+                element.classList.add('met');
+                element.classList.remove('unmet');
+                icon.textContent = '✓';
+            } else {
+                element.classList.add('unmet');
+                element.classList.remove('met');
+                icon.textContent = '○';
+            }
+        }
+
+        // Show message
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = `message ${type}`;
+            message.style.display = 'block';
+        }
+
+        // Close window
+        function closeWindow() {
+            window.close();
+            showMessage('Puedes cerrar esta ventana y volver al app.', 'success');
+        }
+
+        // Handle form submission
+        document.getElementById('resetForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                showMessage('Las contraseñas no coinciden', 'error');
+                return;
+            }
+
+            // Validate password strength
+            if (newPassword.length < 8) {
+                showMessage('La contraseña debe tener al menos 8 caracteres', 'error');
+                return;
+            }
+
+            if (!/[A-Z]/.test(newPassword)) {
+                showMessage('La contraseña debe contener al menos una letra mayúscula', 'error');
+                return;
+            }
+
+            if (!/[a-z]/.test(newPassword)) {
+                showMessage('La contraseña debe contener al menos una letra minúscula', 'error');
+                return;
+            }
+
+            if (!/\d/.test(newPassword)) {
+                showMessage('La contraseña debe contener al menos un número', 'error');
+                return;
+            }
+
+            if (!/[!@#$%^&*(),.?":{}|<>]/.test(newPassword)) {
+                showMessage('La contraseña debe contener al menos un carácter especial', 'error');
+                return;
+            }
+
+            // Update password
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const { error } = await supabaseClient.auth.updateUser({
+                    password: newPassword
+                });
+
+                if (error) throw error;
+
+                showMessage('¡Contraseña actualizada con éxito! Puedes volver al app y iniciar sesión.', 'success');
+                submitBtn.textContent = '✓ Contraseña Actualizada';
+                submitBtn.style.background = '#059669';
+
+                // Hide form
+                document.getElementById('resetForm').style.display = 'none';
+
+                // Auto-close after 5 seconds
+                setTimeout(() => {
+                    window.close();
+                }, 5000);
+
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Restablecer Contraseña';
+            }
+        });
+
+        // Check for errors in URL
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.hash.substring(1));
+            const error = params.get('error');
+            const errorDescription = params.get('error_description');
+
+            if (error) {
+                let message = 'Error: ';
+                if (error === 'access_denied' && errorDescription?.includes('expired')) {
+                    message = 'El enlace ha expirado. Por favor, solicita un nuevo enlace de recuperación de contraseña.';
+                } else {
+                    message += errorDescription || error;
+                }
+                showMessage(message, 'error');
+                document.getElementById('resetForm').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
+
