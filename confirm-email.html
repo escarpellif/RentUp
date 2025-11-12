@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Confirmado - RentUp</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 30px;
+        }
+
+        .logo-circle {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .logo-circle img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        h1 {
+            color: #10B981;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .brand-name {
+            font-size: 36px;
+            font-weight: 800;
+            color: #10B981;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: #6B7280;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .message {
+            color: #4B5563;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .info-box {
+            background: #F0FDF4;
+            border-left: 4px solid #10B981;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            color: #10B981;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #4B5563;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 10px;
+        }
+
+        .info-box li {
+            color: #4B5563;
+            font-size: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid #D1FAE5;
+        }
+
+        .info-box li:last-child {
+            border-bottom: none;
+        }
+
+        .info-box li:before {
+            content: "✓";
+            color: #10B981;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .button {
+            background: #10B981;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .button:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 40px 25px;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            .brand-name {
+                font-size: 30px;
+            }
+
+            .message {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Logo -->
+        <div class="logo-container">
+            <div class="logo-circle">
+                <img src="https://raw.githubusercontent.com/escarpellif/RentUp/main/assets/images/app-icon.png" alt="RentUp Logo">
+            </div>
+            <div class="brand-name">RentUp</div>
+            <div class="tagline">Posee menos, accede a más.</div>
+        </div>
+
+        <!-- Success Icon -->
+        <div class="success-icon">✅</div>
+
+        <!-- Main Message -->
+        <h1>¡Email Confirmado!</h1>
+        <p class="message">
+            Tu correo electrónico ha sido verificado exitosamente.
+            Ya puedes acceder a tu cuenta en la aplicación RentUp.
+        </p>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <h3>📱 Próximos Pasos:</h3>
+            <ul>
+                <li>Abre la aplicación RentUp en tu dispositivo</li>
+                <li>Inicia sesión con tu email y contraseña</li>
+                <li>¡Comienza a alquilar o publicar artículos!</li>
+            </ul>
+        </div>
+
+        <!-- Action Button -->
+        <a href="#" class="button" onclick="closeWindow()">Cerrar esta Ventana</a>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Puedes cerrar esta página y volver a la aplicación.</p>
+            <p style="margin-top: 10px;">¿Necesitas ayuda? Contáctanos en soporte@rentup.com</p>
+        </div>
+    </div>
+
+    <script>
+        function closeWindow() {
+            // Intenta fechar a janela/aba
+            window.close();
+
+            // Se não conseguir fechar (navegadores modernos bloqueiam isso),
+            // mostra uma mensagem
+            setTimeout(function() {
+                alert('Puedes cerrar esta pestaña manualmente y volver a la aplicación RentUp.');
+            }, 100);
+
+            return false;
+        }
+
+        // Auto-fechar após 5 segundos (opcional)
+        // setTimeout(function() {
+        //     closeWindow();
+        // }, 5000);
+    </script>
+</body>
+</html>
+
