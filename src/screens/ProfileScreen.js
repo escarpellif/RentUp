@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { Rating } from 'react-native-ratings';

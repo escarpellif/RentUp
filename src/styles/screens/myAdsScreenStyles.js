@@ -1,10 +1,10 @@
-import { StyleSheet, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const myAdsScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F8F9FA',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   loadingContainer: {
     flex: 1,

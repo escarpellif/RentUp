@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, Platform, StatusBar, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, Platform, ActivityIndicator , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -28,9 +28,13 @@ export default function EditItemScreen({ route, navigation, session }) {
     const [deliveryType, setDeliveryType] = useState(item?.delivery_type || 'pickup');
     const [loading, setLoading] = useState(false);
 
-    // Inicializa com as fotos existentes ou array vazio
+    // Inicializa com as fotos existentes ou array vazio com validação segura
     const [photos, setPhotos] = useState(() => {
-        const existingPhotos = item?.photos || (item?.photo_url ? [item.photo_url] : []);
+        const existingPhotos = (item?.photos && Array.isArray(item.photos))
+            ? item.photos
+            : (item?.photo_url && typeof item.photo_url === 'string')
+            ? [item.photo_url]
+            : [];
         return [
             existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
             existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
@@ -39,7 +43,11 @@ export default function EditItemScreen({ route, navigation, session }) {
     });
 
     const [photoPaths, setPhotoPaths] = useState(() => {
-        const existingPhotos = item?.photos || (item?.photo_url ? [item.photo_url] : []);
+        const existingPhotos = (item?.photos && Array.isArray(item.photos))
+            ? item.photos
+            : (item?.photo_url && typeof item.photo_url === 'string')
+            ? [item.photo_url]
+            : [];
         return [
             existingPhotos[0] || null,
             existingPhotos[1] || null,
@@ -293,8 +301,12 @@ export default function EditItemScreen({ route, navigation, session }) {
                     onPress: async () => {
                         setLoading(true);
 
-                        // Deletar todas as fotos do storage
-                        const photosToDelete = item.photos || (item.photo_url ? [item.photo_url] : []);
+                        // Deletar todas as fotos do storage com validação segura
+                        const photosToDelete = (item.photos && Array.isArray(item.photos))
+                            ? item.photos
+                            : (item.photo_url && typeof item.photo_url === 'string')
+                            ? [item.photo_url]
+                            : [];
                         if (photosToDelete.length > 0) {
                             try {
                                 await supabase.storage
@@ -632,7 +644,7 @@ const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
         backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
     headerContainer: {
         flexDirection: 'row',

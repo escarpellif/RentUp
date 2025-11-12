@@ -44,9 +44,11 @@ export default function RecentItemsCarousel({ navigation }) {
     };
 
     const getImageUrl = (item) => {
-        if (item.photos && item.photos.length > 0) {
+        if (!item) return null;
+
+        if (item.photos && Array.isArray(item.photos) && item.photos.length > 0) {
             return `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photos[0]}`;
-        } else if (item.photo_url) {
+        } else if (item.photo_url && typeof item.photo_url === 'string') {
             return `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
         }
         return null;

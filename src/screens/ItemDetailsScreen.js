@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
@@ -9,18 +9,24 @@ import { checkUserVerification, handleVerificationAlert } from '../utils/verific
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function ItemDetailsScreen({ route, navigation, session }) {
-    const { item } = route.params;
+    const { item } = route.params || {};
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Preparar array de fotos (compatível com items antigos e novos)
-    const photos = item.photos && item.photos.length > 0
+    // Preparar array de fotos (compatível com items antigos e novos) com validação
+    const photos = item && item.photos && Array.isArray(item.photos) && item.photos.length > 0
         ? item.photos
-        : item.photo_url
+        : (item && item.photo_url && typeof item.photo_url === 'string')
         ? [item.photo_url]
         : [];
 
     const fetchOwnerProfile = useCallback(async () => {
+        // Validação: verificar se owner_id existe
+        if (!item || !item.owner_id) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         const { data, error } = await supabase
             .from('profiles')
@@ -34,11 +40,26 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
             setOwnerProfile(data);
         }
         setLoading(false);
-    }, [item.owner_id]);
+    }, [item]);
 
     useEffect(() => {
         fetchOwnerProfile();
     }, [fetchOwnerProfile]);
+
+    // Validação no render: Se não há item, mostrar erro
+    if (!item) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+                <Text style={{ fontSize: 18, marginBottom: 20 }}>Error: Item não encontrado</Text>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={{ backgroundColor: '#10B981', padding: 15, borderRadius: 8 }}
+                >
+                    <Text style={{ color: 'white', fontWeight: 'bold' }}>Voltar</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
 
     const handleContact = () => {
         Alert.alert(
@@ -214,7 +235,7 @@ const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
         backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
     headerContainer: {
         flexDirection: 'row',

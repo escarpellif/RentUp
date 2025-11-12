@@ -11,7 +11,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  RefreshControl
+  RefreshControl,
+  StatusBar
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
@@ -66,11 +67,13 @@ export default function MyAdsScreen({ navigation, session }) {
   };
 
   const handleItemPress = (item) => {
-    navigation.navigate('ItemDetails', { itemId: item.id });
+    // Passar o objeto item completo, não apenas o id
+    navigation.navigate('ItemDetails', { item: item });
   };
 
   const handleEditItem = (item) => {
-    navigation.navigate('EditItem', { itemId: item.id });
+    // Passar o objeto item completo, não apenas o id
+    navigation.navigate('EditItem', { item: item });
   };
 
   const handleDeleteItem = async (item) => {

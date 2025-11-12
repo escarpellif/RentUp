@@ -11,7 +11,8 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
         return null;
     }
 
-    const imageUrl = item.photo_url
+    // Validação segura para photo_url
+    const imageUrl = (item.photo_url && typeof item.photo_url === 'string')
         ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`
         : null;
 

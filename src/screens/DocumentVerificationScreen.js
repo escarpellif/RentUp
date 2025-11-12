@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Alert, StatusBar } from 'react-native';
+import { View, ScrollView, Alert , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../supabase';

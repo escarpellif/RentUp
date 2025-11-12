@@ -3,14 +3,14 @@
 // Estilos da tela de perfil
 // ============================================
 
-import { StyleSheet, Platform, StatusBar } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { Colors, Spacing, BorderRadius, FontSizes, FontWeights, Shadows } from '../constants/theme';
 
 export const profileStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background.secondary,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   
   headerContainer: {

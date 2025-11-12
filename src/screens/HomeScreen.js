@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, StatusBar, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, Image , StatusBar } from 'react-native';
 import { supabase } from '../../supabase';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
 import { useTranslation } from 'react-i18next';
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f5f5f5',
-        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : 35,
+        paddingTop: Platform.OS === 'android' ? (25 || 0) + 20 : 35,
     },
     header: {
         flexDirection: 'row',

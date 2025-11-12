@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, AppRegistry } from 'react-native';
+import { AppRegistry } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase } from './supabase';
 
 // Importar i18n
 import './src/i18n';
+
+// Importar Splash Screen Animado
+import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 
 import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -45,11 +48,7 @@ export default function App() {
     }, []);
 
     if (loading) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return <AnimatedSplashScreen />;
     }
 
     // Se estiver logado, exibe o Stack Navigator com as telas do app

@@ -29,6 +29,50 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
 
   // -------------------------
+  // LÓGICA DE RECUPERAÇÃO DE SENHA
+  // -------------------------
+  async function handleForgotPassword() {
+    if (!email) {
+      Alert.alert(
+        t('auth.forgotPassword'),
+        'Por favor, ingresa tu correo electrónico arriba y luego presiona "¿Olvidaste tu contraseña?"'
+      );
+      return;
+    }
+
+    Alert.alert(
+      t('auth.forgotPassword'),
+      `¿Enviar email de recuperación a ${email}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Enviar',
+          onPress: async () => {
+            setLoading(true);
+
+            // Redireciona para página customizada no GitHub Pages
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: 'https://escarpellif.github.io/RentUp/',
+            });
+
+            setLoading(false);
+
+            if (error) {
+              Alert.alert('Error', error.message);
+            } else {
+              Alert.alert(
+                '¡Email Enviado!',
+                `Se ha enviado un email a ${email} con un enlace para restablecer tu contraseña.\n\nPor favor, revisa tu bandeja de entrada y haz clic en el enlace.`,
+                [{ text: 'OK' }]
+              );
+            }
+          },
+        },
+      ]
+    );
+  }
+
+  // -------------------------
   // LÓGICA DE LOGIN (SIGN IN)
   // -------------------------
   async function signInWithEmail() {
@@ -121,34 +165,6 @@ export default function AuthScreen() {
   }
 
   // -------------------------
-  // FUNÇÃO PARA VERIFICAR SE EMAIL JÁ EXISTE
-  // -------------------------
-  async function checkEmailExists(email) {
-    try {
-      // Tentar fazer sign in com email inválido para verificar se existe
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: 'dummy-password-check-12345'
-      });
-
-      // Se o erro for "Invalid login credentials", o email existe mas a senha está errada
-      // Se o erro for "Email not confirmed", o email existe mas não foi confirmado
-      if (error) {
-        if (error.message.includes('Invalid login credentials') ||
-            error.message.includes('Email not confirmed')) {
-          return true; // Email existe
-        }
-        return false; // Email não existe
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Erro ao verificar email:', error);
-      return false;
-    }
-  }
-
-  // -------------------------
   // LÓGICA DE CADASTRO (SIGN UP)
   // -------------------------
   async function signUpWithEmail() {
@@ -182,23 +198,8 @@ export default function AuthScreen() {
         return;
       }
 
-      // Validar se email já existe
-      const emailExists = await checkEmailExists(email);
-      if (emailExists) {
-        setLoading(false);
-        Alert.alert(
-          'Email Ya Registrado',
-          'Este email ya está registrado. ¿Deseas iniciar sesión?',
-          [
-            { text: 'Cancelar', style: 'cancel' },
-            {
-              text: 'Iniciar Sesión',
-              onPress: () => setIsRegistering(false)
-            }
-          ]
-        );
-        return;
-      }
+      // Não verificamos email previamente - o Supabase retorna erro específico se já existir
+      // Isso evita falsos positivos e permite que o Supabase gerencie a validação
     } else {
       // Para login, mantém a validação mínima
       if (password.length < 6) {
@@ -226,7 +227,24 @@ export default function AuthScreen() {
     });
 
     if (error) {
-      Alert.alert('Error en el Registro', error.message);
+      // Verificar se é erro de email já registrado
+      if (error.message.includes('already registered') ||
+          error.message.includes('already been registered') ||
+          error.message.includes('User already registered')) {
+        Alert.alert(
+          'Email Ya Registrado',
+          'Este email ya está registrado. ¿Deseas iniciar sesión?',
+          [
+            { text: 'Cancelar', style: 'cancel' },
+            {
+              text: 'Iniciar Sesión',
+              onPress: () => setIsRegistering(false)
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error en el Registro', error.message);
+      }
     } else if (!session) {
       Alert.alert(
         '¡Registro Exitoso!',
@@ -276,9 +294,6 @@ export default function AuthScreen() {
 
           {/* Form Card */}
           <View style={styles.formCard}>
-            <Text style={styles.formTitle}>
-              {isRegistering ? t('auth.register') : t('auth.login')}
-            </Text>
 
             {/* Full Name Input - Only for Registration */}
             {isRegistering && (
@@ -428,6 +443,17 @@ export default function AuthScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
+            {/* Forgot Password Link - Only for Login */}
+            {!isRegistering && (
+              <View style={styles.forgotPasswordContainer}>
+                <TouchableOpacity onPress={handleForgotPassword}>
+                  <Text style={styles.forgotPasswordLink}>
+                    {t('auth.forgotPassword')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
             {/* Toggle Auth Mode */}
             <View style={styles.toggleContainer}>
               <Text style={styles.toggleQuestion}>
@@ -470,7 +496,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-
   languageSwitcherContainer: {
     alignItems: 'center',
     marginBottom: 20,
@@ -483,20 +508,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
-    borderWidth: 4,
-    borderColor: '#D1FAE5',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 8,
   },
   logoImage: {
     width: 70,
     height: 70,
-  },
-  logoIcon: {
-    fontSize: 50,
   },
   brandName: {
     fontSize: 36,
@@ -643,6 +663,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#10B981',
     fontWeight: 'bold',
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  forgotPasswordLink: {
+    fontSize: 14,
+    color: '#6B7280',
   },
   footer: {
     alignItems: 'center',

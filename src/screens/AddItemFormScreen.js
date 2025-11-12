@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
         backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
     headerContainer: {
         flexDirection: 'row',
