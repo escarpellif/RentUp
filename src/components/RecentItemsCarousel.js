@@ -127,12 +127,12 @@ export default function RecentItemsCarousel({ navigation }) {
                             <View style={styles.content}>
                                 {/* Title */}
                                 <Text style={styles.title} numberOfLines={2}>
-                                    {item.title}
+                                    {item?.title || 'Sin título'}
                                 </Text>
 
                                 {/* Description */}
                                 <Text style={styles.description} numberOfLines={2}>
-                                    {item.description || 'Sin descripción'}
+                                    {item?.description || 'Sin descripción'}
                                 </Text>
 
                                 {/* Rating */}

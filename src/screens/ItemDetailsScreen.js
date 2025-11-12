@@ -117,10 +117,10 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
 
                 {/* Informações Principais */}
                 <View style={styles.contentContainer}>
-                <Text style={styles.title}>{item.title}</Text>
-                
+                <Text style={styles.title}>{item?.title || 'Sin título'}</Text>
+
                 <View style={styles.priceContainer}>
-                    <Text style={styles.price}>€{parseFloat(item.price_per_day).toFixed(2)}</Text>
+                    <Text style={styles.price}>€{parseFloat(item?.price_per_day || 0).toFixed(2)}</Text>
                     <Text style={styles.priceLabel}> / dia</Text>
                 </View>
 

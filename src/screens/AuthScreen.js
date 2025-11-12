@@ -15,8 +15,11 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../supabase';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function AuthScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -262,14 +265,19 @@ export default function AuthScreen() {
             </View>
             <Text style={styles.brandName}>RentUp</Text>
             <Text style={styles.brandTagline}>
-              {isRegistering ? 'Crea tu cuenta' : 'Bienvenido de nuevo'}
+              {isRegistering ? t('auth.createAccount') : t('auth.welcomeBack')}
             </Text>
+          </View>
+
+          {/* Language Switcher */}
+          <View style={styles.languageSwitcherContainer}>
+            <LanguageSwitcher />
           </View>
 
           {/* Form Card */}
           <View style={styles.formCard}>
             <Text style={styles.formTitle}>
-              {isRegistering ? 'Regístrate' : 'Iniciar Sesión'}
+              {isRegistering ? t('auth.register') : t('auth.login')}
             </Text>
 
             {/* Full Name Input - Only for Registration */}
@@ -282,7 +290,7 @@ export default function AuthScreen() {
                   style={styles.input}
                   onChangeText={setFullName}
                   value={fullName}
-                  placeholder="Nombre Completo"
+                  placeholder={t('auth.fullName')}
                   placeholderTextColor="#999"
                   autoCapitalize="words"
                   editable={!loading}
@@ -300,7 +308,7 @@ export default function AuthScreen() {
                   style={styles.input}
                   onChangeText={setUsername}
                   value={username}
-                  placeholder="Nombre de Usuario"
+                  placeholder={t('auth.username')}
                   placeholderTextColor="#999"
                   autoCapitalize="none"
                   editable={!loading}
@@ -317,7 +325,7 @@ export default function AuthScreen() {
                 style={styles.input}
                 onChangeText={setEmail}
                 value={email}
-                placeholder="Correo Electrónico"
+                placeholder={t('auth.email')}
                 placeholderTextColor="#999"
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -335,7 +343,7 @@ export default function AuthScreen() {
                 onChangeText={setPassword}
                 value={password}
                 secureTextEntry={!showPassword}
-                placeholder="Contraseña"
+                placeholder={t('auth.password')}
                 placeholderTextColor="#999"
                 autoCapitalize="none"
                 editable={!loading}
@@ -351,14 +359,14 @@ export default function AuthScreen() {
             {/* Password Strength Indicator - Only for Registration */}
             {isRegistering && password.length > 0 && (
               <View style={styles.passwordStrengthContainer}>
-                <Text style={styles.passwordStrengthTitle}>Requisitos de la contraseña:</Text>
+                <Text style={styles.passwordStrengthTitle}>{t('auth.passwordRequirements')}</Text>
                 <View style={styles.requirementsList}>
                   <View style={styles.requirementItem}>
                     <Text style={password.length >= 8 ? styles.requirementMet : styles.requirementUnmet}>
                       {password.length >= 8 ? '✓' : '○'}
                     </Text>
                     <Text style={password.length >= 8 ? styles.requirementTextMet : styles.requirementTextUnmet}>
-                      Mínimo 8 caracteres
+                      {t('auth.minCharacters')}
                     </Text>
                   </View>
                   <View style={styles.requirementItem}>
@@ -366,7 +374,7 @@ export default function AuthScreen() {
                       {/[A-Z]/.test(password) ? '✓' : '○'}
                     </Text>
                     <Text style={/[A-Z]/.test(password) ? styles.requirementTextMet : styles.requirementTextUnmet}>
-                      Una letra mayúscula (A-Z)
+                      {t('auth.oneUppercase')}
                     </Text>
                   </View>
                   <View style={styles.requirementItem}>
@@ -374,7 +382,7 @@ export default function AuthScreen() {
                       {/[a-z]/.test(password) ? '✓' : '○'}
                     </Text>
                     <Text style={/[a-z]/.test(password) ? styles.requirementTextMet : styles.requirementTextUnmet}>
-                      Una letra minúscula (a-z)
+                      {t('auth.oneLowercase')}
                     </Text>
                   </View>
                   <View style={styles.requirementItem}>
@@ -382,7 +390,7 @@ export default function AuthScreen() {
                       {/\d/.test(password) ? '✓' : '○'}
                     </Text>
                     <Text style={/\d/.test(password) ? styles.requirementTextMet : styles.requirementTextUnmet}>
-                      Un número (0-9)
+                      {t('auth.oneNumber')}
                     </Text>
                   </View>
                   <View style={styles.requirementItem}>
@@ -390,7 +398,7 @@ export default function AuthScreen() {
                       {/[!@#$%^&*(),.?":{}|<>]/.test(password) ? '✓' : '○'}
                     </Text>
                     <Text style={/[!@#$%^&*(),.?":{}|<>]/.test(password) ? styles.requirementTextMet : styles.requirementTextUnmet}>
-                      Un carácter especial (!@#$...)
+                      {t('auth.oneSpecial')}
                     </Text>
                   </View>
                 </View>
@@ -414,7 +422,7 @@ export default function AuthScreen() {
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <Text style={styles.submitButtonText}>
-                    {isRegistering ? 'Registrarse' : 'Entrar'}
+                    {isRegistering ? t('auth.register') : t('auth.login')}
                   </Text>
                 )}
               </LinearGradient>
@@ -423,11 +431,11 @@ export default function AuthScreen() {
             {/* Toggle Auth Mode */}
             <View style={styles.toggleContainer}>
               <Text style={styles.toggleQuestion}>
-                {isRegistering ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                {isRegistering ? t('auth.alreadyHaveAccount') : t('auth.dontHaveAccount')}
               </Text>
               <TouchableOpacity onPress={() => setIsRegistering(!isRegistering)}>
                 <Text style={styles.toggleLink}>
-                  {isRegistering ? 'Iniciar Sesión' : 'Regístrate'}
+                  {isRegistering ? t('auth.login') : t('auth.register')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -436,7 +444,7 @@ export default function AuthScreen() {
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Posee menos, Accede a más.
+              {t('home.subtitle')}
             </Text>
           </View>
         </ScrollView>
@@ -460,7 +468,12 @@ const styles = StyleSheet.create({
   },
   brandContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
+  },
+
+  languageSwitcherContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
   logoCircle: {
     width: 100,

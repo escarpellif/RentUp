@@ -58,9 +58,9 @@ export default function MainMarketplace({ session, navigation, route }) {
         // Filtro por busca
         if (searchQuery.trim()) {
             filtered = filtered.filter(item =>
-                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.location.toLowerCase().includes(searchQuery.toLowerCase())
+                item?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item?.location?.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 

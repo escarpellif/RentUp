@@ -1,10 +1,10 @@
 {
   "expo": {
     "name": "RentUp",
-    "slug": "rentup",
+    "slug": "RentUp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/app-icon.png",
+    "icon": "./assets/images/logo.png",
     "scheme": "rentup",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

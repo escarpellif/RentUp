@@ -2,17 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, StatusBar, Image } from 'react-native';
 import { supabase } from '../../supabase';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
+import { useTranslation } from 'react-i18next';
 import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 
 export default function HomeScreen({ navigation, session }) {
+    const { t } = useTranslation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     // Hook de notificações
     const { unreadCount } = useAdminNotifications();
+
+    // Buscar se o usuário é admin
+    useEffect(() => {
+        async function checkAdmin() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('is_admin')
+                .eq('id', session.user.id)
+                .single();
+
+            if (!error && data) {
+                setIsAdmin(data.is_admin || false);
+            }
+        }
+
+        checkAdmin();
+    }, [session]);
 
     // Adicionar listener para atualizar quando a tela voltar ao foco
     useEffect(() => {
@@ -24,15 +44,15 @@ export default function HomeScreen({ navigation, session }) {
     }, [navigation]);
 
     const categories = [
-        { id: '1', name: 'Electrónicos', icon: '🎮', color: '#fff' },
-        { id: '2', name: 'Deportes', icon: '🏀', color: '#fff' },
-        { id: '3', name: 'Accesorios de Vehículos', icon: '🔧', color: '#fff' },
-        { id: '4', name: 'Muebles', icon: '🛋️', color: '#fff' },
-        { id: '5', name: 'Herramientas', icon: '🔨', color: '#fff' },
-        { id: '6', name: 'Fiestas', icon: '🎉', color: '#fff' },
-        { id: '7', name: 'Jardín', icon: '🌱', color: '#fff' },
-        { id: '8', name: 'Ropa', icon: '👕', color: '#fff' },
-        { id: '9', name: 'Otros', icon: '📦', color: '#fff' },
+        { id: '1', name: t('items.electronics'), icon: '🎮', color: '#fff' },
+        { id: '2', name: t('items.sports'), icon: '🏀', color: '#fff' },
+        { id: '3', name: t('items.vehicles'), icon: '🔧', color: '#fff' },
+        { id: '4', name: t('items.furniture'), icon: '🛋️', color: '#fff' },
+        { id: '5', name: t('items.tools'), icon: '🔨', color: '#fff' },
+        { id: '6', name: t('items.parties'), icon: '🎉', color: '#fff' },
+        { id: '7', name: t('items.garden'), icon: '🌱', color: '#fff' },
+        { id: '8', name: t('items.clothing'), icon: '👕', color: '#fff' },
+        { id: '9', name: t('items.others'), icon: '📦', color: '#fff' },
     ];
 
     const handleCategoryPress = (category) => {
@@ -49,22 +69,21 @@ export default function HomeScreen({ navigation, session }) {
         setMenuVisible(false);
 
         Alert.alert(
-            'Cerrar Sesión',
+            t('auth.logout'),
             '¿Estás seguro de que deseas salir?',
             [
                 {
-                    text: 'Cancelar',
+                    text: t('common.cancel'),
                     style: 'cancel'
                 },
                 {
-                    text: 'Salir',
+                    text: t('auth.logout'),
                     style: 'destructive',
                     onPress: async () => {
                         const { error } = await supabase.auth.signOut();
                         if (error) {
-                            Alert.alert('Error', 'No se pudo cerrar sesión: ' + error.message);
+                            Alert.alert(t('common.error'), 'No se pudo cerrar sesión: ' + error.message);
                         }
-                        // O App.js detectará a mudança de sessão e voltará para AuthScreen
                     }
                 }
             ]
@@ -113,12 +132,12 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Hero Section - Single Card */}
                 <View style={styles.heroSection}>
                     <View style={styles.heroCard}>
-                        <Text style={styles.heroTitle}>¿Por qué comprar</Text>
-                        <Text style={styles.heroTitle}>si puedes alquilar?</Text>
+                        <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
+                        <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                        <Text style={styles.heroSubtitle}>Posee menos, accede a más.</Text>
-                        <Text style={styles.heroSubtitle}>Obtén lo que necesitas, cuando</Text>
-                        <Text style={styles.heroSubtitle}>lo necesitas, sin gastar de más.</Text>
+                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
                         <Image
                             source={require('../../assets/images/img-circular-no-back.png')}
@@ -126,25 +145,25 @@ export default function HomeScreen({ navigation, session }) {
                             resizeMode="contain"
                         />
 
-                        <Text style={styles.heroTitle}>¿Por qué dejar parado</Text>
-                        <Text style={styles.heroTitle}>si puedes ganar dinero?</Text>
+                        <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
+                        <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
 
-                        <Text style={styles.heroSubtitle}>Tus artículos sin uso pueden generar</Text>
-                        <Text style={styles.heroSubtitle}>ingresos extra.</Text>
+                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
 
                         <View style={styles.heroButtonsContainer}>
                             <TouchableOpacity
                                 style={[styles.heroButton, styles.heroButtonAnunciar]}
                                 onPress={() => navigation.navigate('Home')}
                             >
-                                <Text style={styles.heroButtonText}>Explorar</Text>
+                                <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={[styles.heroButton, styles.heroButtonAnunciar]}
                                 onPress={() => navigation.navigate('AddItem')}
                             >
-                                <Text style={styles.heroButtonText}>Anunciar</Text>
+                                <Text style={styles.heroButtonText}>{t('home.post')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -154,7 +173,7 @@ export default function HomeScreen({ navigation, session }) {
                 <View style={styles.searchContainer}>
                     <TextInput
                         style={styles.searchInput}
-                        placeholder="Buscar..."
+                        placeholder={t('home.search')}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                         onSubmitEditing={handleSearch}
@@ -170,12 +189,12 @@ export default function HomeScreen({ navigation, session }) {
                 {/* Categories Section */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Categorías</Text>
+                        <Text style={styles.sectionTitle}>{t('home.categories')}</Text>
                         <TouchableOpacity
                             style={styles.viewAllButton}
                             onPress={() => navigation.navigate('Home')}
                         >
-                            <Text style={styles.viewAllButtonText}>Ver Todas</Text>
+                            <Text style={styles.viewAllButtonText}>{t('home.seeAll')}</Text>
                             <Text style={styles.viewAllButtonIcon}>→</Text>
                         </TouchableOpacity>
                     </View>
@@ -220,7 +239,7 @@ export default function HomeScreen({ navigation, session }) {
                 >
                     <View style={styles.menuContainer}>
                         <View style={styles.menuHeader}>
-                            <Text style={styles.menuTitle}>Menú</Text>
+                            <Text style={styles.menuTitle}>{t('menu.title')}</Text>
                             <TouchableOpacity
                                 style={styles.closeButton}
                                 onPress={() => setMenuVisible(false)}
@@ -238,7 +257,7 @@ export default function HomeScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={styles.menuItemIcon}>←</Text>
-                                <Text style={styles.menuItemText}>Volver</Text>
+                                <Text style={styles.menuItemText}>{t('menu.back')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -249,18 +268,18 @@ export default function HomeScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={styles.menuItemIcon}>🛍️</Text>
-                                <Text style={styles.menuItemText}>Marketplace</Text>
+                                <Text style={styles.menuItemText}>{t('menu.marketplace')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.menuItem}
                                 onPress={() => {
                                     setMenuVisible(false);
-                                    navigation.navigate('AddItem');
+                                    navigation.navigate('MyAds');
                                 }}
                             >
-                                <Text style={styles.menuItemIcon}>➕</Text>
-                                <Text style={styles.menuItemText}>Anunciar Artículo</Text>
+                                <Text style={styles.menuItemIcon}>📦</Text>
+                                <Text style={styles.menuItemText}>{t('menu.myAds')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -271,21 +290,26 @@ export default function HomeScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={styles.menuItemIcon}>👤</Text>
-                                <Text style={styles.menuItemText}>Mi Perfil</Text>
+                                <Text style={styles.menuItemText}>{t('menu.myProfile')}</Text>
                             </TouchableOpacity>
 
-                            <View style={styles.menuDivider} />
+                            {/* Admin - Apenas para usuários admin */}
+                            {isAdmin && (
+                                <>
+                                    <View style={styles.menuDivider} />
 
-                            <TouchableOpacity
-                                style={styles.menuItem}
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    navigation.navigate('AdminVerifications');
-                                }}
-                            >
-                                <Text style={styles.menuItemIcon}>🔐</Text>
-                                <Text style={styles.menuItemText}>Admin - Verificaciones</Text>
-                            </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.menuItem}
+                                        onPress={() => {
+                                            setMenuVisible(false);
+                                            navigation.navigate('AdminVerifications');
+                                        }}
+                                    >
+                                        <Text style={styles.menuItemIcon}>🔐</Text>
+                                        <Text style={styles.menuItemText}>{t('menu.admin')}</Text>
+                                    </TouchableOpacity>
+                                </>
+                            )}
 
                             <View style={styles.menuDivider} />
 
@@ -294,7 +318,7 @@ export default function HomeScreen({ navigation, session }) {
                                 onPress={handleLogout}
                             >
                                 <Text style={styles.menuItemIcon}>🚪</Text>
-                                <Text style={styles.menuItemText}>Salir</Text>
+                                <Text style={styles.menuItemText}>{t('menu.logout')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

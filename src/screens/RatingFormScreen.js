@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Button, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, Button, Alert } from 'react-native';
 import { supabase } from '../../supabase';
-import { Rating } from 'react-native-ratings'; // Se você instalou 'react-native-ratings'
-// import { StarRating } from 'expo-star-rating'; // Alternativa
+import { Rating } from 'react-native-ratings';
+import { ratingFormScreenStyles as styles } from '../styles/screens/ratingFormScreenStyles';
 
 export default function RatingFormScreen({ route, navigation, session }) {
     // Dados passados da transação concluída (simulando a rota de navegação)
@@ -128,46 +128,3 @@ export default function RatingFormScreen({ route, navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 20,
-        backgroundColor: '#f5f5f5',
-    },
-    header: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 30,
-        textAlign: 'center',
-        color: '#333',
-    },
-    prompt: {
-        fontSize: 18,
-        textAlign: 'center',
-        marginBottom: 20,
-        fontWeight: '500',
-    },
-    ratingContainer: {
-        alignItems: 'center',
-        marginBottom: 30,
-    },
-    label: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 15,
-        marginBottom: 5,
-        color: '#555',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 20,
-        backgroundColor: '#fff',
-    },
-    multilineInput: {
-        height: 100,
-        textAlignVertical: 'top',
-    },
-});

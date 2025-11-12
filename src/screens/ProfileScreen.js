@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { Rating } from 'react-native-ratings';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from '../components/LanguageSwitcher';
+import { profileScreenStyles as styles } from '../styles/screens/profileScreenStyles';
 
 export default function ProfileScreen({ session, navigation }) {
+    const { t } = useTranslation();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const userId = session.user.id; // O ID do usuário logado
+    const userId = session.user.id;
 
     useEffect(() => {
         fetchProfile();
@@ -19,7 +23,7 @@ export default function ProfileScreen({ session, navigation }) {
         // Busca o perfil que corresponde ao ID do usuário logado
         const { data, error } = await supabase
             .from('profiles')
-            .select('username, full_name, created_at, rating_avg_locador, rating_avg_locatario')
+            .select('username, full_name, created_at, rating_avg_locador, rating_avg_locatario, is_admin')
             .eq('id', userId)
             .single(); // Espera apenas uma linha (o perfil do usuário)
 
@@ -57,7 +61,6 @@ export default function ProfileScreen({ session, navigation }) {
 
     // Função auxiliar para exibir a avaliação (se houver)
     const renderRating = (average) => {
-        // Converte o valor numérico para exibição (ex: 4.5)
         const ratingValue = parseFloat(average || 0);
 
         return (
@@ -71,7 +74,7 @@ export default function ProfileScreen({ session, navigation }) {
                     startingValue={ratingValue}
                     style={{ paddingHorizontal: 10 }}
                 />
-                <Text style={styles.ratingLabel}>Promedio de Estrellas</Text>
+                <Text style={styles.ratingLabel}>{t('profile.stars')}</Text>
             </View>
         );
     };
@@ -90,7 +93,7 @@ export default function ProfileScreen({ session, navigation }) {
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Mi Perfil</Text>
+                    <Text style={styles.headerTitle}>{t('profile.title')}</Text>
                 </View>
                 <View style={styles.headerSpacer} />
             </View>
@@ -100,7 +103,7 @@ export default function ProfileScreen({ session, navigation }) {
                 <View style={styles.infoCard}>
                     <Text style={styles.name}>{profile.username}</Text>
                     <Text style={styles.email}>{session.user.email}</Text>
-                    <Text style={styles.memberSince}>Miembro desde: {formatDate(profile.created_at)}</Text>
+                    <Text style={styles.memberSince}>{t('profile.memberSince')} {formatDate(profile.created_at)}</Text>
 
                     {/* Botão Editar Perfil */}
                     <TouchableOpacity
@@ -109,233 +112,36 @@ export default function ProfileScreen({ session, navigation }) {
                         activeOpacity={0.8}
                     >
                         <Text style={styles.editProfileIcon}>✏️</Text>
-                        <Text style={styles.editProfileText}>Editar Perfil</Text>
+                        <Text style={styles.editProfileText}>{t('profile.editProfile')}</Text>
                     </TouchableOpacity>
                 </View>
 
+                {/* Seletor de Idioma */}
+                <View style={styles.languageSwitcherSection}>
+                    <Text style={styles.sectionHeader}>{t('settings.language')}</Text>
+                    <View style={styles.languageSwitcherContainer}>
+                        <LanguageSwitcher />
+                    </View>
+                </View>
+
                 {/* --- SEÇÃO DE AVALIAÇÕES --- */}
-                <Text style={styles.sectionHeader}>Mis Valoraciones</Text>
+                <Text style={styles.sectionHeader}>{t('profile.myRatings')}</Text>
 
                 <View style={styles.ratingsContainer}>
                     <View style={styles.ratingSection}>
-                        <Text style={styles.roleTitle}>Como Arrendador (Dueño del Artículo)</Text>
+                        <Text style={styles.roleTitle}>{t('profile.asOwner')}</Text>
                         {renderRating(profile.rating_avg_locador)}
                     </View>
 
                     <View style={styles.ratingSection}>
-                        <Text style={styles.roleTitle}>Como Arrendatario (Cliente)</Text>
+                        <Text style={styles.roleTitle}>{t('profile.asRenter')}</Text>
                         {renderRating(profile.rating_avg_locatario)}
                     </View>
                 </View>
 
-                {/* --- SEÇÃO MIS ANUNCIOS --- */}
-                <Text style={styles.sectionHeader}>Mis Anuncios</Text>
-
-                <View style={styles.actionsContainer}>
-                    <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => navigation.navigate('Profile')}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.actionIcon}>📦</Text>
-                        <Text style={styles.actionText}>Ver Mis Artículos</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.actionButton, styles.actionButtonPrimary]}
-                        onPress={() => navigation.navigate('AddItem')}
-                        activeOpacity={0.8}
-                    >
-                        <Text style={styles.actionIcon}>➕</Text>
-                        <Text style={[styles.actionText, styles.actionTextWhite]}>Anunciar Artículo</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {/* Espaço para um futuro botão de edição ou listagem de itens */}
 
             </ScrollView>
         </SafeAreaView>
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    scrollContent: {
-        padding: 20,
-    },
-    header: {
-        fontSize: 26,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        marginBottom: 20,
-        color: '#333',
-    },
-    infoCard: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-        marginBottom: 20,
-        alignItems: 'center',
-        elevation: 2,
-    },
-    name: {
-        fontSize: 22,
-        fontWeight: '700',
-        marginBottom: 5,
-        color: '#333',
-    },
-    email: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 10,
-    },
-    username: {
-        fontSize: 14,
-        color: '#6c757d',
-        marginBottom: 10,
-    },
-    memberSince: {
-        fontSize: 12,
-        color: '#aaa',
-    },
-    editProfileButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#2c4455',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        marginTop: 15,
-        gap: 8,
-    },
-    editProfileIcon: {
-        fontSize: 16,
-    },
-    editProfileText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: '600',
-    },
-    sectionHeader: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 15,
-        color: '#333',
-        textAlign: 'center',
-    },
-    ratingsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    ratingSection: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        marginHorizontal: 5,
-        alignItems: 'center',
-        elevation: 1,
-    },
-    roleTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    ratingBox: {
-        alignItems: 'center',
-    },
-    ratingValue: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-    ratingLabel: {
-        fontSize: 12,
-        color: '#6c757d',
-        marginTop: 5,
-    },
-    actionsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 10,
-        gap: 12,
-    },
-    actionButton: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 12,
-        alignItems: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    actionButtonPrimary: {
-        backgroundColor: '#10B981',
-        borderColor: '#10B981',
-    },
-    actionIcon: {
-        fontSize: 32,
-        marginBottom: 8,
-    },
-    actionText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#2c4455',
-        textAlign: 'center',
-    },
-    actionTextWhite: {
-        color: '#fff',
-    },
-});

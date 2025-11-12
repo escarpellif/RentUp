@@ -60,7 +60,7 @@ export default function RequestRentalScreen({ route, navigation }) {
 
         Alert.alert(
             'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item.title}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
@@ -114,8 +114,8 @@ export default function RequestRentalScreen({ route, navigation }) {
             <View style={styles.content}>
                 {/* Informações do Item */}
                 <View style={styles.itemCard}>
-                    <Text style={styles.itemTitle}>{item.title}</Text>
-                    <Text style={styles.itemPrice}>€{parseFloat(item.price_per_day).toFixed(2)} / día</Text>
+                    <Text style={styles.itemTitle}>{item?.title || 'Sin título'}</Text>
+                    <Text style={styles.itemPrice}>€{parseFloat(item?.price_per_day || 0).toFixed(2)} / día</Text>
                     <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
                 </View>
 

@@ -5,14 +5,27 @@ import { itemCardStyles } from '../styles/itemCardStyles';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-const ItemCard = ({ item, onDetailsPress }) => {
-    const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`;
-    const categoryInfo = categoryConfig[item.category] || categoryConfig['Otros'];
+const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
+    // Validação para evitar erros
+    if (!item) {
+        return null;
+    }
+
+    const imageUrl = item.photo_url
+        ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${item.photo_url}`
+        : null;
+
+    // Fallback robusto para categoria
+    const defaultCategory = { icon: '📦', color: '#95A5A6', gradient: ['#95A5A6', '#7F8C8D'] };
+    const categoryInfo = categoryConfig[item.category] || categoryConfig['Otros'] || categoryConfig['Others'] || defaultCategory;
+
+    // Suporta tanto onPress quanto onDetailsPress
+    const handlePress = onPress || onDetailsPress;
 
     return (
         <TouchableOpacity
-            style={itemCardStyles.card}
-            onPress={() => onDetailsPress(item)}
+            style={[itemCardStyles.card, fullWidth && { width: '100%' }]}
+            onPress={() => handlePress && handlePress(item)}
             activeOpacity={0.9}
         >
             {/* Imagem do Item com Overlay */}
@@ -24,8 +37,8 @@ const ItemCard = ({ item, onDetailsPress }) => {
                         resizeMode="cover"
                     />
                 ) : (
-                    <View style={[itemCardStyles.cardImagePlaceholder, { backgroundColor: categoryInfo.color + '20' }]}>
-                        <Text style={itemCardStyles.placeholderIcon}>{categoryInfo.icon}</Text>
+                    <View style={[itemCardStyles.cardImagePlaceholder, { backgroundColor: (categoryInfo?.color || '#95A5A6') + '20' }]}>
+                        <Text style={itemCardStyles.placeholderIcon}>{categoryInfo?.icon || '📦'}</Text>
                     </View>
                 )}
 
@@ -44,28 +57,29 @@ const ItemCard = ({ item, onDetailsPress }) => {
                         <Text style={itemCardStyles.unavailableBadgeText}>Alquilado</Text>
                     </View>
                 )}
-
-                {/* Ícone de Categoria */}
-                <View style={[itemCardStyles.categoryIconBadge, { backgroundColor: categoryInfo.color }]}>
-                    <Text style={itemCardStyles.categoryIconText}>{categoryInfo.icon}</Text>
-                </View>
             </View>
 
             {/* Conteúdo do Card */}
             <View style={itemCardStyles.cardContent}>
-                <Text style={itemCardStyles.cardTitle} numberOfLines={2}>{item.title}</Text>
+                <Text style={itemCardStyles.cardTitle} numberOfLines={2}>
+                    {item.title || 'Sin título'}
+                </Text>
 
                 {/* Localização */}
                 <View style={itemCardStyles.locationRow}>
                     <Text style={itemCardStyles.locationIcon}>📍</Text>
-                    <Text style={itemCardStyles.cardLocation} numberOfLines={1}>{item.location}</Text>
+                    <Text style={itemCardStyles.cardLocation} numberOfLines={1}>
+                        {item.location || 'Sin ubicación'}
+                    </Text>
                 </View>
 
                 {/* Preço em destaque */}
                 <View style={itemCardStyles.priceRow}>
                     <View style={itemCardStyles.priceContainer}>
                         <Text style={itemCardStyles.priceSymbol}>€</Text>
-                        <Text style={itemCardStyles.cardPrice}>{parseFloat(item.price_per_day).toFixed(2)}</Text>
+                        <Text style={itemCardStyles.cardPrice}>
+                            {parseFloat(item.price_per_day || 0).toFixed(2)}
+                        </Text>
                         <Text style={itemCardStyles.priceLabel}>/dia</Text>
                     </View>
 

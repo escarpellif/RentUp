@@ -4,6 +4,9 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase } from './supabase';
 
+// Importar i18n
+import './src/i18n';
+
 import AuthScreen from './src/screens/AuthScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import MainMarketplace from './src/screens/MainMarketplace';
@@ -16,6 +19,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import DocumentVerificationScreen from './src/screens/DocumentVerificationScreen';
 import AdminVerificationsScreen from './src/screens/AdminVerificationsScreen';
+import MyAdsScreen from './src/screens/MyAdsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -87,6 +91,10 @@ export default function App() {
 
                     <Stack.Screen name="Profile">
                         {(props) => <ProfileScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="MyAds">
+                        {(props) => <MyAdsScreen {...props} session={session} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="EditProfile">

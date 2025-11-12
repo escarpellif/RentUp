@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, Platform, StatusBar, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
@@ -12,35 +12,50 @@ import { getApproximateLocation, getCoordinatesFromAddress, addRandomOffset } fr
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function EditItemScreen({ route, navigation, session }) {
-    const { item } = route.params;
-    
-    const [title, setTitle] = useState(item.title);
-    const [description, setDescription] = useState(item.description);
-    const [pricePerDay, setPricePerDay] = useState(item.price_per_day.toString());
-    const [category, setCategory] = useState(item.category);
-    const [location, setLocation] = useState(item.location);
-    const [locationFull, setLocationFull] = useState(item.location_full || item.location);
-    const [locationApprox, setLocationApprox] = useState(item.location_approx || getApproximateLocation(item.location));
-    const [coordinates, setCoordinates] = useState(item.coordinates || null);
+    const { item } = route.params || {};
+
+    const [title, setTitle] = useState(item?.title || '');
+    const [description, setDescription] = useState(item?.description || '');
+    const [pricePerDay, setPricePerDay] = useState(item?.price_per_day?.toString() || '');
+    const [category, setCategory] = useState(item?.category || 'Otros');
+    const [location, setLocation] = useState(item?.location || '');
+    const [locationFull, setLocationFull] = useState(item?.location_full || item?.location || '');
+    const [locationApprox, setLocationApprox] = useState(item?.location_approx || getApproximateLocation(item?.location || ''));
+    const [coordinates, setCoordinates] = useState(item?.coordinates || null);
     const [postalCode, setPostalCode] = useState('');
     const [addressSuggestions, setAddressSuggestions] = useState([]);
     const [loadingAddress, setLoadingAddress] = useState(false);
-    const [deliveryType, setDeliveryType] = useState(item.delivery_type || 'pickup');
+    const [deliveryType, setDeliveryType] = useState(item?.delivery_type || 'pickup');
     const [loading, setLoading] = useState(false);
 
     // Inicializa com as fotos existentes ou array vazio
-    const existingPhotos = item.photos || (item.photo_url ? [item.photo_url] : []);
-    const [photos, setPhotos] = useState([
-        existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
-        existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
-        existingPhotos[2] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[2]}` : null,
-    ]);
-    const [photoPaths, setPhotoPaths] = useState([
-        existingPhotos[0] || null,
-        existingPhotos[1] || null,
-        existingPhotos[2] || null,
-    ]);
-    const [newPhotos, setNewPhotos] = useState([false, false, false]); // Track which photos are new
+    const [photos, setPhotos] = useState(() => {
+        const existingPhotos = item?.photos || (item?.photo_url ? [item.photo_url] : []);
+        return [
+            existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
+            existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
+            existingPhotos[2] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[2]}` : null,
+        ];
+    });
+
+    const [photoPaths, setPhotoPaths] = useState(() => {
+        const existingPhotos = item?.photos || (item?.photo_url ? [item.photo_url] : []);
+        return [
+            existingPhotos[0] || null,
+            existingPhotos[1] || null,
+            existingPhotos[2] || null,
+        ];
+    });
+
+    const [newPhotos, setNewPhotos] = useState([false, false, false]);
+
+    // Validação do item após hooks
+    useEffect(() => {
+        if (!item) {
+            Alert.alert('Error', 'Item não encontrado');
+            navigation.goBack();
+        }
+    }, [item, navigation]);
 
     const categories = [
         'Electrónicos',
