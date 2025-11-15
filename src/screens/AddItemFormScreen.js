@@ -34,6 +34,7 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [useProfileAddress, setUseProfileAddress] = useState(false);
     const [userProfile, setUserProfile] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const [depositValue, setDepositValue] = useState('');
 
     const categories = [
         'Electrónicos',
@@ -276,6 +277,7 @@ export default function AddItemFormScreen({ session, navigation }) {
                 title,
                 description,
                 price_per_day: parseFloat(pricePerDay),
+                deposit_value: depositValue ? parseFloat(depositValue) : 0,
                 category,
                 location,
                 location_full: locationFull,
@@ -415,6 +417,20 @@ export default function AddItemFormScreen({ session, navigation }) {
                             keyboardType="numeric"
                         />
                         <Text style={styles.perDay}>/día</Text>
+                    </View>
+
+                    <Text style={styles.label}>Valor del Depósito (Daño o Pérdida)</Text>
+                    <Text style={styles.depositWarning}>💡 Coloca un valor justo. Si lo exageras, las personas no querrán alquilar tu producto.</Text>
+                    <View style={styles.priceInputContainer}>
+                        <Text style={styles.currencySymbol}>€</Text>
+                        <TextInput
+                            style={styles.priceInput}
+                            onChangeText={setDepositValue}
+                            value={depositValue}
+                            placeholder="0.00"
+                            placeholderTextColor="#999"
+                            keyboardType="numeric"
+                        />
                     </View>
 
                     <Text style={styles.label}>Ubicación de Recogida *</Text>
@@ -762,6 +778,13 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginLeft: 8,
+    },
+    depositWarning: {
+        fontSize: 12,
+        color: '#FF9800',
+        fontStyle: 'italic',
+        marginBottom: 8,
+        lineHeight: 18,
     },
     checkboxContainer: {
         flexDirection: 'row',

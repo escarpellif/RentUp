@@ -25,21 +25,62 @@ export default function DocumentVerificationScreen({ navigation, session }) {
     const [loading, setLoading] = useState(false);
 
     const pickDocumentPhoto = async () => {
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 0.7,
-        });
+        try {
+            console.log('pickDocumentPhoto called');
+            // Pedir permissão ao usuário para acessar a galeria
+            let status = 'granted';
+            if (typeof ImagePicker.requestMediaLibraryPermissionsAsync === 'function') {
+                try {
+                    const resp = await ImagePicker.requestMediaLibraryPermissionsAsync();
+                    status = resp?.status;
+                } catch (permErr) {
+                    console.warn('Could not request media library permissions (non-fatal):', permErr);
+                    // keep status as 'granted' to try to open picker anyway
+                }
+            }
+            if (status !== 'granted') {
+                console.log('Media library permission not granted:', status);
+                Alert.alert('Permiso necesario', 'Necesitamos acceso a tus fotos para seleccionar una imagen. Por favor habilita el permiso en la configuración.');
+                return;
+            }
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            setDocumentPhoto(result.assets[0].uri);
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [4, 3],
+                quality: 0.7,
+            });
+
+            // Compatibilidade com diferentes formatos de retorno (sdk versões antigas e novas)
+            if (result) {
+                console.log('ImagePicker result:', result?.canceled ?? result?.cancelled ? 'cancelled' : 'selected');
+                // nova forma: result.canceled (boolean) e result.assets (array)
+                if (result.canceled === false && Array.isArray(result.assets) && result.assets.length > 0) {
+                    setDocumentPhoto(result.assets[0].uri);
+                    return;
+                }
+
+                // forma antiga: result.cancelled (boolean) e result.uri
+                if (result.cancelled === false && result.uri) {
+                    setDocumentPhoto(result.uri);
+                    return;
+                }
+
+                // fallback: se houver assets e uri
+                if (result.assets && result.assets[0] && result.assets[0].uri) {
+                    setDocumentPhoto(result.assets[0].uri);
+                    return;
+                }
+            }
+        } catch (err) {
+            console.error('Error picking document photo:', err);
+            Alert.alert('Error', 'No se pudo seleccionar la foto. Intenta de nuevo.');
         }
     };
 
     const takeSelfie = async () => {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
-        
+
         if (status !== 'granted') {
             Alert.alert('Permiso necesario', 'Necesitamos acceso a la cámara para tomar tu selfie.');
             return;
@@ -48,11 +89,22 @@ export default function DocumentVerificationScreen({ navigation, session }) {
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             aspect: [1, 1],
-            quality: 0.7,
+            quality: 0.8,
         });
 
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            setSelfiePhoto(result.assets[0].uri);
+        if (result) {
+            if (result.canceled === false && Array.isArray(result.assets) && result.assets.length > 0) {
+                setSelfiePhoto(result.assets[0].uri);
+                return;
+            }
+            if (result.cancelled === false && result.uri) {
+                setSelfiePhoto(result.uri);
+                return;
+            }
+            if (result.assets && result.assets[0] && result.assets[0].uri) {
+                setSelfiePhoto(result.assets[0].uri);
+                return;
+            }
         }
     };
 
@@ -112,7 +164,7 @@ export default function DocumentVerificationScreen({ navigation, session }) {
 
             Alert.alert(
                 '¡Verificación enviada!',
-                'Tu documentación está en proceso de revisión. Te notificaremos cuando sea aprobada (generalmente en 24-48 horas).',
+                'Tu documentación está en proceso de revisión. Tu solicitud será aprobada lo más rápido posible.',
                 [
                     {
                         text: 'Entendido',
@@ -173,4 +225,3 @@ export default function DocumentVerificationScreen({ navigation, session }) {
         </SafeAreaView>
     );
 }
-

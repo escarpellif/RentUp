@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
 import ApproximateLocationMap from '../components/ApproximateLocationMap';
+import ChatWindow from '../components/ChatWindow';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
+
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -12,6 +14,7 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     const { item } = route.params || {};
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showChat, setShowChat] = useState(false);
 
     // Preparar array de fotos (compatível com items antigos e novos) com validação
     const photos = item && item.photos && Array.isArray(item.photos) && item.photos.length > 0
@@ -30,7 +33,7 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
         setLoading(true);
         const { data, error } = await supabase
             .from('profiles')
-            .select('username, full_name, rating_avg_locador, rating_count_locador')
+            .select('id, username, full_name, rating_avg_locador, rating_count_locador')
             .eq('id', item.owner_id)
             .single();
 
@@ -62,19 +65,18 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     }
 
     const handleContact = () => {
-        Alert.alert(
-            'Chat Interno',
-            `¿Deseas iniciar una conversación con ${ownerProfile?.full_name || 'el anunciante'}?`,
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Iniciar Chat',
-                    onPress: () => {
-                        Alert.alert('¡Próximamente!', 'El sistema de chat será implementado.');
-                    }
-                }
-            ]
-        );
+        if (!ownerProfile) {
+            Alert.alert('Error', 'No se pudo cargar la información del vendedor');
+            return;
+        }
+
+        // Si es el dueño del item, no permitir chatear consigo mismo
+        if (session.user.id === item.owner_id) {
+            Alert.alert('Info', 'No puedes enviar mensajes a tu propio anuncio');
+            return;
+        }
+
+        setShowChat(true);
     };
 
     const handleRequestRental = async () => {
@@ -94,13 +96,19 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     };
 
     const renderStars = (rating, count) => {
+        const ratingValue = rating ? parseFloat(rating) : 0;
+
         return (
             <View style={styles.starsContainer}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                    <Text key={star} style={styles.starIcon}>⭐</Text>
-                ))}
+                <View style={styles.starsRow}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Text key={star} style={styles.starIcon}>
+                            {star <= Math.round(ratingValue) ? '⭐' : '☆'}
+                        </Text>
+                    ))}
+                </View>
                 <Text style={styles.ratingNumber}>
-                    {rating > 0 ? parseFloat(rating).toFixed(1) : `(${count || 0} ${count === 1 ? 'valoración' : 'valoraciones'})`}
+                    {ratingValue > 0 ? ratingValue.toFixed(1) : ''} ({count || 0} {count === 1 ? 'valoración' : 'valoraciones'})
                 </Text>
             </View>
         );
@@ -176,12 +184,6 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                                 </Text>
                                 {renderStars(ownerProfile?.rating_avg_locador || 0, ownerProfile?.rating_count_locador || 0)}
                             </View>
-                            <TouchableOpacity
-                                style={styles.contactButton}
-                                onPress={handleContact}
-                            >
-                                <Text style={styles.contactButtonText}>💬 Contacto</Text>
-                            </TouchableOpacity>
                         </View>
                     )}
                 </View>
@@ -215,11 +217,11 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.secondaryButton}
+                        style={styles.contactButton}
                         onPress={handleContact}
                     >
-                        <Text style={styles.secondaryButtonText}>
-                            💬 Hablar con Anunciante
+                        <Text style={styles.contactButtonText}>
+                            💬 Chat
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -227,6 +229,27 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
 
             <View style={{ height: 30 }} />
             </ScrollView>
+
+            {/* Modal de Chat */}
+            <Modal
+                visible={showChat}
+                animationType="slide"
+                presentationStyle="fullScreen"
+                onRequestClose={() => setShowChat(false)}
+            >
+                <SafeAreaView style={{ flex: 1 }}>
+                    {ownerProfile && (
+                        <ChatWindow
+                            itemId={item.id}
+                            itemTitle={item.title}
+                            ownerProfile={ownerProfile}
+                            ownerProfileId={ownerProfile?.id || item.owner_id}
+                            session={session}
+                            onClose={() => setShowChat(false)}
+                        />
+                    )}
+                </SafeAreaView>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -354,50 +377,53 @@ const styles = StyleSheet.create({
         color: '#495057',
     },
     ownerCard: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#f8f9fa',
         padding: 15,
         borderRadius: 10,
     },
     ownerInfo: {
-        flex: 1,
-        marginRight: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     ownerName: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 5,
+        textAlign: 'center',
+        marginBottom: 8,
     },
     contactButton: {
-        backgroundColor: '#007bff',
-        paddingHorizontal: 15,
-        paddingVertical: 8,
-        borderRadius: 5,
-        alignSelf: 'flex-start',
+        backgroundColor: '#2c4455',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
     },
     contactButtonText: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: '600',
     },
     starsContainer: {
-        flexDirection: 'row',
+        justifyContent: 'center',
         alignItems: 'center',
         marginTop: 5,
-        flexWrap: 'wrap',
+    },
+    starsRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
     },
     starIcon: {
         fontSize: 16,
         marginRight: 2,
     },
     ratingNumber: {
-        marginLeft: 5,
+        marginTop: 6,
         fontSize: 14,
         fontWeight: '600',
         color: '#333',
+        textAlign: 'center',
     },
     infoItem: {
         flexDirection: 'row',

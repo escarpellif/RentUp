@@ -85,6 +85,8 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                     style: 'default',
                     onPress: async () => {
                         try {
+                            console.log('Aprovando verificação:', verification.id, 'para usuário:', verification.user_id);
+
                             // Atualizar verificação
                             const { error: verError } = await supabase
                                 .from('user_verifications')
@@ -95,7 +97,12 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                                 })
                                 .eq('id', verification.id);
 
-                            if (verError) throw verError;
+                            if (verError) {
+                                console.error('Erro ao atualizar user_verifications:', verError);
+                                throw verError;
+                            }
+
+                            console.log('user_verifications atualizado com sucesso para approved');
 
                             // Atualizar perfil
                             const { error: profError } = await supabase
@@ -103,7 +110,30 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                                 .update({ verification_status: 'approved' })
                                 .eq('id', verification.user_id);
 
-                            if (profError) throw profError;
+                            if (profError) {
+                                console.error('Erro ao atualizar profiles:', profError);
+                                throw profError;
+                            }
+
+                            console.log('profiles atualizado com sucesso para approved');
+
+                            // Inserir notificação para o usuário avisando da aprovação
+                            try {
+                                await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: verification.user_id,
+                                        type: 'verification_result',
+                                        title: 'Verificación Aprobada',
+                                        message: 'Tu verificación ha sido aprobada. Ya puedes usar todas las funciones.',
+                                        read: false,
+                                        related_id: verification.id,
+                                        created_at: new Date().toISOString()
+                                    });
+                            } catch (notifErr) {
+                                // Se a tabela não existir ou houver erro, apenas logue (não interrompe o fluxo)
+                                console.warn('Could not insert user notification (approve):', notifErr.message || notifErr);
+                            }
 
                             Alert.alert('¡Éxito!', 'Verificación aprobada correctamente');
                             fetchVerifications();
@@ -142,13 +172,31 @@ export default function AdminVerificationsScreen({ navigation, session }) {
 
                             if (verError) throw verError;
 
-                            // Atualizar perfil
+                            // Atualizar perfil - libera para nova tentativa (null = pode enviar novamente)
                             const { error: profError } = await supabase
                                 .from('profiles')
-                                .update({ verification_status: 'rejected' })
+                                .update({ verification_status: null })
                                 .eq('id', verification.user_id);
 
                             if (profError) throw profError;
+
+                            // Inserir notificação para o usuário avisando do rejeição
+                            try {
+                                await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: verification.user_id,
+                                        type: 'verification_result',
+                                        title: 'Verificación Rechazada',
+                                        message: `Tu verificación ha sido rechazada. Motivo: ${reason || 'No especificado'}`,
+                                        read: false,
+                                        related_id: verification.id,
+                                        created_at: new Date().toISOString()
+                                    });
+                            } catch (notifErr) {
+                                // Se a tabela não existir ou houver erro, apenas logue (não interrompe o fluxo)
+                                console.warn('Could not insert user notification (reject):', notifErr.message || notifErr);
+                            }
 
                             Alert.alert('Verificación Rechazada', 'El usuario será notificado');
                             fetchVerifications();
@@ -675,4 +723,3 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-

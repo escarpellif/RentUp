@@ -29,8 +29,13 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
             onPress={() => handlePress && handlePress(item)}
             activeOpacity={0.9}
         >
-            {/* Imagem do Item com Overlay */}
-            <View style={itemCardStyles.cardImageContainer}>
+            {/* Categoria no Topo */}
+            <View style={itemCardStyles.categoryHeader}>
+                <Text style={itemCardStyles.categoryLabel}>{item.category || 'Otros'}</Text>
+            </View>
+
+            {/* Imagem do Item */}
+            <View style={[itemCardStyles.cardImageContainer, fullWidth && { height: 220 }]}>
                 {item.photo_url ? (
                     <Image
                         source={{ uri: imageUrl }}
@@ -45,37 +50,22 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
 
                 {/* Gradiente Overlay na parte inferior da imagem */}
                 <View style={itemCardStyles.imageOverlay} />
-
-                {/* Badge de Disponibilidade */}
-                {item.is_available ? (
-                    <View style={itemCardStyles.availableBadge}>
-                        <View style={itemCardStyles.availableDot} />
-                        <Text style={itemCardStyles.availableBadgeText}>Disponible</Text>
-                    </View>
-                ) : (
-                    <View style={itemCardStyles.unavailableBadge}>
-                        <View style={itemCardStyles.unavailableDot} />
-                        <Text style={itemCardStyles.unavailableBadgeText}>Alquilado</Text>
-                    </View>
-                )}
             </View>
 
             {/* Conteúdo do Card */}
             <View style={itemCardStyles.cardContent}>
+                {/* Título */}
                 <Text style={itemCardStyles.cardTitle} numberOfLines={2}>
                     {item.title || 'Sin título'}
                 </Text>
 
-                {/* Localização */}
-                <View style={itemCardStyles.locationRow}>
-                    <Text style={itemCardStyles.locationIcon}>📍</Text>
-                    <Text style={itemCardStyles.cardLocation} numberOfLines={1}>
-                        {item.location || 'Sin ubicación'}
-                    </Text>
-                </View>
+                {/* Descrição */}
+                <Text style={itemCardStyles.cardDescription} numberOfLines={1}>
+                    {item.description || 'Sin descripción'}
+                </Text>
 
-                {/* Preço em destaque */}
-                <View style={itemCardStyles.priceRow}>
+                {/* Preço e Status na mesma linha */}
+                <View style={itemCardStyles.footerContainer}>
                     <View style={itemCardStyles.priceContainer}>
                         <Text style={itemCardStyles.priceSymbol}>€</Text>
                         <Text style={itemCardStyles.cardPrice}>
@@ -84,10 +74,16 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
                         <Text style={itemCardStyles.priceLabel}>/dia</Text>
                     </View>
 
-                    {/* Botão de ação */}
-                    <View style={itemCardStyles.actionButton}>
-                        <Text style={itemCardStyles.actionButtonText}>Ver +</Text>
-                    </View>
+                    {/* Status Badge no Canto Inferior Direito */}
+                    {item.is_available ? (
+                        <View style={itemCardStyles.statusBadgeSmall}>
+                            <Text style={itemCardStyles.statusBadgeText}>Disponible</Text>
+                        </View>
+                    ) : (
+                        <View style={[itemCardStyles.statusBadgeSmall, itemCardStyles.statusBadgeUnavailable]}>
+                            <Text style={itemCardStyles.statusBadgeText}>Alquilado</Text>
+                        </View>
+                    )}
                 </View>
             </View>
 

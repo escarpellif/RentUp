@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, Platform, ActivityIndicator , StatusBar } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -14,10 +14,18 @@ const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 export default function EditItemScreen({ route, navigation, session }) {
     const { item } = route.params || {};
 
+    // Validação inicial do item
+    useEffect(() => {
+        if (!item) {
+            Alert.alert('Error', 'Item não encontrado');
+            navigation.goBack();
+        }
+    }, [item, navigation]);
+
     const [title, setTitle] = useState(item?.title || '');
     const [description, setDescription] = useState(item?.description || '');
     const [pricePerDay, setPricePerDay] = useState(item?.price_per_day?.toString() || '');
-    const [category, setCategory] = useState(item?.category || 'Otros');
+    const [category, setCategory] = useState(item?.category || 'Electrónicos');
     const [location, setLocation] = useState(item?.location || '');
     const [locationFull, setLocationFull] = useState(item?.location_full || item?.location || '');
     const [locationApprox, setLocationApprox] = useState(item?.location_approx || getApproximateLocation(item?.location || ''));
@@ -27,43 +35,16 @@ export default function EditItemScreen({ route, navigation, session }) {
     const [loadingAddress, setLoadingAddress] = useState(false);
     const [deliveryType, setDeliveryType] = useState(item?.delivery_type || 'pickup');
     const [loading, setLoading] = useState(false);
+    const [photos, setPhotos] = useState([null, null, null]);
+    const [photoPaths, setPhotoPaths] = useState([null, null, null]);
 
-    // Inicializa com as fotos existentes ou array vazio com validação segura
-    const [photos, setPhotos] = useState(() => {
-        const existingPhotos = (item?.photos && Array.isArray(item.photos))
-            ? item.photos
-            : (item?.photo_url && typeof item.photo_url === 'string')
-            ? [item.photo_url]
-            : [];
-        return [
-            existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
-            existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
-            existingPhotos[2] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[2]}` : null,
-        ];
-    });
-
-    const [photoPaths, setPhotoPaths] = useState(() => {
-        const existingPhotos = (item?.photos && Array.isArray(item.photos))
-            ? item.photos
-            : (item?.photo_url && typeof item.photo_url === 'string')
-            ? [item.photo_url]
-            : [];
-        return [
-            existingPhotos[0] || null,
-            existingPhotos[1] || null,
-            existingPhotos[2] || null,
-        ];
-    });
-
-    const [newPhotos, setNewPhotos] = useState([false, false, false]);
-
-    // Validação do item após hooks
-    useEffect(() => {
-        if (!item) {
-            Alert.alert('Error', 'Item não encontrado');
-            navigation.goBack();
-        }
-    }, [item, navigation]);
+    // Novos estados para dados pessoais
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [useProfileAddress, setUseProfileAddress] = useState(false);
+    const [userProfile, setUserProfile] = useState(null);
+    const [loadingProfile, setLoadingProfile] = useState(true);
+    const [depositValue, setDepositValue] = useState(item?.deposit_value?.toString() || '');
 
     const categories = [
         'Electrónicos',
@@ -76,6 +57,88 @@ export default function EditItemScreen({ route, navigation, session }) {
         'Ropa',
         'Otros'
     ];
+
+    // Carregar perfil do usuário ao montar o componente
+    useEffect(() => {
+        fetchUserProfile();
+        loadExistingPhotos();
+    }, []);
+
+    // Função para buscar o perfil do usuário
+    const fetchUserProfile = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('full_name, phone, address, postal_code, city')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) {
+                console.error('Erro ao buscar perfil:', error);
+            } else {
+                setUserProfile(data);
+                // Preencher campos se já existirem no perfil
+                if (data.full_name) setFullName(data.full_name);
+                if (data.phone) setPhone(data.phone);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar perfil:', error);
+        } finally {
+            setLoadingProfile(false);
+        }
+    };
+
+    // Função para carregar fotos existentes
+    const loadExistingPhotos = () => {
+        if (item) {
+            const existingPhotos = (item?.photos && Array.isArray(item.photos))
+                ? item.photos
+                : (item?.photo_url && typeof item.photo_url === 'string')
+                ? [item.photo_url]
+                : [];
+
+            const photoPaths = [
+                existingPhotos[0] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[0]}` : null,
+                existingPhotos[1] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[1]}` : null,
+                existingPhotos[2] ? `${SUPABASE_URL}/storage/v1/object/public/item_photos/${existingPhotos[2]}` : null,
+            ];
+            setPhotos(photoPaths);
+        }
+    };
+
+    // Efeito para usar endereço do perfil quando checkbox for marcado
+    useEffect(() => {
+        if (useProfileAddress && userProfile) {
+            if (userProfile.address && userProfile.postal_code && userProfile.city) {
+                setLocation(userProfile.address);
+                setLocationFull(userProfile.address);
+                setLocationApprox(`${userProfile.city} - ${userProfile.postal_code}`);
+                setPostalCode(userProfile.postal_code);
+
+                // Buscar coordenadas do endereço
+                const fullAddress = `${userProfile.address}, ${userProfile.city}, ${userProfile.postal_code}, España`;
+                getCoordinatesFromAddress(fullAddress).then(coords => {
+                    if (coords) {
+                        setCoordinates(coords);
+                    }
+                });
+            } else {
+                Alert.alert(
+                    'Endereço Incompleto',
+                    'Seu perfil não possui endereço completo cadastrado. Por favor, preencha manualmente.',
+                    [{ text: 'OK', onPress: () => setUseProfileAddress(false) }]
+                );
+            }
+        } else if (!useProfileAddress) {
+            // Limpar campos de endereço quando desmarcar
+            setLocation('');
+            setLocationFull('');
+            setLocationApprox('');
+            setCoordinates(null);
+            setPostalCode('');
+        }
+    }, [useProfileAddress]);
+
 
     // Função para buscar endereços por código postal
     const searchAddressByPostalCode = async (code) => {
@@ -126,53 +189,34 @@ export default function EditItemScreen({ route, navigation, session }) {
 
     const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ImagePicker.MediaType.Images,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.5,
         });
 
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            const newPhotosArray = [...photos];
-            newPhotosArray[index] = result.assets[0].uri;
-            setPhotos(newPhotosArray);
-
-            const newPhotosFlags = [...newPhotos];
-            newPhotosFlags[index] = true;
-            setNewPhotos(newPhotosFlags);
+            const newPhotos = [...photos];
+            newPhotos[index] = result.assets[0].uri;
+            setPhotos(newPhotos);
         }
     };
 
     const removePhoto = (index) => {
-        const newPhotosArray = [...photos];
-        newPhotosArray[index] = null;
-        setPhotos(newPhotosArray);
-
-        const newPathsArray = [...photoPaths];
-        newPathsArray[index] = null;
-        setPhotoPaths(newPathsArray);
+        const newPhotos = [...photos];
+        newPhotos[index] = null;
+        setPhotos(newPhotos);
     };
 
-    // URL da foto atual - removida pois agora usamos array
-
     const uploadImage = async (uri) => {
-        console.log('🔵 Iniciando upload da nova imagem...');
-        setLoading(true);
-
         const user = session.user;
-
         if (!user) {
-            console.error('❌ Erro: Usuário não está logado');
             Alert.alert('Error de Sesión', 'El usuario no está conectado.');
-            setLoading(false);
             return null;
         }
 
         try {
-            const base64 = await FileSystem.readAsStringAsync(uri, {
-                encoding: 'base64',
-            });
-
+            const base64 = await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
             const filePath = `${user.id}/${Date.now()}.jpg`;
 
             const { data, error } = await supabase.storage
@@ -183,171 +227,127 @@ export default function EditItemScreen({ route, navigation, session }) {
                 });
 
             if (error) {
-                console.error("❌ ERRO NO UPLOAD DO STORAGE:", error.message);
                 Alert.alert('Error en la Carga', 'Error al subir la imagen: ' + error.message);
-                setLoading(false);
                 return null;
             }
 
-            console.log('✅ Upload concluído com sucesso!', data.path);
-            setLoading(false);
             return data.path;
         } catch (err) {
-            console.error('❌ Exceção durante upload:', err);
             Alert.alert('Error', 'Error inesperado durante la carga: ' + err.message);
-            setLoading(false);
             return null;
         }
     };
 
-    async function handleUpdate() {
-        console.log('🔵 Iniciando atualização do item...');
-
-        // Verificar se há pelo menos uma foto
+    async function handleSubmit() {
         const hasAtLeastOnePhoto = photos.some(photo => photo !== null);
 
-        if (!title || !description || !pricePerDay || !location || !hasAtLeastOnePhoto) {
-            Alert.alert('Campos Incompletos', 'Por favor, completa todos los campos y añade al menos una foto');
+        // Validação completa de todos os campos obrigatórios
+        if (!title || !description || !pricePerDay || !hasAtLeastOnePhoto) {
+            Alert.alert('Campos Incompletos', 'Por favor, preencha título, descrição, preço e adicione pelo menos uma foto.');
+            return;
+        }
+
+        if (!fullName || fullName.trim() === '') {
+            Alert.alert('Nome Completo Obrigatório', 'Por favor, preencha seu nome completo.');
+            return;
+        }
+
+        if (!phone || phone.trim() === '') {
+            Alert.alert('Telefone Obrigatório', 'Por favor, preencha seu telefone de contato.');
+            return;
+        }
+
+        if (!location || !locationFull || !coordinates) {
+            Alert.alert('Endereço Obrigatório', 'Por favor, selecione o endereço completo de retirada do item.');
             return;
         }
 
         setLoading(true);
-        const finalPhotoPaths = [...photoPaths];
 
-        // Fazer upload das novas fotos
+        // Atualizar perfil do usuário com nome completo, telefone e endereço
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+                full_name: fullName,
+                phone: phone,
+                address: location,
+                postal_code: postalCode || locationApprox.split(' - ')[1],
+                city: locationApprox.split(' - ')[0],
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', session.user.id);
+
+        if (profileError) {
+            console.error('Erro ao atualizar perfil:', profileError);
+            Alert.alert('Aviso', 'Houve um problema ao salvar seus dados pessoais, mas continuaremos com o anúncio.');
+        }
+
+        const uploadedPaths = [];
+
         for (let i = 0; i < photos.length; i++) {
-            if (newPhotos[i] && photos[i]) {
-                console.log(`🔵 Nova foto ${i + 1} selecionada, fazendo upload...`);
-                const uploadedPath = await uploadImage(photos[i]);
-                if (uploadedPath) {
-                    // Deletar foto antiga se existir
-                    if (photoPaths[i]) {
-                        try {
-                            await supabase.storage
-                                .from('item_photos')
-                                .remove([photoPaths[i]]);
-                            console.log(`✅ Foto antiga ${i + 1} deletada`);
-                        } catch (err) {
-                            console.log(`⚠️ Não foi possível deletar a foto antiga ${i + 1}:`, err);
-                        }
+            if (photos[i]) {
+                // Se for uma nova foto (começa com file://)
+                if (photos[i].startsWith('file://')) {
+                    const uploadedPath = await uploadImage(photos[i]);
+                    if (uploadedPath) {
+                        uploadedPaths.push(uploadedPath);
                     }
-                    finalPhotoPaths[i] = uploadedPath;
+                } else {
+                    // Se for foto existente, extrair o caminho
+                    const path = photos[i].replace(`${SUPABASE_URL}/storage/v1/object/public/item_photos/`, '');
+                    uploadedPaths.push(path);
                 }
-            } else if (!photos[i]) {
-                // Se a foto foi removida, deletar do storage
-                if (photoPaths[i]) {
-                    try {
-                        await supabase.storage
-                            .from('item_photos')
-                            .remove([photoPaths[i]]);
-                        console.log(`✅ Foto ${i + 1} removida do storage`);
-                    } catch (err) {
-                        console.log(`⚠️ Erro ao remover foto ${i + 1}:`, err);
-                    }
-                }
-                finalPhotoPaths[i] = null;
             }
         }
 
-        // Filtrar apenas fotos não nulas
-        const validPhotoPaths = finalPhotoPaths.filter(path => path !== null);
+        if (uploadedPaths.length === 0) {
+            Alert.alert('Error', 'No se pudo procesar ninguna foto');
+            setLoading(false);
+            return;
+        }
 
-        console.log('🔵 Atualizando dados na tabela items...');
-
-        const { data, error } = await supabase
+        const { error } = await supabase
             .from('items')
             .update({
-                title: title,
-                description: description,
+                title,
+                description,
                 price_per_day: parseFloat(pricePerDay),
-                category: category,
-                location: location,
+                deposit_value: depositValue ? parseFloat(depositValue) : 0,
+                category,
+                location,
                 location_full: locationFull,
                 location_approx: locationApprox,
                 coordinates: coordinates,
                 coordinates_approx: coordinates ? addRandomOffset(coordinates) : null,
-                photo_url: validPhotoPaths[0] || null, // Primeira foto como principal
-                photos: validPhotoPaths, // Array com todas as fotos
+                photo_url: uploadedPaths[0],
+                photos: uploadedPaths,
                 delivery_type: deliveryType,
             })
-            .eq('id', item.id)
-            .eq('owner_id', session.user.id); // Garante que só o dono pode editar
+            .eq('id', item.id);
 
         setLoading(false);
 
         if (error) {
-            console.error("❌ ERRO DE ATUALIZAÇÃO NO SUPABASE:", error);
             Alert.alert('Error al Actualizar', error.message);
         } else {
-            console.log('✅ Item atualizado com sucesso!', data);
-            Alert.alert('¡Éxito!', '¡Tu artículo ha sido actualizado!', [
-                {
-                    text: 'OK',
-                    onPress: () => navigation.goBack()
-                }
-            ]);
-        }
-    }
-
-    async function handleDelete() {
-        Alert.alert(
-            'Confirmar Eliminación',
-            '¿Estás seguro de que deseas eliminar este artículo?',
-            [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                    text: 'Eliminar',
-                    style: 'destructive',
-                    onPress: async () => {
-                        setLoading(true);
-
-                        // Deletar todas as fotos do storage com validação segura
-                        const photosToDelete = (item.photos && Array.isArray(item.photos))
-                            ? item.photos
-                            : (item.photo_url && typeof item.photo_url === 'string')
-                            ? [item.photo_url]
-                            : [];
-                        if (photosToDelete.length > 0) {
-                            try {
-                                await supabase.storage
-                                    .from('item_photos')
-                                    .remove(photosToDelete);
-                                console.log('✅ Fotos deletadas');
-                            } catch (err) {
-                                console.log('⚠️ Erro ao deletar fotos:', err);
-                            }
-                        }
-
-                        // Deletar o item do banco
-                        const { error } = await supabase
-                            .from('items')
-                            .delete()
-                            .eq('id', item.id)
-                            .eq('owner_id', session.user.id);
-
-                        setLoading(false);
-
-                        if (error) {
-                            Alert.alert('Error al Eliminar', error.message);
-                        } else {
-                            Alert.alert('¡Eliminado!', 'Artículo eliminado con éxito.', [
-                                {
-                                    text: 'OK',
-                                    onPress: () => navigation.goBack()
-                                }
-                            ]);
-                        }
+            Alert.alert(
+                '¡Éxito!',
+                '¡Tu artículo ha sido actualizado!',
+                [
+                    {
+                        text: 'OK',
+                        onPress: () => navigation.navigate('MyAds')
                     }
-                }
-            ]
-        );
+                ]
+            );
+        }
     }
 
     return (
         <SafeAreaView style={styles.safeContainer}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
-            {/* Header com Botão Voltar */}
+            {/* Header Moderno */}
             <View style={styles.headerContainer}>
                 <TouchableOpacity
                     style={styles.backButton}
@@ -358,239 +358,292 @@ export default function EditItemScreen({ route, navigation, session }) {
                 </TouchableOpacity>
                 <View style={styles.headerTitleContainer}>
                     <Text style={styles.headerTitle}>Editar Artículo</Text>
+                    <Text style={styles.headerSubtitle}>Actualiza la información</Text>
                 </View>
                 <View style={styles.headerSpacer} />
             </View>
 
-            <ScrollView style={styles.container}>
+            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                {/* Card: Información Básica */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>📝 Información Básica</Text>
 
-                <Text style={styles.label}>Título del Anuncio</Text>
-                <TextInput
-                    style={styles.input}
-                    onChangeText={setTitle}
-                    value={title}
-                    placeholder="Ej: Taladro Bosch 18V - Alquiler"
-                    maxLength={80}
-                />
+                    <Text style={styles.label}>Título del Anuncio</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setTitle}
+                        value={title}
+                        placeholder="Ej: Taladro Bosch 18V"
+                        placeholderTextColor="#999"
+                        maxLength={80}
+                    />
 
-                <Text style={styles.label}>Descripción Completa</Text>
-                <TextInput
-                    style={[styles.input, styles.multilineInput]}
-                    onChangeText={setDescription}
-                    value={description}
-                    placeholder="Detalla el estado del artículo, accesorios y reglas de uso."
-                    multiline
-                    numberOfLines={4}
-                />
+                    <Text style={styles.label}>Descripción Completa</Text>
+                    <TextInput
+                        style={[styles.input, styles.multilineInput]}
+                        onChangeText={setDescription}
+                        value={description}
+                        placeholder="Describe el estado, accesorios incluidos y condiciones de alquiler..."
+                        placeholderTextColor="#999"
+                        multiline
+                        numberOfLines={4}
+                    />
 
-                <Text style={styles.label}>Categoría</Text>
-                <View style={styles.pickerContainer}>
-                    <Picker
-                        selectedValue={category}
-                        onValueChange={(itemValue) => setCategory(itemValue)}
-                    >
-                        {categories.map((cat, index) => (
-                            <Picker.Item key={index} label={cat} value={cat} />
-                        ))}
-                    </Picker>
+                    <Text style={styles.label}>Categoría</Text>
+                    <View style={styles.pickerContainer}>
+                        <Picker
+                            selectedValue={category}
+                            onValueChange={(itemValue) => setCategory(itemValue)}
+                        >
+                            {categories.map((cat, index) => (
+                                <Picker.Item key={index} label={cat} value={cat} />
+                            ))}
+                        </Picker>
+                    </View>
                 </View>
 
-                <Text style={styles.label}>Precio de Alquiler por Día (€)</Text>
-                <TextInput
-                    style={styles.input}
-                    onChangeText={setPricePerDay}
-                    value={pricePerDay}
-                    placeholder="Ej: 50.00"
-                    keyboardType="numeric"
-                />
+                {/* Card: Datos Personales */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>👤 Datos de Contacto</Text>
+                    <Text style={styles.cardSubtitle}>Información necesaria para el alquiler</Text>
 
-                <Text style={styles.label}>Ubicación de Recogida</Text>
-                <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
+                    <Text style={styles.label}>Nombre Completo *</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setFullName}
+                        value={fullName}
+                        placeholder="Ej: Juan Pérez García"
+                        placeholderTextColor="#999"
+                    />
 
-                <TextInput
-                    style={styles.input}
-                    onChangeText={(text) => {
-                        setPostalCode(text);
-                        searchAddressByPostalCode(text);
-                    }}
-                    value={postalCode}
-                    placeholder="Ej: 28001"
-                    keyboardType="numeric"
-                />
+                    <Text style={styles.label}>Teléfono de Contacto *</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setPhone}
+                        value={phone}
+                        placeholder="Ej: +34 600 123 456"
+                        placeholderTextColor="#999"
+                        keyboardType="phone-pad"
+                    />
+                </View>
 
-                {loadingAddress && (
-                    <View style={styles.loadingAddressContainer}>
-                        <ActivityIndicator size="small" color="#2c4455" />
-                        <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                {/* Card: Precio y Ubicación */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>💰 Precio y Ubicación</Text>
+
+                    <Text style={styles.label}>Precio por Día</Text>
+                    <View style={styles.priceInputContainer}>
+                        <Text style={styles.currencySymbol}>€</Text>
+                        <TextInput
+                            style={styles.priceInput}
+                            onChangeText={setPricePerDay}
+                            value={pricePerDay}
+                            placeholder="0.00"
+                            placeholderTextColor="#999"
+                            keyboardType="numeric"
+                        />
+                        <Text style={styles.perDay}>/día</Text>
                     </View>
-                )}
 
-                {addressSuggestions.length > 0 && (
-                    <View style={styles.suggestionsContainer}>
-                        <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
-                        {addressSuggestions.map((suggestion, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                style={styles.suggestionItem}
-                                onPress={() => {
-                                    setLocation(suggestion.display);
-                                    setLocationFull(suggestion.full);
-                                    setLocationApprox(`${suggestion.city} - ${suggestion.postalCode}`);
-                                    setCoordinates({
-                                        latitude: suggestion.lat,
-                                        longitude: suggestion.lon
-                                    });
-                                    setAddressSuggestions([]);
-                                    setPostalCode('');
-                                }}
-                            >
-                                <Text style={styles.suggestionIcon}>📍</Text>
-                                <Text style={styles.suggestionText}>{suggestion.display}</Text>
-                            </TouchableOpacity>
-                        ))}
+                    <Text style={styles.label}>Valor del Depósito (Daño o Pérdida)</Text>
+                    <Text style={styles.depositWarning}>💡 Coloca un valor justo. Si lo exageras, las personas no querrán alquilar tu producto.</Text>
+                    <View style={styles.priceInputContainer}>
+                        <Text style={styles.currencySymbol}>€</Text>
+                        <TextInput
+                            style={styles.priceInput}
+                            onChangeText={setDepositValue}
+                            value={depositValue}
+                            placeholder="0.00"
+                            placeholderTextColor="#999"
+                            keyboardType="numeric"
+                        />
                     </View>
-                )}
 
-                {location !== '' && (
-                    <View style={styles.selectedLocationContainer}>
-                        <Text style={styles.selectedLocationLabel}>Dirección seleccionada:</Text>
-                        <View style={styles.selectedLocationBox}>
-                            <Text style={styles.selectedLocationIcon}>📍</Text>
-                            <Text style={styles.selectedLocationText}>{location}</Text>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    setLocation('');
-                                    setLocationFull('');
-                                    setLocationApprox('');
-                                    setCoordinates(null);
-                                }}
-                                style={styles.clearLocationButton}
-                            >
-                                <Text style={styles.clearLocationText}>✕</Text>
-                            </TouchableOpacity>
+                    <Text style={styles.label}>Ubicación de Recogida *</Text>
+
+                    {/* Checkbox para usar endereço de cadastro */}
+                    <TouchableOpacity
+                        style={styles.checkboxContainer}
+                        onPress={() => setUseProfileAddress(!useProfileAddress)}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.checkbox, useProfileAddress && styles.checkboxChecked]}>
+                            {useProfileAddress && <Text style={styles.checkboxIcon}>✓</Text>}
                         </View>
-                    </View>
-                )}
-
-                {/* Tipo de Entrega */}
-                <Text style={styles.label}>Tipo de Entrega</Text>
-                <View style={styles.deliveryTypeContainer}>
-                    <TouchableOpacity
-                        style={[
-                            styles.deliveryOption,
-                            deliveryType === 'pickup' && styles.deliveryOptionActive
-                        ]}
-                        onPress={() => setDeliveryType('pickup')}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.deliveryOptionIcon}>📍</Text>
-                        <Text style={[
-                            styles.deliveryOptionText,
-                            deliveryType === 'pickup' && styles.deliveryOptionTextActive
-                        ]}>
-                            Retira en Lugar
-                        </Text>
-                        {deliveryType === 'pickup' && (
-                            <View style={styles.deliveryCheckmark}>
-                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
-                            </View>
-                        )}
+                        <Text style={styles.checkboxLabel}>Usar mi dirección de cadastro</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[
-                            styles.deliveryOption,
-                            deliveryType === 'delivery' && styles.deliveryOptionActive
-                        ]}
-                        onPress={() => setDeliveryType('delivery')}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.deliveryOptionIcon}>🚚</Text>
-                        <Text style={[
-                            styles.deliveryOptionText,
-                            deliveryType === 'delivery' && styles.deliveryOptionTextActive
-                        ]}>
-                            Entrego en Casa
-                        </Text>
-                        {deliveryType === 'delivery' && (
-                            <View style={styles.deliveryCheckmark}>
-                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
-                            </View>
-                        )}
-                    </TouchableOpacity>
+                    {!useProfileAddress && (
+                        <>
+                            <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
 
-                    <TouchableOpacity
-                        style={[
-                            styles.deliveryOption,
-                            deliveryType === 'both' && styles.deliveryOptionActive
-                        ]}
-                        onPress={() => setDeliveryType('both')}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.deliveryOptionIcon}>🔄</Text>
-                        <Text style={[
-                            styles.deliveryOptionText,
-                            deliveryType === 'both' && styles.deliveryOptionTextActive
-                        ]}>
-                            Ambas Opciones
-                        </Text>
-                        {deliveryType === 'both' && (
-                            <View style={styles.deliveryCheckmark}>
-                                <Text style={styles.deliveryCheckmarkText}>✓</Text>
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                </View>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={(text) => {
+                                    setPostalCode(text);
+                                    searchAddressByPostalCode(text);
+                                }}
+                                value={postalCode}
+                                placeholder="Ej: 28001"
+                                placeholderTextColor="#999"
+                                keyboardType="numeric"
+                            />
 
-                {/* Fotos del Artículo (até 3) */}
-                <Text style={styles.label}>Fotos del Artículo (hasta 3)</Text>
-                <Text style={styles.sublabel}>La primera foto será la principal</Text>
+                            {loadingAddress && (
+                                <View style={styles.loadingAddressContainer}>
+                                    <ActivityIndicator size="small" color="#2c4455" />
+                                    <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                                </View>
+                            )}
 
-                <View style={styles.photosGrid}>
-                    {photos.map((photo, index) => (
-                        <View key={index} style={styles.photoContainer}>
-                            <TouchableOpacity
-                                onPress={() => pickImage(index)}
-                                style={[
-                                    styles.photoPlaceholder,
-                                    index === 0 && styles.photoPlaceholderPrimary
-                                ]}
-                            >
-                                {photo ? (
-                                    <>
-                                        <Image
-                                            source={{ uri: photo }}
-                                            style={styles.previewImage}
-                                        />
+                            {addressSuggestions.length > 0 && (
+                                <View style={styles.suggestionsContainer}>
+                                    <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
+                                    {addressSuggestions.map((suggestion, index) => (
                                         <TouchableOpacity
-                                            style={styles.removePhotoButton}
-                                            onPress={() => removePhoto(index)}
+                                            key={index}
+                                            style={styles.suggestionItem}
+                                            onPress={() => {
+                                                setLocation(suggestion.display);
+                                                setLocationFull(suggestion.full);
+                                                setLocationApprox(`${suggestion.city} - ${suggestion.postalCode}`);
+                                                setCoordinates({
+                                                    latitude: suggestion.lat,
+                                                    longitude: suggestion.lon
+                                                });
+                                                setAddressSuggestions([]);
+                                                setPostalCode('');
+                                            }}
                                         >
-                                            <Text style={styles.removePhotoText}>✕</Text>
+                                            <Text style={styles.suggestionIcon}>📍</Text>
+                                            <Text style={styles.suggestionText}>{suggestion.display}</Text>
                                         </TouchableOpacity>
-                                        {index === 0 && (
-                                            <View style={styles.primaryBadge}>
-                                                <Text style={styles.primaryBadgeText}>Principal</Text>
-                                            </View>
-                                        )}
-                                    </>
-                                ) : (
-                                    <View style={styles.addPhotoContent}>
-                                        <Text style={styles.addPhotoIcon}>📷</Text>
-                                        <Text style={styles.addPhotoText}>
-                                            {index === 0 ? 'Foto Principal' : `Foto ${index + 1}`}
-                                        </Text>
-                                    </View>
+                                    ))}
+                                </View>
+                            )}
+                        </>
+                    )}
+
+                    {location !== '' && (
+                        <View style={styles.selectedLocationContainer}>
+                            <Text style={styles.selectedLocationLabel}>Dirección seleccionada:</Text>
+                            <View style={styles.selectedLocationBox}>
+                                <Text style={styles.selectedLocationIcon}>📍</Text>
+                                <Text style={styles.selectedLocationText}>{location}</Text>
+                                {!useProfileAddress && (
+                                    <TouchableOpacity
+                                        onPress={() => {
+                                            setLocation('');
+                                            setLocationFull('');
+                                            setLocationApprox('');
+                                            setCoordinates(null);
+                                        }}
+                                        style={styles.clearLocationButton}
+                                    >
+                                        <Text style={styles.clearLocationText}>✕</Text>
+                                    </TouchableOpacity>
                                 )}
-                            </TouchableOpacity>
+                            </View>
                         </View>
-                    ))}
+                    )}
+                </View>
+
+                {/* Card: Tipo de Entrega */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>🚚 Tipo de Entrega</Text>
+                    <View style={styles.deliveryTypeContainer}>
+                        <TouchableOpacity
+                            style={[styles.deliveryOption, deliveryType === 'pickup' && styles.deliveryOptionActive]}
+                            onPress={() => setDeliveryType('pickup')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.deliveryOptionIcon}>📍</Text>
+                            <Text style={[styles.deliveryOptionText, deliveryType === 'pickup' && styles.deliveryOptionTextActive]}>
+                                Retira en Lugar
+                            </Text>
+                            {deliveryType === 'pickup' && (
+                                <View style={styles.deliveryCheckmark}>
+                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.deliveryOption, deliveryType === 'delivery' && styles.deliveryOptionActive]}
+                            onPress={() => setDeliveryType('delivery')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.deliveryOptionIcon}>🚚</Text>
+                            <Text style={[styles.deliveryOptionText, deliveryType === 'delivery' && styles.deliveryOptionTextActive]}>
+                                Entrego en Casa
+                            </Text>
+                            {deliveryType === 'delivery' && (
+                                <View style={styles.deliveryCheckmark}>
+                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[styles.deliveryOption, deliveryType === 'both' && styles.deliveryOptionActive]}
+                            onPress={() => setDeliveryType('both')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.deliveryOptionIcon}>🔄</Text>
+                            <Text style={[styles.deliveryOptionText, deliveryType === 'both' && styles.deliveryOptionTextActive]}>
+                                Ambas Opciones
+                            </Text>
+                            {deliveryType === 'both' && (
+                                <View style={styles.deliveryCheckmark}>
+                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                    </View>
+                </View>
+
+                {/* Card: Fotos */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>📸 Fotos del Artículo</Text>
+                    <Text style={styles.cardSubtitle}>Sube hasta 3 fotos - La primera será la principal</Text>
+
+                    <View style={styles.photosGrid}>
+                        {photos.map((photo, index) => (
+                            <View key={index} style={styles.photoContainer}>
+                                <TouchableOpacity
+                                    onPress={() => pickImage(index)}
+                                    style={[styles.photoPlaceholder, index === 0 && styles.photoPlaceholderPrimary]}
+                                >
+                                    {photo ? (
+                                        <>
+                                            <Image source={{ uri: photo }} style={styles.previewImage} />
+                                            <TouchableOpacity style={styles.removePhotoButton} onPress={() => removePhoto(index)}>
+                                                <Text style={styles.removePhotoText}>✕</Text>
+                                            </TouchableOpacity>
+                                            {index === 0 && (
+                                                <View style={styles.primaryBadge}>
+                                                    <Text style={styles.primaryBadgeText}>Principal</Text>
+                                                </View>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <View style={styles.addPhotoContent}>
+                                            <Text style={styles.addPhotoIcon}>📷</Text>
+                                            <Text style={styles.addPhotoText}>
+                                                {index === 0 ? 'Foto Principal' : `Foto ${index + 1}`}
+                                            </Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </View>
                 </View>
 
                 {/* Botão Guardar Cambios */}
                 <TouchableOpacity
-                    style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-                    onPress={handleUpdate}
+                    style={[styles.publishButton, loading && styles.publishButtonDisabled]}
+                    onPress={handleSubmit}
                     disabled={loading}
                     activeOpacity={0.8}
                 >
@@ -598,43 +651,23 @@ export default function EditItemScreen({ route, navigation, session }) {
                         colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#10B981', '#059669']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.saveButtonGradient}
+                        style={styles.publishButtonGradient}
                     >
                         {loading ? (
-                            <View style={styles.buttonContent}>
+                            <View style={styles.publishButtonContent}>
                                 <ActivityIndicator color="#fff" size="small" />
-                                <Text style={styles.buttonText}>Guardando...</Text>
+                                <Text style={styles.publishButtonText}>Procesando...</Text>
                             </View>
                         ) : (
-                            <View style={styles.buttonContent}>
-                                <Text style={styles.buttonIcon}>💾</Text>
-                                <Text style={styles.buttonText}>Guardar Cambios</Text>
+                            <View style={styles.publishButtonContent}>
+                                <Text style={styles.publishButtonIcon}>💾</Text>
+                                <Text style={styles.publishButtonText}>Guardar Cambios</Text>
                             </View>
                         )}
                     </LinearGradient>
                 </TouchableOpacity>
 
-                {/* Botão Eliminar Artículo */}
-                <TouchableOpacity
-                    style={[styles.deleteButton, loading && styles.deleteButtonDisabled]}
-                    onPress={handleDelete}
-                    disabled={loading}
-                    activeOpacity={0.8}
-                >
-                    <LinearGradient
-                        colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#dc3545', '#c82333']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.deleteButtonGradient}
-                    >
-                        <View style={styles.buttonContent}>
-                            <Text style={styles.buttonIcon}>🗑️</Text>
-                            <Text style={styles.buttonText}>Eliminar Artículo</Text>
-                        </View>
-                    </LinearGradient>
-                </TouchableOpacity>
-
-                <View style={{ height: 50 }} />
+                <View style={{height: 30}} />
             </ScrollView>
         </SafeAreaView>
     );
@@ -679,32 +712,61 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#2c4455',
     },
+    headerSubtitle: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 2,
+    },
     headerSpacer: {
         width: 40,
     },
-    container: {
+    scrollContent: {
         flex: 1,
+        padding: 16,
+    },
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
         padding: 20,
-        backgroundColor: '#F8F9FA',
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
     },
-    label: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginTop: 15,
-        marginBottom: 5,
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 4,
     },
-    sublabel: {
+    cardSubtitle: {
         fontSize: 13,
         color: '#666',
-        marginBottom: 12,
+        marginBottom: 16,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#333',
+        marginTop: 12,
+        marginBottom: 8,
+    },
+    sublabel: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 8,
         fontStyle: 'italic',
     },
     input: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
+        borderColor: '#E8E8E8',
+        backgroundColor: '#F8F9FA',
+        padding: 14,
+        borderRadius: 12,
+        fontSize: 15,
+        color: '#333',
     },
     multilineInput: {
         height: 100,
@@ -712,110 +774,94 @@ const styles = StyleSheet.create({
     },
     pickerContainer: {
         borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 10,
-    },
-    photosGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginBottom: 20,
-        gap: 10,
-    },
-    photoContainer: {
-        width: '31%',
-        aspectRatio: 1,
-    },
-    photoPlaceholder: {
-        width: '100%',
-        height: '100%',
-        borderWidth: 2,
-        borderColor: '#ccc',
-        borderStyle: 'dashed',
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderColor: '#E8E8E8',
         backgroundColor: '#F8F9FA',
+        borderRadius: 12,
         overflow: 'hidden',
-        position: 'relative',
     },
-    photoPlaceholderPrimary: {
-        borderColor: '#2c4455',
-        borderWidth: 2,
-        borderStyle: 'solid',
-    },
-    addPhotoContent: {
+    priceInputContainer: {
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        paddingHorizontal: 14,
     },
-    addPhotoIcon: {
-        fontSize: 30,
-        marginBottom: 5,
+    currencySymbol: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#28a745',
+        marginRight: 8,
     },
-    addPhotoText: {
-        fontSize: 10,
+    priceInput: {
+        flex: 1,
+        paddingVertical: 14,
+        fontSize: 15,
+        color: '#333',
+    },
+    perDay: {
+        fontSize: 14,
         color: '#666',
-        textAlign: 'center',
-        fontWeight: '600',
+        marginLeft: 8,
     },
-    previewImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 8,
-        resizeMode: 'cover',
+    depositWarning: {
+        fontSize: 12,
+        color: '#FF9800',
+        fontStyle: 'italic',
+        marginBottom: 8,
+        lineHeight: 18,
     },
-    removePhotoButton: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
-        backgroundColor: 'rgba(220, 53, 69, 0.9)',
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 12,
+        paddingVertical: 8,
+    },
+    checkbox: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: 6,
+        borderWidth: 2,
+        borderColor: '#2c4455',
+        backgroundColor: '#fff',
+        marginRight: 12,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 3,
     },
-    removePhotoText: {
+    checkboxChecked: {
+        backgroundColor: '#2c4455',
+    },
+    checkboxIcon: {
         color: '#fff',
-        fontSize: 14,
+        fontSize: 16,
         fontWeight: 'bold',
     },
-    primaryBadge: {
-        position: 'absolute',
-        bottom: 5,
-        left: 5,
-        backgroundColor: 'rgba(44, 68, 85, 0.9)',
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 5,
+    checkboxLabel: {
+        fontSize: 15,
+        color: '#333',
+        fontWeight: '500',
     },
-
     deliveryTypeContainer: {
-        marginBottom: 20,
-        gap: 12,
+        marginTop: 12,
+        gap: 10,
     },
     deliveryOption: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F5F5F5',
-        padding: 16,
+        backgroundColor: '#F8F9FA',
+        padding: 14,
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#E0E0E0',
-        position: 'relative',
+        borderColor: '#E8E8E8',
     },
     deliveryOptionActive: {
         backgroundColor: '#E3F2FD',
         borderColor: '#2c4455',
     },
     deliveryOptionIcon: {
-        fontSize: 24,
+        fontSize: 20,
         marginRight: 12,
     },
     deliveryOptionText: {
@@ -829,22 +875,99 @@ const styles = StyleSheet.create({
         fontWeight: '700',
     },
     deliveryCheckmark: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
+        width: 22,
+        height: 22,
+        borderRadius: 11,
         backgroundColor: '#2c4455',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    primaryBadgeText: {
+    deliveryCheckmarkText: {
         color: '#fff',
-        fontSize: 9,
+        fontSize: 12,
         fontWeight: 'bold',
     },
-    saveButton: {
-        marginTop: 30,
-        marginBottom: 15,
-        borderRadius: 15,
+    photosGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        marginTop: 12,
+        gap: 10,
+    },
+    photoContainer: {
+        width: '31%',
+        aspectRatio: 1,
+    },
+    photoPlaceholder: {
+        width: '100%',
+        height: '100%',
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        overflow: 'hidden',
+    },
+    photoPlaceholderPrimary: {
+        borderColor: '#2c4455',
+        borderStyle: 'solid',
+        borderWidth: 2,
+    },
+    addPhotoContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    addPhotoIcon: {
+        fontSize: 28,
+        marginBottom: 4,
+    },
+    addPhotoText: {
+        fontSize: 10,
+        color: '#666',
+        textAlign: 'center',
+        fontWeight: '600',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 10,
+    },
+    removePhotoButton: {
+        position: 'absolute',
+        top: 4,
+        right: 4,
+        backgroundColor: 'rgba(220, 53, 69, 0.9)',
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    removePhotoText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    primaryBadge: {
+        position: 'absolute',
+        bottom: 4,
+        left: 4,
+        backgroundColor: 'rgba(44, 68, 85, 0.9)',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    primaryBadgeText: {
+        color: '#fff',
+        fontSize: 8,
+        fontWeight: 'bold',
+    },
+    publishButton: {
+        marginTop: 8,
+        marginBottom: 8,
+        borderRadius: 16,
         overflow: 'hidden',
         elevation: 8,
         shadowColor: '#10B981',
@@ -852,44 +975,25 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.4,
         shadowRadius: 6,
     },
-    saveButtonDisabled: {
+    publishButtonDisabled: {
         opacity: 0.7,
     },
-    saveButtonGradient: {
+    publishButtonGradient: {
         paddingVertical: 18,
         paddingHorizontal: 24,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    deleteButton: {
-        marginBottom: 10,
-        borderRadius: 15,
-        overflow: 'hidden',
-        elevation: 8,
-        shadowColor: '#dc3545',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 6,
-    },
-    deleteButtonDisabled: {
-        opacity: 0.7,
-    },
-    deleteButtonGradient: {
-        paddingVertical: 18,
-        paddingHorizontal: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    buttonContent: {
+    publishButtonContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         gap: 12,
     },
-    buttonIcon: {
+    publishButtonIcon: {
         fontSize: 24,
     },
-    buttonText: {
+    publishButtonText: {
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
@@ -901,7 +1005,7 @@ const styles = StyleSheet.create({
         padding: 12,
         backgroundColor: '#F8F9FA',
         borderRadius: 8,
-        marginBottom: 10,
+        marginTop: 8,
         gap: 10,
     },
     loadingAddressText: {
@@ -914,7 +1018,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         borderColor: '#E8E8E8',
-        marginBottom: 15,
+        marginTop: 12,
         padding: 12,
         elevation: 3,
         shadowColor: '#000',
@@ -948,7 +1052,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     selectedLocationContainer: {
-        marginBottom: 15,
+        marginTop: 12,
     },
     selectedLocationLabel: {
         fontSize: 14,
@@ -989,3 +1093,4 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
+

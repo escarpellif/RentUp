@@ -58,6 +58,7 @@ export const myAdsScreenStyles = StyleSheet.create({
   },
   addButtonText: {
     fontSize: 20,
+    color: '#fff',
   },
   content: {
     flex: 1,
@@ -99,26 +100,25 @@ export const myAdsScreenStyles = StyleSheet.create({
   },
   itemsContainer: {
     paddingVertical: 15,
+    paddingHorizontal: 16,
   },
   itemCount: {
     fontSize: 16,
     fontWeight: '600',
     color: '#666',
     marginBottom: 15,
-    paddingHorizontal: 15,
+    paddingHorizontal: 0,
   },
   itemWrapper: {
-    marginBottom: 10,
+    marginBottom: 20,
     backgroundColor: '#fff',
-    borderRadius: 0,
+    borderRadius: 12,
     overflow: 'hidden',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   itemActions: {
     flexDirection: 'row',

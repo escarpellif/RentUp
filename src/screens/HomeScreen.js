@@ -1,26 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, TextInput, Modal, Alert, Platform, Image , StatusBar } from 'react-native';
-import { supabase } from '../../supabase';
-import { useAdminNotifications } from '../hooks/useAdminNotifications';
-import { useTranslation } from 'react-i18next';
+import React, {useState, useEffect} from 'react';
+import {
+    StyleSheet,
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+    TextInput,
+    Modal,
+    Alert,
+    Platform,
+    Image,
+    StatusBar,
+    ImageBackground
+} from 'react-native';
+import {supabase} from '../../supabase';
+import {useAdminNotifications} from '../hooks/useAdminNotifications';
+import {useUserNotifications} from '../hooks/useUserNotifications';
+import {useTranslation} from 'react-i18next';
 import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 
-export default function HomeScreen({ navigation, session }) {
-    const { t } = useTranslation();
+export default function HomeScreen({navigation, session}) {
+    const {t} = useTranslation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
 
-    // Hook de notificações
-    const { unreadCount } = useAdminNotifications();
+    // Hook de notificações (admin badge)
+    const {unreadCount} = useAdminNotifications();
+    // Hook de notificações para o usuário atual (guarda session.user indefinido)
+    const {unreadCount: userUnread} = useUserNotifications(session?.user?.id);
 
     // Buscar se o usuário é admin
     useEffect(() => {
         async function checkAdmin() {
-            const { data, error } = await supabase
+            const {data, error} = await supabase
                 .from('profiles')
                 .select('is_admin')
                 .eq('id', session.user.id)
@@ -36,32 +52,30 @@ export default function HomeScreen({ navigation, session }) {
 
     // Adicionar listener para atualizar quando a tela voltar ao foco
     useEffect(() => {
-        const unsubscribe = navigation.addListener('focus', () => {
+        return navigation.addListener('focus', () => {
             setRefreshKey(prev => prev + 1);
         });
-
-        return unsubscribe;
     }, [navigation]);
 
     const categories = [
-        { id: '1', name: t('items.electronics'), icon: '🎮', color: '#fff' },
-        { id: '2', name: t('items.sports'), icon: '🏀', color: '#fff' },
-        { id: '3', name: t('items.vehicles'), icon: '🔧', color: '#fff' },
-        { id: '4', name: t('items.furniture'), icon: '🛋️', color: '#fff' },
-        { id: '5', name: t('items.tools'), icon: '🔨', color: '#fff' },
-        { id: '6', name: t('items.parties'), icon: '🎉', color: '#fff' },
-        { id: '7', name: t('items.garden'), icon: '🌱', color: '#fff' },
-        { id: '8', name: t('items.clothing'), icon: '👕', color: '#fff' },
-        { id: '9', name: t('items.others'), icon: '📦', color: '#fff' },
+        {id: '1', name: t('items.electronics'), icon: '🎮', color: '#fff'},
+        {id: '2', name: t('items.sports'), icon: '🏀', color: '#fff'},
+        {id: '3', name: t('items.vehicles'), icon: '🔧', color: '#fff'},
+        {id: '4', name: t('items.furniture'), icon: '🛋️', color: '#fff'},
+        {id: '5', name: t('items.tools'), icon: '🔨', color: '#fff'},
+        {id: '6', name: t('items.parties'), icon: '🎉', color: '#fff'},
+        {id: '7', name: t('items.garden'), icon: '🌱', color: '#fff'},
+        {id: '8', name: t('items.clothing'), icon: '👕', color: '#fff'},
+        {id: '9', name: t('items.others'), icon: '📦', color: '#fff'},
     ];
 
     const handleCategoryPress = (category) => {
-        navigation.navigate('Home', { category: category.name });
+        navigation.navigate('Home', {category: category.name});
     };
 
     const handleSearch = () => {
         if (searchQuery.trim()) {
-            navigation.navigate('Home', { search: searchQuery });
+            navigation.navigate('Home', {search: searchQuery});
         }
     };
 
@@ -80,7 +94,7 @@ export default function HomeScreen({ navigation, session }) {
                     text: t('auth.logout'),
                     style: 'destructive',
                     onPress: async () => {
-                        const { error } = await supabase.auth.signOut();
+                        const {error} = await supabase.auth.signOut();
                         if (error) {
                             Alert.alert(t('common.error'), 'No se pudo cerrar sesión: ' + error.message);
                         }
@@ -92,7 +106,7 @@ export default function HomeScreen({ navigation, session }) {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+            <StatusBar barStyle="dark-content" backgroundColor="#fff"/>
             {/* Header com Menu Hamburger */}
             <View style={styles.header}>
                 <TouchableOpacity
@@ -100,9 +114,9 @@ export default function HomeScreen({ navigation, session }) {
                     onPress={() => setMenuVisible(true)}
                 >
                     <View style={styles.hamburger}>
-                        <View style={styles.hamburgerLine} />
-                        <View style={styles.hamburgerLine} />
-                        <View style={styles.hamburgerLine} />
+                        <View style={styles.hamburgerLine}/>
+                        <View style={styles.hamburgerLine}/>
+                        <View style={styles.hamburgerLine}/>
                     </View>
                     {unreadCount > 0 && (
                         <View style={styles.notificationDot}>
@@ -122,69 +136,105 @@ export default function HomeScreen({ navigation, session }) {
 
                 <TouchableOpacity
                     style={styles.profileButton}
-                    onPress={() => navigation.navigate('Profile')}
+                    onPress={() => {
+                        if (userUnread > 0) {
+                            navigation.navigate('UserNotifications');
+                        } else {
+                            navigation.navigate('Profile');
+                        }
+                    }}
                 >
                     <Text style={styles.profileIcon}>👤</Text>
+                    {userUnread > 0 && (
+                        <View style={styles.userNotificationDot}>
+                            <Text style={styles.userNotificationDotText}>{userUnread}</Text>
+                        </View>
+                    )}
                 </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Hero Section - Single Card */}
-                <View style={styles.heroSection}>
-                    <View style={styles.heroCard}>
-                        <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
-                        <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
-                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
-                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
+                <ImageBackground
+                    source={require('../../assets/images/img-1.png')}
+                    style={styles.heroSectionBackground}
+                    resizeMode="cover"
+                >
+                    <View style={styles.heroSection}>
 
-                        <Image
-                            source={require('../../assets/images/img-circular-no-back.png')}
-                            style={styles.heroImage}
-                            resizeMode="contain"
-                        />
+                        <View style={styles.heroCard}>
+                            <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
+                            <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                        <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
-                        <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
-                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
-                        <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+                            <Image
+                                source={require('../../assets/images/img-circular-no-back.png')}
+                                style={styles.heroImage}
+                                resizeMode="contain"
+                            />
 
-                        <View style={styles.heroButtonsContainer}>
+                            <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
+                            <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+
+                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+
+                            <View style={styles.heroButtonsContainer}>
+                                <TouchableOpacity
+                                    style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                    onPress={() => navigation.navigate('Home')}
+                                >
+                                    <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                    onPress={() => navigation.navigate('AddItem')}
+                                >
+                                    <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                        <View style={styles.searchContainer}>
+                            <TextInput
+                                style={styles.searchInput}
+                                placeholder={t('home.search')}
+                                value={searchQuery}
+                                onChangeText={setSearchQuery}
+                                onSubmitEditing={handleSearch}
+                            />
                             <TouchableOpacity
-                                style={[styles.heroButton, styles.heroButtonAnunciar]}
-                                onPress={() => navigation.navigate('Home')}
+                                style={styles.searchButton}
+                                onPress={handleSearch}
                             >
-                                <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.heroButton, styles.heroButtonAnunciar]}
-                                onPress={() => navigation.navigate('AddItem')}
-                            >
-                                <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                <Text style={styles.searchIcon}>🔍</Text>
                             </TouchableOpacity>
                         </View>
+
                     </View>
-                </View>
+                </ImageBackground>
+
 
                 {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder={t('home.search')}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        onSubmitEditing={handleSearch}
-                    />
-                    <TouchableOpacity
-                        style={styles.searchButton}
-                        onPress={handleSearch}
-                    >
-                        <Text style={styles.searchIcon}>🔍</Text>
-                    </TouchableOpacity>
-                </View>
+                {/*<View style={styles.searchContainer}>*/}
+                {/*    <TextInput*/}
+                {/*        style={styles.searchInput}*/}
+                {/*        placeholder={t('home.search')}*/}
+                {/*        value={searchQuery}*/}
+                {/*        onChangeText={setSearchQuery}*/}
+                {/*        onSubmitEditing={handleSearch}*/}
+                {/*    />*/}
+                {/*    <TouchableOpacity*/}
+                {/*        style={styles.searchButton}*/}
+                {/*        onPress={handleSearch}*/}
+                {/*    >*/}
+                {/*        <Text style={styles.searchIcon}>🔍</Text>*/}
+                {/*    </TouchableOpacity>*/}
+                {/*</View>*/}
 
                 {/* Categories Section */}
                 <View style={styles.section}>
@@ -204,7 +254,7 @@ export default function HomeScreen({ navigation, session }) {
                             {categories.map((category) => (
                                 <TouchableOpacity
                                     key={category.id}
-                                    style={[styles.categoryCard, { backgroundColor: category.color }]}
+                                    style={[styles.categoryCard, {backgroundColor: category.color}]}
                                     onPress={() => handleCategoryPress(category)}
                                 >
                                     <Text style={styles.categoryIcon}>{category.icon}</Text>
@@ -216,13 +266,13 @@ export default function HomeScreen({ navigation, session }) {
                 </View>
 
                 {/* Recent Items Carousel */}
-                <RecentItemsCarousel key={refreshKey} navigation={navigation} />
+                <RecentItemsCarousel key={refreshKey} navigation={navigation}/>
 
                 {/* Benefits Section */}
-                <BenefitsSection />
+                <BenefitsSection/>
 
                 {/* Testimonials Section */}
-                <TestimonialsSection />
+                <TestimonialsSection/>
             </ScrollView>
 
             {/* Menu Modal */}
@@ -296,7 +346,7 @@ export default function HomeScreen({ navigation, session }) {
                             {/* Admin - Apenas para usuários admin */}
                             {isAdmin && (
                                 <>
-                                    <View style={styles.menuDivider} />
+                                    <View style={styles.menuDivider}/>
 
                                     <TouchableOpacity
                                         style={styles.menuItem}
@@ -311,7 +361,7 @@ export default function HomeScreen({ navigation, session }) {
                                 </>
                             )}
 
-                            <View style={styles.menuDivider} />
+                            <View style={styles.menuDivider}/>
 
                             <TouchableOpacity
                                 style={styles.menuItem}
@@ -329,9 +379,14 @@ export default function HomeScreen({ navigation, session }) {
 }
 
 const styles = StyleSheet.create({
+    backgroundImage: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+    },
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#f2f2f2',
         paddingTop: Platform.OS === 'android' ? (25 || 0) + 20 : 35,
     },
     header: {
@@ -345,7 +400,7 @@ const styles = StyleSheet.create({
         borderBottomColor: '#e0e0e0',
         elevation: 3,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.1,
         shadowRadius: 3,
     },
@@ -407,16 +462,19 @@ const styles = StyleSheet.create({
     },
     heroSection: {
         padding: 20,
-        backgroundColor: '#fff',
+    },
+    heroSectionBackground: {
+        width: '100%',
+        height: '400px',
     },
     heroCard: {
-        backgroundColor: '#F8F9FA',
+
         borderRadius: 20,
         padding: 30,
         alignItems: 'center',
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.08,
         shadowRadius: 8,
     },
@@ -437,11 +495,12 @@ const styles = StyleSheet.create({
     heroImage: {
         width: 150,
         height: 150,
-        marginVertical: 20,
+        opacity: 0.1,
+        marginVertical: -10,
     },
     heroButtonsContainer: {
         flexDirection: 'row',
-        marginTop: 20,
+        marginTop: 50,
         gap: 12,
     },
     heroButton: {
@@ -464,14 +523,14 @@ const styles = StyleSheet.create({
     },
     searchContainer: {
         flexDirection: 'row',
-        margin: 20,
+        margin: -5,
         backgroundColor: '#fff',
         borderRadius: 25,
         paddingHorizontal: 15,
         paddingVertical: 5,
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.1,
         shadowRadius: 2,
     },
@@ -529,7 +588,7 @@ const styles = StyleSheet.create({
         paddingBottom: 0,
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.08,
         shadowRadius: 4,
     },
@@ -547,7 +606,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.15,
         shadowRadius: 2,
     },
@@ -588,7 +647,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.1,
         shadowRadius: 2,
     },
@@ -614,7 +673,7 @@ const styles = StyleSheet.create({
         paddingTop: 50,
         elevation: 5,
         shadowColor: '#000',
-        shadowOffset: { width: 2, height: 0 },
+        shadowOffset: {width: 2, height: 0},
         shadowOpacity: 0.3,
         shadowRadius: 8,
     },
@@ -673,5 +732,23 @@ const styles = StyleSheet.create({
         backgroundColor: '#e0e0e0',
         marginVertical: 10,
         marginHorizontal: 20,
+    },
+    userNotificationDot: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        backgroundColor: '#dc3545',
+        borderRadius: 10,
+        minWidth: 20,
+        height: 20,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    userNotificationDotText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 'bold',
     },
 });

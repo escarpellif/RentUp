@@ -58,9 +58,13 @@ export default function RequestRentalScreen({ route, navigation }) {
             return;
         }
 
+        const depositMessage = item?.deposit_value && item.deposit_value > 0
+            ? `\n\nDepósito de Garantía: €${parseFloat(item.deposit_value).toFixed(2)}\n(No saldrá de tu cuenta, solo será bloqueado)`
+            : '';
+
         Alert.alert(
             'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}\n\nEl anunciante recibirá tu solicitud.`,
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}${depositMessage}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
@@ -246,6 +250,20 @@ export default function RequestRentalScreen({ route, navigation }) {
                         <Text style={styles.totalLabel}>Valor Total:</Text>
                         <Text style={styles.totalValue}>€{calculateTotal()}</Text>
                     </View>
+
+                    {/* Depósito */}
+                    {item?.deposit_value && item.deposit_value > 0 && (
+                        <View>
+                            <View style={styles.divider} />
+                            <View style={styles.depositContainer}>
+                                <Text style={styles.depositLabel}>Depósito de Garantía:</Text>
+                                <Text style={styles.depositValue}>€{parseFloat(item.deposit_value).toFixed(2)}</Text>
+                            </View>
+                            <Text style={styles.depositNote}>
+                                💳 Este valor no saldrá de tu cuenta. Quedará bloqueado en tu tarjeta y será devuelto después de la devolución del artículo al propietario en perfecto estado.
+                            </Text>
+                        </View>
+                    )}
                 </View>
 
                 {/* Botão de Confirmação */}
@@ -455,6 +473,35 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: '#28a745',
+    },
+    depositContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 12,
+    },
+    depositLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#FF9800',
+    },
+    depositValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#FF9800',
+    },
+    depositNote: {
+        fontSize: 13,
+        color: '#666',
+        fontStyle: 'italic',
+        lineHeight: 19,
+        marginTop: 8,
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        backgroundColor: '#FFF3E0',
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: '#FF9800',
     },
     confirmButton: {
         backgroundColor: '#28a745',

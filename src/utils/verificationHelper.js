@@ -16,6 +16,34 @@ export async function checkUserVerification(userId) {
 
         if (error) throw error;
 
+        // Se o perfil NÃO está aprovado, verificar se há verificação aprovada em user_verifications
+        if (profile.verification_status !== 'approved') {
+            const { data: verification, error: verError } = await supabase
+                .from('user_verifications')
+                .select('status')
+                .eq('user_id', userId)
+                .order('submitted_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            // Se encontrou uma verificação aprovada, sincronizar o perfil
+            if (!verError && verification?.status === 'approved') {
+                try {
+                    await supabase
+                        .from('profiles')
+                        .update({ verification_status: 'approved' })
+                        .eq('id', userId);
+
+                    console.log('Verificação sincronizada com sucesso para usuario:', userId);
+                    return { isVerified: true, status: 'approved' };
+                } catch (updateError) {
+                    console.error('Erro ao sincronizar verificação:', updateError);
+                    // Mesmo se falhar o update, retorna que está aprovado
+                    return { isVerified: true, status: 'approved' };
+                }
+            }
+        }
+
         return {
             isVerified: profile.verification_status === 'approved',
             status: profile.verification_status || 'not_submitted'
@@ -50,7 +78,7 @@ export function handleVerificationAlert(status, navigation) {
         case 'pending':
             Alert.alert(
                 'Verificación en Proceso',
-                'Tu documentación está siendo revisada. Te notificaremos cuando sea aprobada (generalmente 24-48 horas).',
+                'Tu documentación está siendo revisada. Tu solicitud será aprobada lo más rápido posible.',
                 [{ text: 'Entendido' }]
             );
             break;

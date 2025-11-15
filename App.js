@@ -23,6 +23,7 @@ import EditProfileScreen from './src/screens/EditProfileScreen';
 import DocumentVerificationScreen from './src/screens/DocumentVerificationScreen';
 import AdminVerificationsScreen from './src/screens/AdminVerificationsScreen';
 import MyAdsScreen from './src/screens/MyAdsScreen';
+import UserNotificationsScreen from './src/screens/UserNotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -107,6 +108,10 @@ export default function App() {
                     <Stack.Screen name="AdminVerifications">
                         {(props) => <AdminVerificationsScreen {...props} session={session} />}
                     </Stack.Screen>
+
+                    <Stack.Screen name="UserNotifications">
+                        {(props) => <UserNotificationsScreen {...props} session={session} />}
+                    </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
         );
@@ -118,4 +123,3 @@ export default function App() {
 
 // Registrar o componente para Expo
 AppRegistry.registerComponent('main', () => App);
-

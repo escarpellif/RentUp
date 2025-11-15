@@ -134,7 +134,7 @@ export default function MyAdsScreen({ navigation, session }) {
           style={styles.addButton}
           onPress={() => navigation.navigate('AddItem')}
         >
-          <Text style={styles.addButtonText}>➕</Text>
+          <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity>
       </View>
 
