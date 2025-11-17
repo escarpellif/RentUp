@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
+import { supabase } from '../../supabase';
 
 export default function RentalCalendar({
     visible,
@@ -17,7 +18,7 @@ export default function RentalCalendar({
     // Se não for modal (sem visible prop), renderiza inline
     const isModal = visible !== undefined;
 
-    const [markedDates, setMarkedDates] = useState({});
+    const [blockedDates, setBlockedDates] = useState([]);
     const [selectedStart, setSelectedStart] = useState(
         initialStartDate ? moment(initialStartDate).format('YYYY-MM-DD') : null
     );
@@ -25,20 +26,48 @@ export default function RentalCalendar({
         initialEndDate ? moment(initialEndDate).format('YYYY-MM-DD') : null
     );
 
-    // Atualiza as datas quando as props iniciais mudam
-    useEffect(() => {
-        if (initialStartDate) {
-            setSelectedStart(moment(initialStartDate).format('YYYY-MM-DD'));
+    // Buscar datas bloqueadas do Supabase - usando useCallback
+    const fetchBlockedDates = useCallback(async () => {
+        if (!itemId) return;
+
+        try {
+            const { data, error } = await supabase
+                .from('item_availability')
+                .select('start_date, end_date')
+                .eq('item_id', itemId)
+                .eq('status', 'blocked');
+
+            if (error) throw error;
+            setBlockedDates(data || []);
+        } catch (error) {
+            console.error('Erro ao buscar datas bloqueadas:', error);
         }
-        if (initialEndDate) {
-            setSelectedEnd(moment(initialEndDate).format('YYYY-MM-DD'));
-        }
-    }, [initialStartDate, initialEndDate]);
+    }, [itemId]);
 
     useEffect(() => {
+        fetchBlockedDates();
+    }, [fetchBlockedDates]);
+
+    // Usar useMemo ao invés de useEffect para calcular markedDates
+    const markedDates = useMemo(() => {
         const marked = {};
 
-        // Marca as datas já reservadas
+        // Marca as datas bloqueadas do Supabase
+        blockedDates.forEach(block => {
+            const start = moment(block.start_date);
+            const end = moment(block.end_date);
+            for (let m = moment(start); m.isSameOrBefore(end); m.add(1, 'days')) {
+                const dateStr = m.format('YYYY-MM-DD');
+                marked[dateStr] = {
+                    disabled: true,
+                    disableTouchEvent: true,
+                    color: '#ff4444',
+                    textColor: '#ffffff',
+                };
+            }
+        });
+
+        // Marca as datas já reservadas (fallback)
         existingBookings.forEach(booking => {
             const start = moment(booking.startDate);
             const end = moment(booking.endDate);
@@ -72,8 +101,8 @@ export default function RentalCalendar({
             marked[selectedStart] = { selected: true, color: '#007bff', textColor: '#ffffff' };
         }
 
-        setMarkedDates(marked);
-    }, [existingBookings, selectedStart, selectedEnd]);
+        return marked;
+    }, [blockedDates, existingBookings, selectedStart, selectedEnd]);
 
     const handleDayPress = (day) => {
         const dateStr = day.dateString;
@@ -102,13 +131,6 @@ export default function RentalCalendar({
                     return;
                 }
                 setSelectedEnd(dateStr);
-
-                // Se for inline (não modal), chama callback imediatamente
-                if (!isModal && onDateRangeChange) {
-                    const startDate = new Date(selectedStart);
-                    const endDate = new Date(dateStr);
-                    onDateRangeChange(startDate, endDate);
-                }
             }
         }
     };
@@ -125,14 +147,14 @@ export default function RentalCalendar({
             onSelectDates({ startDate: selectedStart, endDate: selectedEnd, totalDays: days });
         }
 
-        // Callback para inline
+        // Callback para inline - SEMPRE chama quando confirma
         if (onDateRangeChange) {
             const startDate = new Date(selectedStart);
             const endDate = new Date(selectedEnd);
             onDateRangeChange(startDate, endDate);
         }
 
-        // reset and close
+        // reset and close apenas se for modal
         if (isModal) {
             setSelectedStart(null);
             setSelectedEnd(null);
@@ -180,12 +202,26 @@ export default function RentalCalendar({
                     <Text>Total: {moment(selectedEnd).diff(moment(selectedStart), 'days') + 1} dias</Text>
                 </View>
             )}
+
+            {/* Botão confirmar para modo inline */}
+            {!isModal && (
+                <TouchableOpacity
+                    style={[styles.button, styles.confirm, { marginTop: 12 }]}
+                    onPress={handleConfirm}
+                >
+                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Confirmar Fechas</Text>
+                </TouchableOpacity>
+            )}
         </>
     );
 
     // Se não for modal, renderiza inline
     if (!isModal) {
-        return <View style={styles.inlineContainer}>{renderCalendar()}</View>;
+        return (
+            <View style={styles.inlineContainer}>
+                {renderCalendar()}
+            </View>
+        );
     }
 
     // Renderização modal (original)

@@ -9,9 +9,10 @@ const CARD_MARGIN = 10;
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-export default function RecentItemsCarousel({ navigation }) {
+export default function RecentItemsCarousel({ navigation, session }) {
     const [recentItems, setRecentItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const userId = session?.user?.id;
 
     useEffect(() => {
         fetchRecentItems();
@@ -150,7 +151,12 @@ export default function RecentItemsCarousel({ navigation }) {
                                 {/* Price */}
                                 <View style={styles.priceContainer}>
                                     <Text style={styles.priceLabel}>Precio por día:</Text>
-                                    <Text style={styles.price}>€{parseFloat(item.price_per_day).toFixed(2)}</Text>
+                                    <Text style={styles.price}>
+                                        €{(userId === item.owner_id
+                                            ? parseFloat(item.price_per_day)
+                                            : parseFloat(item.price_per_day) * 1.18
+                                        ).toFixed(2)}
+                                    </Text>
                                 </View>
 
                                 {/* Location */}

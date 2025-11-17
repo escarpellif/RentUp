@@ -78,8 +78,67 @@ export default function ProfileScreen({ session, navigation }) {
     };
 
     const handleNotificationPress = async (notification) => {
+        // Marcar como lida
         if (!notification.read) {
             await markAsRead(notification.id);
+        }
+
+        // Navegar para a tela apropriada baseado no tipo de notificação
+        if (notification.type === 'new_message' && notification.related_id) {
+            // related_id contém o item_id
+            try {
+                // Buscar informações do item e do dono para abrir o chat
+                const { data: item, error } = await supabase
+                    .from('items')
+                    .select('*, profiles!items_owner_id_fkey(*)')
+                    .eq('id', notification.related_id)
+                    .single();
+
+                if (!error && item) {
+                    const ownerProfile = item.profiles;
+
+                    // Verificar quem é o dono e quem está abrindo
+                    // Se eu sou o dono, vou conversar com o interessado
+                    // Se eu não sou o dono, vou conversar com o dono
+                    const isOwner = session.user.id === item.owner_id;
+
+                    if (isOwner) {
+                        // Sou o dono, preciso buscar quem me enviou a mensagem
+                        // Para isso, vou buscar a última mensagem deste item que não é minha
+                        const { data: lastMessage } = await supabase
+                            .from('messages')
+                            .select('sender_id, profiles!messages_sender_id_fkey(*)')
+                            .eq('item_id', notification.related_id)
+                            .neq('sender_id', session.user.id)
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+
+                        if (lastMessage && lastMessage.profiles) {
+                            // Navegar para o chat com o interessado
+                            navigation.navigate('ItemDetails', {
+                                item: item,
+                                openChatWith: lastMessage.profiles,
+                                autoOpenChat: true
+                            });
+                        }
+                    } else {
+                        // Não sou o dono, vou abrir chat com o dono normalmente
+                        navigation.navigate('ItemDetails', {
+                            item: item,
+                            autoOpenChat: true
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao buscar item para abrir chat:', error);
+            }
+        } else if (notification.type === 'rental_request' && notification.related_id) {
+            // Futuro: navegar para tela de solicitações de aluguel
+            Alert.alert('Solicitud de Alquiler', 'Funcionalidad de gestión de solicitudes estará disponible pronto');
+        } else if (notification.type === 'verification_result') {
+            // Já está na tela de perfil, apenas mostrar a aba de notificações
+            setActiveTab('notifications');
         }
     };
 
@@ -89,6 +148,8 @@ export default function ProfileScreen({ session, navigation }) {
                 return '📋';
             case 'rental_request':
                 return '🔑';
+            case 'new_message':
+                return '💬';
             case 'message':
                 return '💬';
             default:

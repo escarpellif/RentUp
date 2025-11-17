@@ -5,7 +5,7 @@ import { itemCardStyles } from '../styles/itemCardStyles';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
+const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = null }) => {
     // Validação para evitar erros
     if (!item) {
         return null;
@@ -50,6 +50,13 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
 
                 {/* Gradiente Overlay na parte inferior da imagem */}
                 <View style={itemCardStyles.imageOverlay} />
+
+                {/* Badge de Pausado */}
+                {item.is_paused && (
+                    <View style={itemCardStyles.pausedBadge}>
+                        <Text style={itemCardStyles.pausedBadgeText}>⏸️ Pausado</Text>
+                    </View>
+                )}
             </View>
 
             {/* Conteúdo do Card */}
@@ -69,7 +76,10 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false }) => {
                     <View style={itemCardStyles.priceContainer}>
                         <Text style={itemCardStyles.priceSymbol}>€</Text>
                         <Text style={itemCardStyles.cardPrice}>
-                            {parseFloat(item.price_per_day || 0).toFixed(2)}
+                            {(userId === item?.owner_id
+                                ? parseFloat(item.price_per_day || 0)
+                                : parseFloat(item.price_per_day || 0) * 1.18
+                            ).toFixed(2)}
                         </Text>
                         <Text style={itemCardStyles.priceLabel}>/dia</Text>
                     </View>

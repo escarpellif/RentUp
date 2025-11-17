@@ -133,6 +133,10 @@ export const myAdsScreenStyles = StyleSheet.create({
     paddingVertical: 12,
     gap: 5,
   },
+  pauseButton: {
+    borderLeftWidth: 1,
+    borderLeftColor: '#E5E7EB',
+  },
   deleteButton: {
     borderLeftWidth: 1,
     borderLeftColor: '#E5E7EB',

@@ -8,6 +8,7 @@ import { supabase } from '../../supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { getApproximateLocation, getCoordinatesFromAddress, addRandomOffset } from '../utils/locationHelper';
+import CategorySubcategoryPicker from '../components/CategorySubcategoryPicker';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -16,6 +17,7 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [description, setDescription] = useState('');
     const [pricePerDay, setPricePerDay] = useState('');
     const [category, setCategory] = useState('Electrónicos');
+    const [subcategory, setSubcategory] = useState('');
     const [location, setLocation] = useState(''); // Endereço completo
     const [locationFull, setLocationFull] = useState(''); // Endereço completo detalhado
     const [locationApprox, setLocationApprox] = useState(''); // Localização aproximada para mostrar
@@ -35,6 +37,41 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [userProfile, setUserProfile] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [depositValue, setDepositValue] = useState('');
+
+    // Novos estados para desconto
+    const [discountWeek, setDiscountWeek] = useState('');
+    const [discountMonth, setDiscountMonth] = useState('');
+
+    // Estados para endereço completo
+    const [street, setStreet] = useState('');
+    const [complement, setComplement] = useState('');
+    const [city, setCity] = useState('');
+    const [country, setCountry] = useState('España');
+
+    // Estados para disponibilidade de horários
+    const [flexibleHours, setFlexibleHours] = useState(true);
+    const [pickupDays, setPickupDays] = useState({
+        monday: true,
+        tuesday: true,
+        wednesday: true,
+        thursday: true,
+        friday: true,
+        saturday: true,
+        sunday: true
+    });
+    const [pickupTimeStart, setPickupTimeStart] = useState('08:00');
+    const [pickupTimeEnd, setPickupTimeEnd] = useState('20:00');
+
+    // Estados para horários manhã/tarde/noite
+    const [pickupMorning, setPickupMorning] = useState(false);
+    const [pickupMorningStart, setPickupMorningStart] = useState('07:00');
+    const [pickupMorningEnd, setPickupMorningEnd] = useState('12:00');
+    const [pickupAfternoon, setPickupAfternoon] = useState(false);
+    const [pickupAfternoonStart, setPickupAfternoonStart] = useState('12:00');
+    const [pickupAfternoonEnd, setPickupAfternoonEnd] = useState('18:00');
+    const [pickupEvening, setPickupEvening] = useState(false);
+    const [pickupEveningStart, setPickupEveningStart] = useState('18:00');
+    const [pickupEveningEnd, setPickupEveningEnd] = useState('23:00');
 
     const categories = [
         'Electrónicos',
@@ -85,6 +122,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                 setLocationFull(userProfile.address);
                 setLocationApprox(`${userProfile.city} - ${userProfile.postal_code}`);
                 setPostalCode(userProfile.postal_code);
+
+                // Preencher campos separados
+                setStreet(userProfile.address || '');
+                setCity(userProfile.city || '');
+                setCountry('España');
+                setComplement('');
 
                 // Buscar coordenadas do endereço
                 const fullAddress = `${userProfile.address}, ${userProfile.city}, ${userProfile.postal_code}, España`;
@@ -278,15 +321,36 @@ export default function AddItemFormScreen({ session, navigation }) {
                 description,
                 price_per_day: parseFloat(pricePerDay),
                 deposit_value: depositValue ? parseFloat(depositValue) : 0,
+                discount_week: discountWeek ? parseFloat(discountWeek) : 0,
+                discount_month: discountMonth ? parseFloat(discountMonth) : 0,
                 category,
+                subcategory: subcategory || null,
                 location,
                 location_full: locationFull,
                 location_approx: locationApprox,
                 coordinates: coordinates,
                 coordinates_approx: coordinates ? addRandomOffset(coordinates) : null,
+                street: street,
+                complement: complement,
+                city: city,
+                country: country,
+                postal_code: postalCode,
                 photo_url: uploadedPaths[0],
                 photos: uploadedPaths,
                 delivery_type: deliveryType,
+                flexible_hours: flexibleHours,
+                pickup_days: Object.keys(pickupDays).filter(day => pickupDays[day]),
+                pickup_time_start: flexibleHours ? '06:00' : pickupTimeStart,
+                pickup_time_end: flexibleHours ? '23:00' : pickupTimeEnd,
+                pickup_morning: pickupMorning,
+                pickup_morning_start: pickupMorningStart,
+                pickup_morning_end: pickupMorningEnd,
+                pickup_afternoon: pickupAfternoon,
+                pickup_afternoon_start: pickupAfternoonStart,
+                pickup_afternoon_end: pickupAfternoonEnd,
+                pickup_evening: pickupEvening,
+                pickup_evening_start: pickupEveningStart,
+                pickup_evening_end: pickupEveningEnd,
             });
 
         setLoading(false);
@@ -363,47 +427,18 @@ export default function AddItemFormScreen({ session, navigation }) {
                         numberOfLines={4}
                     />
 
-                    <Text style={styles.label}>Categoría</Text>
-                    <View style={styles.pickerContainer}>
-                        <Picker
-                            selectedValue={category}
-                            onValueChange={(itemValue) => setCategory(itemValue)}
-                        >
-                            {categories.map((cat, index) => (
-                                <Picker.Item key={index} label={cat} value={cat} />
-                            ))}
-                        </Picker>
-                    </View>
-                </View>
-
-                {/* Card: Datos Personales */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>👤 Datos de Contacto</Text>
-                    <Text style={styles.cardSubtitle}>Información necesaria para el alquiler</Text>
-
-                    <Text style={styles.label}>Nombre Completo *</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={setFullName}
-                        value={fullName}
-                        placeholder="Ej: Juan Pérez García"
-                        placeholderTextColor="#999"
-                    />
-
-                    <Text style={styles.label}>Teléfono de Contacto *</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={setPhone}
-                        value={phone}
-                        placeholder="Ej: +34 600 123 456"
-                        placeholderTextColor="#999"
-                        keyboardType="phone-pad"
+                    {/* Seleção de Categoria e Subcategoria */}
+                    <CategorySubcategoryPicker
+                        selectedCategory={category}
+                        selectedSubcategory={subcategory}
+                        onCategoryChange={setCategory}
+                        onSubcategoryChange={setSubcategory}
                     />
                 </View>
 
-                {/* Card: Precio y Ubicación */}
+                {/* Card: Precio */}
                 <View style={styles.card}>
-                    <Text style={styles.cardTitle}>💰 Precio y Ubicación</Text>
+                    <Text style={styles.cardTitle}>💰 Precio</Text>
 
                     <Text style={styles.label}>Precio por Día</Text>
                     <View style={styles.priceInputContainer}>
@@ -419,6 +454,26 @@ export default function AddItemFormScreen({ session, navigation }) {
                         <Text style={styles.perDay}>/día</Text>
                     </View>
 
+                    <Text style={styles.label}>Descuento Alquiler 1 Semana (%)</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setDiscountWeek}
+                        value={discountWeek}
+                        placeholder="0"
+                        placeholderTextColor="#999"
+                        keyboardType="numeric"
+                    />
+
+                    <Text style={styles.label}>Descuento Alquiler 1 Mes (%)</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={setDiscountMonth}
+                        value={discountMonth}
+                        placeholder="0"
+                        placeholderTextColor="#999"
+                        keyboardType="numeric"
+                    />
+
                     <Text style={styles.label}>Valor del Depósito (Daño o Pérdida)</Text>
                     <Text style={styles.depositWarning}>💡 Coloca un valor justo. Si lo exageras, las personas no querrán alquilar tu producto.</Text>
                     <View style={styles.priceInputContainer}>
@@ -432,6 +487,11 @@ export default function AddItemFormScreen({ session, navigation }) {
                             keyboardType="numeric"
                         />
                     </View>
+                </View>
+
+                {/* Card: Ubicación y Disponibilidad */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>📍 Ubicación y Disponibilidad</Text>
 
                     <Text style={styles.label}>Ubicación de Recogida *</Text>
 
@@ -485,8 +545,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                                                     latitude: suggestion.lat,
                                                     longitude: suggestion.lon
                                                 });
+                                                // Preencher campos separados
+                                                setStreet(''); // ← Deixar vazio para usuário preencher
+                                                setCity(suggestion.city || '');
+                                                setCountry('España');
                                                 setAddressSuggestions([]);
-                                                setPostalCode('');
+                                                setPostalCode(suggestion.postalCode || '');
                                             }}
                                         >
                                             <Text style={styles.suggestionIcon}>📍</Text>
@@ -498,33 +562,59 @@ export default function AddItemFormScreen({ session, navigation }) {
                         </>
                     )}
 
-                    {location !== '' && (
-                        <View style={styles.selectedLocationContainer}>
-                            <Text style={styles.selectedLocationLabel}>Dirección seleccionada:</Text>
-                            <View style={styles.selectedLocationBox}>
-                                <Text style={styles.selectedLocationIcon}>📍</Text>
-                                <Text style={styles.selectedLocationText}>{location}</Text>
-                                {!useProfileAddress && (
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            setLocation('');
-                                            setLocationFull('');
-                                            setLocationApprox('');
-                                            setCoordinates(null);
-                                        }}
-                                        style={styles.clearLocationButton}
-                                    >
-                                        <Text style={styles.clearLocationText}>✕</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        </View>
-                    )}
-                </View>
+                    {/* Campos de endereço completo */}
+                    {(location !== '' || useProfileAddress) && (
+                        <>
+                            <Text style={styles.label}>Calle/Avenida *</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setStreet}
+                                value={street}
+                                placeholder="Ej: Calle Gran Vía, 123"
+                                placeholderTextColor="#999"
+                            />
 
-                {/* Card: Tipo de Entrega */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>🚚 Tipo de Entrega</Text>
+                            <Text style={styles.label}>Complemento</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setComplement}
+                                value={complement}
+                                placeholder="Ej: Piso 3, Puerta B"
+                                placeholderTextColor="#999"
+                            />
+
+                            <Text style={styles.label}>Ciudad *</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setCity}
+                                value={city}
+                                placeholder="Ej: Madrid"
+                                placeholderTextColor="#999"
+                            />
+
+                            <Text style={styles.label}>Código Postal *</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setPostalCode}
+                                value={postalCode}
+                                placeholder="Ej: 28001"
+                                placeholderTextColor="#999"
+                                keyboardType="numeric"
+                            />
+
+                            <Text style={styles.label}>País *</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setCountry}
+                                value={country}
+                                placeholder="España"
+                                placeholderTextColor="#999"
+                            />
+                        </>
+                    )}
+
+                    {/* Tipo de Entrega */}
+                    <Text style={styles.label}>🚚 Tipo de Entrega</Text>
                     <View style={styles.deliveryTypeContainer}>
                         <TouchableOpacity
                             style={[styles.deliveryOption, deliveryType === 'pickup' && styles.deliveryOptionActive]}
@@ -574,6 +664,223 @@ export default function AddItemFormScreen({ session, navigation }) {
                             )}
                         </TouchableOpacity>
                     </View>
+
+                    {/* Disponibilidad de Recogida */}
+                    <Text style={styles.label}>⏰ Disponibilidad de Recogida</Text>
+
+                    {/* Toggle Horarios Flexibles */}
+                    <TouchableOpacity
+                        style={styles.checkboxContainer}
+                        onPress={() => setFlexibleHours(!flexibleHours)}
+                        activeOpacity={0.7}
+                    >
+                        <View style={[styles.checkbox, flexibleHours && styles.checkboxChecked]}>
+                            {flexibleHours && <Text style={styles.checkboxIcon}>✓</Text>}
+                        </View>
+                        <Text style={styles.checkboxLabel}>Horario flexible (06:00 - 23:00, todos los días)</Text>
+                    </TouchableOpacity>
+
+                    {!flexibleHours && (
+                        <>
+                            {/* Seletor de Días */}
+                            <Text style={styles.subLabel}>Días disponibles:</Text>
+                            <View style={styles.daysContainer}>
+                                {[
+                                    { key: 'monday', label: 'L' },
+                                    { key: 'tuesday', label: 'M' },
+                                    { key: 'wednesday', label: 'X' },
+                                    { key: 'thursday', label: 'J' },
+                                    { key: 'friday', label: 'V' },
+                                    { key: 'saturday', label: 'S' },
+                                    { key: 'sunday', label: 'D' }
+                                ].map(day => (
+                                    <TouchableOpacity
+                                        key={day.key}
+                                        style={[styles.dayButton, pickupDays[day.key] && styles.dayButtonActive]}
+                                        onPress={() => setPickupDays({...pickupDays, [day.key]: !pickupDays[day.key]})}
+                                    >
+                                        <Text style={[styles.dayButtonText, pickupDays[day.key] && styles.dayButtonTextActive]}>
+                                            {day.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            {/* Horarios Manhã/Tarde/Noite */}
+                            <Text style={styles.subLabel}>Horarios de recogida:</Text>
+
+                            {/* Mañana */}
+                            <TouchableOpacity
+                                style={styles.checkboxContainer}
+                                onPress={() => setPickupMorning(!pickupMorning)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.checkbox, pickupMorning && styles.checkboxChecked]}>
+                                    {pickupMorning && <Text style={styles.checkboxCheck}>✓</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>🌅 Mañana</Text>
+                            </TouchableOpacity>
+                            {pickupMorning && (
+                                <View style={styles.timeRangeContainer}>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de inicio',
+                                                'Selecciona la hora de inicio',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupMorningStart(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Desde:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupMorningStart}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de fin',
+                                                'Selecciona la hora de fin',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupMorningEnd(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupMorningEnd}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {/* Tarde */}
+                            <TouchableOpacity
+                                style={styles.checkboxContainer}
+                                onPress={() => setPickupAfternoon(!pickupAfternoon)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.checkbox, pickupAfternoon && styles.checkboxChecked]}>
+                                    {pickupAfternoon && <Text style={styles.checkboxCheck}>✓</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>☀️ Tarde</Text>
+                            </TouchableOpacity>
+                            {pickupAfternoon && (
+                                <View style={styles.timeRangeContainer}>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de inicio',
+                                                'Selecciona la hora de inicio',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupAfternoonStart(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Desde:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupAfternoonStart}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de fin',
+                                                'Selecciona la hora de fin',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupAfternoonEnd(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupAfternoonEnd}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+
+                            {/* Noche */}
+                            <TouchableOpacity
+                                style={styles.checkboxContainer}
+                                onPress={() => setPickupEvening(!pickupEvening)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={[styles.checkbox, pickupEvening && styles.checkboxChecked]}>
+                                    {pickupEvening && <Text style={styles.checkboxCheck}>✓</Text>}
+                                </View>
+                                <Text style={styles.checkboxLabel}>🌙 Noche</Text>
+                            </TouchableOpacity>
+                            {pickupEvening && (
+                                <View style={styles.timeRangeContainer}>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de inicio',
+                                                'Selecciona la hora de inicio',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupEveningStart(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Desde:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupEveningStart}</Text>
+                                    </TouchableOpacity>
+                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <TouchableOpacity
+                                        style={styles.timePickerButton}
+                                        onPress={() => {
+                                            const hours = Array.from({length: 18}, (_, i) => {
+                                                const hour = (i + 6).toString().padStart(2, '0');
+                                                return `${hour}:00`;
+                                            });
+                                            Alert.alert(
+                                                'Hora de fin',
+                                                'Selecciona la hora de fin',
+                                                hours.map(hour => ({
+                                                    text: hour,
+                                                    onPress: () => setPickupEveningEnd(hour)
+                                                }))
+                                            );
+                                        }}
+                                    >
+                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={styles.timePickerValue}>{pickupEveningEnd}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
+                        </>
+                    )}
                 </View>
 
                 {/* Card: Fotos */}
@@ -1066,5 +1373,70 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    // Estilos para disponibilidade de horários
+    subLabel: {
+        fontSize: 14,
+        color: '#555',
+        fontWeight: '600',
+        marginTop: 16,
+        marginBottom: 8,
+    },
+    daysContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 16,
+    },
+    dayButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#DDD',
+        backgroundColor: '#F8F9FA',
+        alignItems: 'center',
+    },
+    dayButtonActive: {
+        backgroundColor: '#10B981',
+        borderColor: '#10B981',
+    },
+    dayButtonText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#666',
+    },
+    dayButtonTextActive: {
+        color: '#fff',
+    },
+    timeRangeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 8,
+    },
+    timePickerButton: {
+        flex: 1,
+        backgroundColor: '#F8F9FA',
+        borderWidth: 1,
+        borderColor: '#DDD',
+        borderRadius: 8,
+        padding: 12,
+    },
+    timePickerLabel: {
+        fontSize: 12,
+        color: '#666',
+        marginBottom: 4,
+    },
+    timePickerValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    timeRangeSeparator: {
+        fontSize: 20,
+        color: '#666',
+        fontWeight: 'bold',
+    },
 });
+
+
 

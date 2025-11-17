@@ -106,6 +106,39 @@ export default function MyAdsScreen({ navigation, session }) {
     );
   };
 
+  const handlePauseToggle = async (item) => {
+    const isPaused = item.is_paused || false;
+    const actionText = isPaused ? 'Reactivar' : 'Pausar';
+    const statusText = isPaused ? 'reactivado' : 'pausado';
+
+    Alert.alert(
+      `${actionText} Anuncio`,
+      `¿Deseas ${actionText.toLowerCase()} el anuncio "${item.title}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: actionText,
+          onPress: async () => {
+            try {
+              const { error } = await supabase
+                .from('items')
+                .update({ is_paused: !isPaused })
+                .eq('id', item.id);
+
+              if (error) throw error;
+
+              Alert.alert('Éxito', `Anuncio ${statusText} correctamente`);
+              fetchMyItems();
+            } catch (error) {
+              console.error('Error toggling pause:', error);
+              Alert.alert('Error', `No se pudo ${actionText.toLowerCase()} el anuncio`);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -169,6 +202,7 @@ export default function MyAdsScreen({ navigation, session }) {
                   item={item}
                   onPress={() => handleItemPress(item)}
                   fullWidth={true}
+                  userId={userId}
                 />
                 <View style={styles.itemActions}>
                   <TouchableOpacity
@@ -177,6 +211,15 @@ export default function MyAdsScreen({ navigation, session }) {
                   >
                     <Text style={styles.actionIcon}>✏️</Text>
                     <Text style={styles.actionText}>{t('items.edit')}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.actionButton, styles.pauseButton]}
+                    onPress={() => handlePauseToggle(item)}
+                  >
+                    <Text style={styles.actionIcon}>{item.is_paused ? '▶️' : '⏸️'}</Text>
+                    <Text style={styles.actionText}>
+                      {item.is_paused ? 'Reactivar' : 'Pausar'}
+                    </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.deleteButton]}

@@ -44,8 +44,9 @@ export const recentItemsCarouselStyles = StyleSheet.create({
     imageContainer: {
         position: 'relative',
         width: '100%',
+        padding: 10,
         height: 180,
-        backgroundColor: '#F0F0F0',
+        // backgroundColor: '#F0F0F0',
     },
     image: {
         width: '100%',

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RentalCalendar from '../components/RentalCalendar';
+import { supabase } from '../../supabase';
 
-export default function RequestRentalScreen({ route, navigation }) {
+export default function RequestRentalScreen({ route, navigation, session }) {
     const { item, ownerProfile, bookingDates } = route.params || {};
 
     // Se vierem bookingDates (do calendário), usamos como datas iniciais
@@ -31,23 +32,93 @@ export default function RequestRentalScreen({ route, navigation }) {
         return diffDays > 0 ? diffDays : 1;
     };
 
+    const getAvailableHours = () => {
+        // Se horário flexível, retorna 06:00 - 23:00
+        if (item?.flexible_hours) {
+            return Array.from({length: 18}, (_, i) => {
+                const hour = (i + 6).toString().padStart(2, '0');
+                return `${hour}:00`;
+            });
+        }
+
+        // Caso contrário, retorna horários específicos configurados
+        const availableHours = [];
+
+        // Manhã
+        if (item?.pickup_morning) {
+            const start = parseInt((item.pickup_morning_start || '07:00').split(':')[0]);
+            const end = parseInt((item.pickup_morning_end || '12:00').split(':')[0]);
+            for (let i = start; i <= end; i++) {
+                availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+            }
+        }
+
+        // Tarde
+        if (item?.pickup_afternoon) {
+            const start = parseInt((item.pickup_afternoon_start || '12:00').split(':')[0]);
+            const end = parseInt((item.pickup_afternoon_end || '18:00').split(':')[0]);
+            for (let i = start; i <= end; i++) {
+                if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
+                    availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+                }
+            }
+        }
+
+        // Noite
+        if (item?.pickup_evening) {
+            const start = parseInt((item.pickup_evening_start || '18:00').split(':')[0]);
+            const end = parseInt((item.pickup_evening_end || '23:00').split(':')[0]);
+            for (let i = start; i <= end; i++) {
+                if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
+                    availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+                }
+            }
+        }
+
+        // Se não houver horários configurados, retorna 06:00 - 23:00 como padrão
+        if (availableHours.length === 0) {
+            return Array.from({length: 18}, (_, i) => {
+                const hour = (i + 6).toString().padStart(2, '0');
+                return `${hour}:00`;
+            });
+        }
+
+        return availableHours.sort();
+    };
+
     const calculateSubtotal = () => {
         const days = calculateDays();
-        return parseFloat(item.price_per_day) * days;
+        // Preço já inclui taxa de 18%
+        const priceWithTax = parseFloat(item.price_per_day) * 1.18;
+        let subtotal = priceWithTax * days;
+
+        // Aplicar desconto semanal (7+ dias)
+        if (days >= 7 && days < 30 && item.discount_week) {
+            const discount = parseFloat(item.discount_week) || 0;
+            subtotal = subtotal * (1 - discount / 100);
+        }
+
+        // Aplicar desconto mensal (30+ dias)
+        if (days >= 30 && item.discount_month) {
+            const discount = parseFloat(item.discount_month) || 0;
+            subtotal = subtotal * (1 - discount / 100);
+        }
+
+        return subtotal;
     };
 
     const calculateServiceFee = () => {
-        const subtotal = calculateSubtotal();
-        return subtotal * 0.18; // 18% de taxa de serviço
+        // Taxa já está incluída no preço
+        return 0;
     };
 
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
-        const serviceFee = calculateServiceFee();
-        return (subtotal + serviceFee).toFixed(2);
+        // Não adiciona taxa pois já está incluída
+        return subtotal.toFixed(2);
     };
 
-    const handleConfirmRental = () => {
+    const handleConfirmRental = async () => {
         const days = calculateDays();
         const subtotal = calculateSubtotal();
         const serviceFee = calculateServiceFee();
@@ -58,29 +129,109 @@ export default function RequestRentalScreen({ route, navigation }) {
             return;
         }
 
+        // Validar que o horário de devolução não ultrapasse o período selecionado
+        const pickupHour = parseInt(pickupTime.split(':')[0]);
+        const returnHour = parseInt(returnTime.split(':')[0]);
+
+        if (returnHour > pickupHour) {
+            Alert.alert(
+                'Horario Inválido',
+                `Para mantener el alquiler de ${days} ${days === 1 ? 'día' : 'días'}, la hora de devolución debe ser hasta las ${pickupTime}.\n\nSi devuelves después, se cobrará un día adicional.`,
+                [
+                    { text: 'Ajustar Horario', style: 'cancel' },
+                    {
+                        text: 'Continuar así',
+                        onPress: () => proceedWithRental(days, subtotal, serviceFee, total)
+                    }
+                ]
+            );
+            return;
+        }
+
+        proceedWithRental(days, subtotal, serviceFee, total);
+    };
+
+    const proceedWithRental = async (days, subtotal, serviceFee, total) => {
         const depositMessage = item?.deposit_value && item.deposit_value > 0
             ? `\n\nDepósito de Garantía: €${parseFloat(item.deposit_value).toFixed(2)}\n(No saldrá de tu cuenta, solo será bloqueado)`
             : '';
 
         Alert.alert(
             'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\nSubtotal: €${subtotal.toFixed(2)}\nTasa de servicio: €${serviceFee.toFixed(2)}\nValor Total: €${total}${depositMessage}\n\nEl anunciante recibirá tu solicitud.`,
+            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\n💰 Valor Total: €${total}\n(Tasa de servicio ya incluida)${depositMessage}\n\nEl anunciante recibirá tu solicitud.`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
                     text: 'Confirmar',
-                    onPress: () => {
-                        // Aqui você vai salvar a solicitação no banco de dados
-                        Alert.alert(
-                            '¡Éxito!',
-                            'Tu solicitud ha sido enviada al anunciante.',
-                            [
-                                {
-                                    text: 'OK',
-                                    onPress: () => navigation.goBack()
-                                }
-                            ]
-                        );
+                    onPress: async () => {
+                        try {
+                            // Salvar solicitação de aluguel no banco de dados
+                            const { data: rentalData, error: rentalError } = await supabase
+                                .from('rentals')
+                                .insert({
+                                    item_id: item.id,
+                                    renter_id: session.user.id,
+                                    owner_id: item.owner_id,
+                                    start_date: startDate.toISOString(),
+                                    end_date: endDate.toISOString(),
+                                    pickup_time: pickupTime,
+                                    return_time: returnTime,
+                                    total_days: days,
+                                    price_per_day: parseFloat(item.price_per_day),
+                                    subtotal: subtotal,
+                                    service_fee: serviceFee,
+                                    total_amount: parseFloat(total),
+                                    deposit_amount: item?.deposit_value ? parseFloat(item.deposit_value) : 0,
+                                    status: 'pending',
+                                })
+                                .select()
+                                .single();
+
+                            if (rentalError) throw rentalError;
+
+                            // Buscar informações do solicitante para a notificação
+                            const { data: renterProfile } = await supabase
+                                .from('profiles')
+                                .select('username, full_name')
+                                .eq('id', session.user.id)
+                                .single();
+
+                            const renterName = renterProfile?.full_name || renterProfile?.username || 'Alguien';
+
+                            // Criar notificação para o anunciante
+                            const { error: notificationError } = await supabase
+                                .from('user_notifications')
+                                .insert({
+                                    user_id: item.owner_id,
+                                    type: 'rental_request',
+                                    title: `Nueva solicitud de alquiler`,
+                                    message: `${renterName} quiere alquilar tu artículo "${item.title}" del ${formatDate(startDate)} al ${formatDate(endDate)}`,
+                                    related_id: rentalData?.id,
+                                    read: false,
+                                });
+
+                            if (notificationError) {
+                                console.error('Erro ao criar notificação:', notificationError);
+                            }
+
+                            Alert.alert(
+                                '¡Éxito!',
+                                'Tu solicitud ha sido enviada al anunciante.',
+                                [
+                                    {
+                                        text: 'OK',
+                                        onPress: () => navigation.goBack()
+                                    }
+                                ]
+                            );
+                        } catch (error) {
+                            console.error('Error al enviar solicitud:', error);
+                            Alert.alert(
+                                'Error',
+                                'No se pudo enviar la solicitud. Por favor, inténtalo de nuevo.',
+                                [{ text: 'OK' }]
+                            );
+                        }
                     }
                 }
             ]
@@ -119,7 +270,7 @@ export default function RequestRentalScreen({ route, navigation }) {
                 {/* Informações do Item */}
                 <View style={styles.itemCard}>
                     <Text style={styles.itemTitle}>{item?.title || 'Sin título'}</Text>
-                    <Text style={styles.itemPrice}>€{parseFloat(item?.price_per_day || 0).toFixed(2)} / día</Text>
+                    <Text style={styles.itemPrice}>€{(parseFloat(item?.price_per_day || 0) * 1.18).toFixed(2)} / día</Text>
                     <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
                 </View>
 
@@ -147,12 +298,6 @@ export default function RequestRentalScreen({ route, navigation }) {
                                 initialStartDate={startDate}
                                 initialEndDate={endDate}
                             />
-                            <TouchableOpacity
-                                style={styles.hideCalendarButton}
-                                onPress={() => setShowCalendar(false)}
-                            >
-                                <Text style={styles.hideCalendarText}>OK</Text>
-                            </TouchableOpacity>
                         </View>
                     )}
                 </View>
@@ -168,13 +313,20 @@ export default function RequestRentalScreen({ route, navigation }) {
                             <TouchableOpacity
                                 style={styles.timeButton}
                                 onPress={() => {
-                                    const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+                                    const hours = getAvailableHours();
+
                                     Alert.alert(
                                         'Selecciona Hora de Recogida',
                                         '',
                                         hours.map(hour => ({
                                             text: hour,
-                                            onPress: () => setPickupTime(hour)
+                                            onPress: () => {
+                                                setPickupTime(hour);
+                                                // Se é 1 dia de aluguel, ajustar returnTime
+                                                if (calculateDays() === 1) {
+                                                    setReturnTime(hour);
+                                                }
+                                            }
                                         }))
                                     );
                                 }}
@@ -192,10 +344,18 @@ export default function RequestRentalScreen({ route, navigation }) {
                             <TouchableOpacity
                                 style={styles.timeButton}
                                 onPress={() => {
-                                    const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+                                    let hours = getAvailableHours();
+
+                                    // Limitar horários até o pickupTime para evitar dia extra
+                                    const pickupHour = parseInt(pickupTime.split(':')[0]);
+                                    hours = hours.filter(hour => {
+                                        const h = parseInt(hour.split(':')[0]);
+                                        return h <= pickupHour;
+                                    });
+
                                     Alert.alert(
                                         'Selecciona Hora de Devolución',
-                                        '',
+                                        `Para mantener ${calculateDays()} ${calculateDays() === 1 ? 'día' : 'días'}, devuelve hasta las ${pickupTime}`,
                                         hours.map(hour => ({
                                             text: hour,
                                             onPress: () => setReturnTime(hour)
@@ -230,25 +390,39 @@ export default function RequestRentalScreen({ route, navigation }) {
                     </View>
 
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Precio por día:</Text>
-                        <Text style={styles.summaryValue}>€{parseFloat(item.price_per_day).toFixed(2)}</Text>
+                        <Text style={styles.summaryLabel}>Precio por día (con tasa incluida):</Text>
+                        <Text style={styles.summaryValue}>€{(parseFloat(item.price_per_day) * 1.18).toFixed(2)}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Subtotal ({calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}):</Text>
-                        <Text style={styles.summaryValue}>€{calculateSubtotal().toFixed(2)}</Text>
+                        <Text style={styles.summaryLabel}>Días de alquiler:</Text>
+                        <Text style={styles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}</Text>
                     </View>
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Tasa de servicio:</Text>
-                        <Text style={styles.summaryValue}>€{calculateServiceFee().toFixed(2)}</Text>
-                    </View>
+                    {/* Mostrar desconto aplicado */}
+                    {calculateDays() >= 7 && calculateDays() < 30 && item.discount_week && parseFloat(item.discount_week) > 0 && (
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.discountLabel}>🎉 Descuento Semanal ({parseFloat(item.discount_week)}%):</Text>
+                            <Text style={styles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_week) / 100)).toFixed(2)}</Text>
+                        </View>
+                    )}
+
+                    {calculateDays() >= 30 && item.discount_month && parseFloat(item.discount_month) > 0 && (
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.discountLabel}>🎉 Descuento Mensual ({parseFloat(item.discount_month)}%):</Text>
+                            <Text style={styles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_month) / 100)).toFixed(2)}</Text>
+                        </View>
+                    )}
 
                     <View style={styles.divider} />
 
                     <View style={styles.summaryRow}>
                         <Text style={styles.totalLabel}>Valor Total:</Text>
                         <Text style={styles.totalValue}>€{calculateTotal()}</Text>
+                    </View>
+
+                    <View style={styles.taxIncludedNote}>
+                        <Text style={styles.taxIncludedText}>✓ Tasa de servicio ya incluida en el precio</Text>
                     </View>
 
                     {/* Depósito */}
@@ -459,6 +633,17 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#333',
     },
+    discountLabel: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#10B981',
+        flex: 1,
+    },
+    discountValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#10B981',
+    },
     divider: {
         height: 1,
         backgroundColor: '#adb5bd',
@@ -473,6 +658,20 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: '#28a745',
+    },
+    taxIncludedNote: {
+        marginTop: 8,
+        padding: 10,
+        backgroundColor: '#E8F5E9',
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: '#10B981',
+    },
+    taxIncludedText: {
+        fontSize: 13,
+        color: '#10B981',
+        fontWeight: '600',
+        textAlign: 'center',
     },
     depositContainer: {
         flexDirection: 'row',

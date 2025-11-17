@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 export const itemCardStyles = StyleSheet.create({
     card: {
-        width: '48%',
+        width: '50%',
         backgroundColor: '#fff',
         borderRadius: 16,
         marginBottom: 20,
@@ -14,27 +14,32 @@ export const itemCardStyles = StyleSheet.create({
         shadowRadius: 8,
     },
     categoryHeader: {
-        backgroundColor: '#f5f5f5',
+        backgroundColor: '#fff',
         paddingHorizontal: 12,
         paddingVertical: 8,
-        borderBottomWidth: 1,
+        paddingBottom: 0,
+        marginBottom: 0,
         borderBottomColor: '#eee',
     },
     categoryLabel: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#666',
+        color: '#000',
         textTransform: 'capitalize',
     },
     cardImageContainer: {
         position: 'relative',
         width: '100%',
         height: 200,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#fff',
+        padding: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     cardImage: {
         width: '100%',
         height: '100%',
+        borderRadius: 8,
     },
     cardImagePlaceholder: {
         width: '100%',
@@ -53,6 +58,25 @@ export const itemCardStyles = StyleSheet.create({
         right: 0,
         height: 60,
         backgroundColor: 'transparent',
+    },
+    pausedBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#FF9800',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    pausedBadgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     cardContent: {
         padding: 14,
@@ -99,16 +123,17 @@ export const itemCardStyles = StyleSheet.create({
     },
     statusBadgeSmall: {
         backgroundColor: '#10B981',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 12,
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 8,
+        marginLeft: 8,
     },
     statusBadgeUnavailable: {
         backgroundColor: '#dc3545',
     },
     statusBadgeText: {
         color: '#fff',
-        fontSize: 10,
+        fontSize: 7,
         fontWeight: '600',
     },
     cardDivider: {

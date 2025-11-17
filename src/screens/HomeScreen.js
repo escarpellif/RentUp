@@ -11,15 +11,19 @@ import {
     Platform,
     Image,
     StatusBar,
-    ImageBackground
+    ImageBackground,
+    Dimensions
 } from 'react-native';
 import {supabase} from '../../supabase';
 import {useAdminNotifications} from '../hooks/useAdminNotifications';
 import {useUserNotifications} from '../hooks/useUserNotifications';
+import {useUnreadMessagesCount} from '../hooks/useUnreadMessagesCount';
+import {usePendingRentalsCount} from '../hooks/usePendingRentalsCount';
 import {useTranslation} from 'react-i18next';
 import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
+import UnifiedRentalModal from '../components/UnifiedRentalModal';
 
 export default function HomeScreen({navigation, session}) {
     const {t} = useTranslation();
@@ -27,11 +31,16 @@ export default function HomeScreen({navigation, session}) {
     const [searchQuery, setSearchQuery] = useState('');
     const [refreshKey, setRefreshKey] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [heroIndex, setHeroIndex] = useState(0);
 
     // Hook de notificações (admin badge)
     const {unreadCount} = useAdminNotifications();
-    // Hook de notificações para o usuário atual (guarda session.user indefinido)
+    // Hook de notificações para o usuário atual
     const {unreadCount: userUnread} = useUserNotifications(session?.user?.id);
+    // Hook de mensagens não lidas
+    // Hook de solicitações de locação pendentes
+    const {pendingCount: pendingRentals} = usePendingRentalsCount(session?.user?.id);
+    const {unreadCount: unreadMessages} = useUnreadMessagesCount(session?.user?.id);
 
     // Buscar se o usuário é admin
     useEffect(() => {
@@ -106,6 +115,10 @@ export default function HomeScreen({navigation, session}) {
 
     return (
         <View style={styles.container}>
+            
+            {/* Modal Unificado de Locações (mostra todas: como locatário E como locador) */}
+            <UnifiedRentalModal session={session} />
+
             <StatusBar barStyle="dark-content" backgroundColor="#fff"/>
             {/* Header com Menu Hamburger */}
             <View style={styles.header}>
@@ -118,9 +131,11 @@ export default function HomeScreen({navigation, session}) {
                         <View style={styles.hamburgerLine}/>
                         <View style={styles.hamburgerLine}/>
                     </View>
-                    {unreadCount > 0 && (
+                    {(unreadCount + unreadMessages + pendingRentals) > 0 && (
                         <View style={styles.notificationDot}>
-                            <Text style={styles.notificationDotText}>{unreadCount}</Text>
+                            <Text style={styles.notificationDotText}>
+                                {unreadCount + unreadMessages + pendingRentals}
+                            </Text>
                         </View>
                     )}
                 </TouchableOpacity>
@@ -136,13 +151,7 @@ export default function HomeScreen({navigation, session}) {
 
                 <TouchableOpacity
                     style={styles.profileButton}
-                    onPress={() => {
-                        if (userUnread > 0) {
-                            navigation.navigate('UserNotifications');
-                        } else {
-                            navigation.navigate('Profile');
-                        }
-                    }}
+                    onPress={() => navigation.navigate('Profile')}
                 >
                     <Text style={styles.profileIcon}>👤</Text>
                     {userUnread > 0 && (
@@ -154,70 +163,157 @@ export default function HomeScreen({navigation, session}) {
             </View>
 
             <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Hero Section - Single Card */}
+                {/* Hero Section - Carrousel */}
+                <View style={styles.heroCarouselContainer}>
+                    <ScrollView
+                        horizontal
+                        pagingEnabled
+                        showsHorizontalScrollIndicator={false}
+                        onScroll={(event) => {
+                            const scrollPosition = event.nativeEvent.contentOffset.x;
+                            const screenWidth = Dimensions.get('window').width;
+                            const index = Math.round(scrollPosition / screenWidth);
+                            setHeroIndex(index);
+                        }}
+                        scrollEventThrottle={16}
+                        style={styles.heroScrollView}
+                    >
+                        {/* Slide 1 */}
+                        <ImageBackground
+                            source={require('../../assets/images/img-1.png')}
+                            style={styles.heroSectionBackground}
+                            resizeMode="cover"
+                        >
 
-                <ImageBackground
-                    source={require('../../assets/images/img-1.png')}
-                    style={styles.heroSectionBackground}
-                    resizeMode="cover"
-                >
-                    <View style={styles.heroSection}>
+                            <View style={styles.heroSection}>
+                                <View style={styles.heroCard}>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                        <View style={styles.heroCard}>
-                            <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
-                            <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
-                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
-                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
-                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
+                                    <Image
+                                        source={require('../../assets/images/img-circular-no-back.png')}
+                                        style={styles.heroImage}
+                                        resizeMode="contain"
+                                    />
 
-                            <Image
-                                source={require('../../assets/images/img-circular-no-back.png')}
-                                style={styles.heroImage}
-                                resizeMode="contain"
-                            />
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
 
-                            <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
-                            <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
 
-                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
-                            <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+                                    <View style={styles.heroButtonsContainer}>
+                                        <TouchableOpacity
+                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            onPress={() => navigation.navigate('Home')}
+                                        >
+                                            <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
+                                        </TouchableOpacity>
 
-                            <View style={styles.heroButtonsContainer}>
-                                <TouchableOpacity
-                                    style={[styles.heroButton, styles.heroButtonAnunciar]}
-                                    onPress={() => navigation.navigate('Home')}
-                                >
-                                    <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
-                                </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            onPress={() => navigation.navigate('AddItem')}
+                                        >
+                                            <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
 
-                                <TouchableOpacity
-                                    style={[styles.heroButton, styles.heroButtonAnunciar]}
-                                    onPress={() => navigation.navigate('AddItem')}
-                                >
-                                    <Text style={styles.heroButtonText}>{t('home.post')}</Text>
-                                </TouchableOpacity>
+                                    {/* Indicadores de slides */}
+                                    <View style={styles.carouselIndicators}>
+                                        <View style={[styles.carouselDot, heroIndex === 0 && styles.carouselDotActive]} />
+                                        <View style={[styles.carouselDot, heroIndex === 1 && styles.carouselDotActive]} />
+                                    </View>
+                                </View>
+                                <View style={styles.searchContainer}>
+                                    <TextInput
+                                        style={styles.searchInput}
+                                        placeholder={t('home.search')}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                        onSubmitEditing={handleSearch}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.searchButton}
+                                        onPress={handleSearch}
+                                    >
+                                        <Text style={styles.searchIcon}>🔍</Text>
+                                    </TouchableOpacity>
+                                </View>
                             </View>
-                        </View>
-                        <View style={styles.searchContainer}>
-                            <TextInput
-                                style={styles.searchInput}
-                                placeholder={t('home.search')}
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                                onSubmitEditing={handleSearch}
-                            />
-                            <TouchableOpacity
-                                style={styles.searchButton}
-                                onPress={handleSearch}
-                            >
-                                <Text style={styles.searchIcon}>🔍</Text>
-                            </TouchableOpacity>
-                        </View>
+                        </ImageBackground>
 
-                    </View>
-                </ImageBackground>
+                        {/* Slide 2 */}
+                        <ImageBackground
+                            source={require('../../assets/images/background-homepage2.png')}
+                            style={styles.heroSectionBackground}
+                            resizeMode="cover"
+                        >
+                            <View style={styles.heroSection}>
+                                <View style={styles.heroCard}>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
 
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
+
+                                    <Image
+                                        source={require('../../assets/images/img-circular-no-back.png')}
+                                        style={styles.heroImage}
+                                        resizeMode="contain"
+                                    />
+
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
+                                    <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+
+                                    <View style={styles.heroButtonsContainer}>
+                                        <TouchableOpacity
+                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            onPress={() => navigation.navigate('Home')}
+                                        >
+                                            <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            onPress={() => navigation.navigate('AddItem')}
+                                        >
+                                            <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    {/* Indicadores de slides */}
+                                    <View style={styles.carouselIndicators}>
+                                        <View style={[styles.carouselDot, heroIndex === 0 && styles.carouselDotActive]} />
+                                        <View style={[styles.carouselDot, heroIndex === 1 && styles.carouselDotActive]} />
+                                    </View>
+                                </View>
+                                <View style={styles.searchContainer}>
+                                    <TextInput
+                                        style={styles.searchInput}
+                                        placeholder={t('home.search')}
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                        onSubmitEditing={handleSearch}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.searchButton}
+                                        onPress={handleSearch}
+                                    >
+                                        <Text style={styles.searchIcon}>🔍</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </ImageBackground>
+                    </ScrollView>
+                </View>
 
                 {/* Search Bar */}
                 {/*<View style={styles.searchContainer}>*/}
@@ -266,7 +362,7 @@ export default function HomeScreen({navigation, session}) {
                 </View>
 
                 {/* Recent Items Carousel */}
-                <RecentItemsCarousel key={refreshKey} navigation={navigation}/>
+                <RecentItemsCarousel key={refreshKey} navigation={navigation} session={session}/>
 
                 {/* Benefits Section */}
                 <BenefitsSection/>
@@ -330,6 +426,38 @@ export default function HomeScreen({navigation, session}) {
                             >
                                 <Text style={styles.menuItemIcon}>📦</Text>
                                 <Text style={styles.menuItemText}>{t('menu.myAds')}</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuVisible(false);
+                                    navigation.navigate('ChatsList');
+                                }}
+                            >
+                                <Text style={styles.menuItemIcon}>💬</Text>
+                                <Text style={styles.menuItemText}>Chats</Text>
+                                {unreadMessages > 0 && (
+                                    <View style={styles.menuBadge}>
+                                        <Text style={styles.menuBadgeText}>{unreadMessages}</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={styles.menuItem}
+                                onPress={() => {
+                                    setMenuVisible(false);
+                                    navigation.navigate('MyRentals');
+                                }}
+                            >
+                                <Text style={styles.menuItemIcon}>🔑</Text>
+                                <Text style={styles.menuItemText}>Mis Locaciones</Text>
+                                {pendingRentals > 0 && (
+                                    <View style={styles.menuBadge}>
+                                        <Text style={styles.menuBadgeText}>{pendingRentals}</Text>
+                                    </View>
+                                )}
                             </TouchableOpacity>
 
                             <TouchableOpacity
@@ -460,12 +588,22 @@ const styles = StyleSheet.create({
     content: {
         flex: 1,
     },
+    heroCarouselContainer: {
+        width: '380',
+        height: 630,
+        overflow: 'hidden',
+    },
+    heroScrollView: {
+        width: '380',
+        height: 700,
+    },
     heroSection: {
         padding: 20,
+        flex: 1,
     },
     heroSectionBackground: {
-        width: '100%',
-        height: '400px',
+        width: '380',
+        height: 580,
     },
     heroCard: {
 
@@ -521,9 +659,28 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textAlign: 'center',
     },
+    carouselIndicators: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        gap: 10,
+    },
+    carouselDot: {
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#ccc',
+    },
+    carouselDotActive: {
+        backgroundColor: '#10B981',
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+    },
     searchContainer: {
         flexDirection: 'row',
-        margin: -5,
+        margin: -3,
         backgroundColor: '#fff',
         borderRadius: 25,
         paddingHorizontal: 15,
@@ -533,6 +690,9 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.1,
         shadowRadius: 2,
+        // borderWidth: 2,
+        borderColor: '#10B981',
+
     },
     searchInput: {
         flex: 1,
@@ -726,6 +886,22 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333',
         fontWeight: '500',
+    },
+    menuBadge: {
+        position: 'absolute',
+        right: 20,
+        backgroundColor: '#10B981',
+        borderRadius: 12,
+        minWidth: 24,
+        height: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 6,
+    },
+    menuBadgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     menuDivider: {
         height: 1,

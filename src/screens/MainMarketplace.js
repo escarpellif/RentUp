@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, TextInput, ScrollView } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import ItemCard from '../components/ItemCard';
-import { categoryConfig, categories, sortOptions } from '../constants/categoryConfig';
+import { categories, sortOptions } from '../constants/categoryConfig';
 import { mainMarketplaceStyles as styles } from '../styles/mainMarketplaceStyles';
 
 export default function MainMarketplace({ session, navigation, route }) {
@@ -24,6 +24,7 @@ export default function MainMarketplace({ session, navigation, route }) {
         const { data, error } = await supabase
             .from('items')
             .select('*')
+            .eq('is_paused', false) // Filtrar apenas itens não pausados
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -50,17 +51,22 @@ export default function MainMarketplace({ session, navigation, route }) {
     useEffect(() => {
         let filtered = items;
 
-        // Filtro por categoria
+        // Filtro por categoria (incluindo subcategoria)
         if (selectedCategory !== 'Todos') {
-            filtered = filtered.filter(item => item.category === selectedCategory);
+            filtered = filtered.filter(item =>
+                item.category === selectedCategory ||
+                item.subcategory === selectedCategory
+            );
         }
 
-        // Filtro por busca
+        // Filtro por busca (incluindo categoria e subcategoria)
         if (searchQuery.trim()) {
             filtered = filtered.filter(item =>
                 item?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 item?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item?.location?.toLowerCase().includes(searchQuery.toLowerCase())
+                item?.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item?.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item?.subcategory?.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
@@ -114,56 +120,69 @@ export default function MainMarketplace({ session, navigation, route }) {
 
     return (
         <SafeAreaView style={styles.fullContainer}>
-            {/* Header com Título e Botão Voltar */}
+            {/* Header Verde - Apenas com Título e Logo */}
             <View style={styles.headerContainer}>
                 <View style={styles.headerTopRow}>
-                    {/* Botão Voltar em Círculo */}
-                    <TouchableOpacity
-                        style={styles.backButtonCircle}
-                        onPress={() => navigation.goBack()}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.backArrow}>←</Text>
-                    </TouchableOpacity>
+                    {/* Botão Voltar + Marketplace */}
+                    <View style={styles.leftHeader}>
+                        <TouchableOpacity
+                            style={styles.backButtonCircle}
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.backArrow}>←</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Marketplace</Text>
+                    </View>
 
-                    {/* Título Marketplace */}
-                    <Text style={styles.headerTitle}>Marketplace</Text>
+                    {/* RentUp à Direita */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/images/app-icon.png')}
+                            style={styles.logoImage}
+                        />
+                        <Text style={styles.logoText}>RentUp</Text>
+                    </View>
                 </View>
 
-                {/* Barra de Pesquisa */}
-                <View style={styles.searchInputContainer}>
-                    <Text style={styles.searchIcon}>🔍</Text>
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Buscar por título, descripción o ubicación..."
-                        placeholderTextColor="#999"
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery !== '' && (
-                        <TouchableOpacity
-                            onPress={() => setSearchQuery('')}
-                            style={styles.clearButton}
-                        >
-                            <Text style={styles.clearIcon}>✕</Text>
-                        </TouchableOpacity>
-                    )}
+                {/* Search Bar - Linha Inteira */}
+                <View style={styles.searchBarRow}>
+                    {/* Barra de Pesquisa */}
+                    <View style={styles.searchInputContainer}>
+                        <Text style={styles.searchIcon}>🔍</Text>
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Buscar..."
+                            placeholderTextColor="#999"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                        {searchQuery !== '' && (
+                            <TouchableOpacity
+                                onPress={() => setSearchQuery('')}
+                                style={styles.clearButton}
+                            >
+                                <Text style={styles.clearIcon}>✕</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
             </View>
 
-            {/* Filtros Compactos */}
-            <View style={styles.compactFiltersRow}>
+
+
+            {/* Filtros - Linha Abaixo */}
+            <View style={styles.filtersRow}>
                 {/* Categorias - Expansível */}
-                <View style={styles.filterSection}>
+                <View style={styles.filterButtonsContainer}>
                     <TouchableOpacity
-                        style={styles.filterHeader}
+                        style={styles.filterButton}
                         onPress={() => setShowCategories(!showCategories)}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.filterHeaderText}>
-                            📂 {selectedCategory === 'Todos' ? 'Categorías' : selectedCategory}
+                        <Text style={styles.filterButtonText}>
+                            {selectedCategory === 'Todos' ? 'Categorías' : selectedCategory}
                         </Text>
-                        <Text style={styles.filterHeaderArrow}>{showCategories ? '▲' : '▼'}</Text>
                     </TouchableOpacity>
 
                     {showCategories && (
@@ -175,7 +194,6 @@ export default function MainMarketplace({ session, navigation, route }) {
                             >
                                 {categories.map((category) => {
                                     const isActive = selectedCategory === category;
-                                    const config = category !== 'Todos' ? (categoryConfig[category] || categoryConfig['Otros']) : null;
 
                                     return (
                                         <TouchableOpacity
@@ -187,9 +205,6 @@ export default function MainMarketplace({ session, navigation, route }) {
                                             }}
                                             activeOpacity={0.7}
                                         >
-                                            {category !== 'Todos' && config && (
-                                                <Text style={styles.filterOptionIcon}>{config.icon}</Text>
-                                            )}
                                             <Text style={[styles.filterOptionText, isActive && styles.filterOptionTextActive]}>
                                                 {category}
                                             </Text>
@@ -203,16 +218,15 @@ export default function MainMarketplace({ session, navigation, route }) {
                 </View>
 
                 {/* Ordenação - Expansível */}
-                <View style={styles.filterSection}>
+                <View style={styles.filterButtonsContainer}>
                     <TouchableOpacity
-                        style={styles.filterHeader}
+                        style={styles.filterButton}
                         onPress={() => setShowSort(!showSort)}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.filterHeaderText}>
-                            🔄 {sortOptions.find(o => o.id === sortBy)?.label || 'Ordenar'}
+                        <Text style={styles.filterButtonText}>
+                            {sortOptions.find(o => o.id === sortBy)?.label || 'Ordenar'}
                         </Text>
-                        <Text style={styles.filterHeaderArrow}>{showSort ? '▲' : '▼'}</Text>
                     </TouchableOpacity>
 
                     {showSort && (
@@ -235,7 +249,6 @@ export default function MainMarketplace({ session, navigation, route }) {
                                             }}
                                             activeOpacity={0.7}
                                         >
-                                            <Text style={styles.filterOptionIcon}>{option.icon}</Text>
                                             <Text style={[styles.filterOptionText, isActive && styles.filterOptionTextActive]}>
                                                 {option.label}
                                             </Text>
@@ -254,7 +267,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                 data={filteredItems.slice(0, itemsToShow)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <ItemCard item={item} onDetailsPress={navigateToDetails} />
+                    <ItemCard item={item} onDetailsPress={navigateToDetails} userId={session?.user?.id} />
                 )
                 }
                 numColumns={2}

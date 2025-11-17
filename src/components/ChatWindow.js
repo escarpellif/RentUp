@@ -32,7 +32,7 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
             if (data && data.length > 0) {
                 await supabase
                     .from('messages')
-                    .update({ is_read: true })
+                    .update({ read: true })
                     .eq('conversation_id', conversationId)
                     .eq('item_id', itemId)
                     .neq('sender_id', session.user.id);
@@ -92,7 +92,8 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
 
         setSending(true);
         try {
-            const { error } = await supabase
+            // Inserir mensagem
+            const { error: messageError } = await supabase
                 .from('messages')
                 .insert({
                     conversation_id: conversationId,
@@ -102,7 +103,33 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
                     message_text: messageText.trim(),
                 });
 
-            if (error) throw error;
+            if (messageError) throw messageError;
+
+            // Buscar informações do remetente para a notificação
+            const { data: senderProfile } = await supabase
+                .from('profiles')
+                .select('username, full_name')
+                .eq('id', session.user.id)
+                .single();
+
+            const senderName = senderProfile?.full_name || senderProfile?.username || 'Alguien';
+
+            // Criar notificação para o destinatário
+            const { error: notificationError } = await supabase
+                .from('user_notifications')
+                .insert({
+                    user_id: receiverId,
+                    type: 'new_message',
+                    title: `Nuevo mensaje`,
+                    message: `${senderName} te ha enviado un mensaje en el chat`,
+                    related_id: itemId,
+                    read: false,
+                });
+
+            if (notificationError) {
+                console.error('Erro ao criar notificação:', notificationError);
+            }
+
             setMessageText('');
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error);

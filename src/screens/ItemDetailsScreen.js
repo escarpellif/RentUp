@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar, Modal } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
 import ApproximateLocationMap from '../components/ApproximateLocationMap';
-import ChatWindow from '../components/ChatWindow';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function ItemDetailsScreen({ route, navigation, session }) {
-    const { item } = route.params || {};
+    const { item, autoOpenChat = false, openChatWith = null } = route.params || {};
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [showChat, setShowChat] = useState(false);
 
     // Preparar array de fotos (compatível com items antigos e novos) com validação
     const photos = item && item.photos && Array.isArray(item.photos) && item.photos.length > 0
@@ -49,6 +47,7 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
         fetchOwnerProfile();
     }, [fetchOwnerProfile]);
 
+
     // Validação no render: Se não há item, mostrar erro
     if (!item) {
         return (
@@ -65,18 +64,32 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     }
 
     const handleContact = () => {
-        if (!ownerProfile) {
+        // Usar openChatWith se foi passado (caso de dono conversando com interessado)
+        // Senão, usar ownerProfile (caso de interessado conversando com dono)
+        const profileToChat = openChatWith || ownerProfile;
+
+        if (!profileToChat) {
             Alert.alert('Error', 'No se pudo cargar la información del vendedor');
             return;
         }
 
-        // Si es el dueño del item, no permitir chatear consigo mismo
-        if (session.user.id === item.owner_id) {
+        // Se não é autoOpenChat e é o dono do item, bloquear
+        if (!autoOpenChat && session.user.id === item.owner_id) {
             Alert.alert('Info', 'No puedes enviar mensajes a tu propio anuncio');
             return;
         }
 
-        setShowChat(true);
+        // Criar conversation_id único incluindo ITEM_ID
+        // Formato: userA_userB_itemId (sempre ordenado)
+        const conversationId = [session.user.id, profileToChat.id].sort().join('_') + '_' + item.id;
+
+        // Navegar para a tela de conversa
+        navigation.navigate('ChatConversation', {
+            itemId: item.id,
+            item: item,
+            otherUser: profileToChat,
+            conversationId: conversationId,
+        });
     };
 
     const handleRequestRental = async () => {
@@ -149,7 +162,12 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                 <Text style={styles.title}>{item?.title || 'Sin título'}</Text>
 
                 <View style={styles.priceContainer}>
-                    <Text style={styles.price}>€{parseFloat(item?.price_per_day || 0).toFixed(2)}</Text>
+                    <Text style={styles.price}>
+                        €{(session?.user?.id === item?.owner_id
+                            ? parseFloat(item?.price_per_day || 0)
+                            : parseFloat(item?.price_per_day || 0) * 1.18
+                        ).toFixed(2)}
+                    </Text>
                     <Text style={styles.priceLabel}> / dia</Text>
                 </View>
 
@@ -205,51 +223,32 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                     </View>
                 </View>
 
-                {/* Botões de Ação */}
-                <View style={styles.actionButtons}>
-                    <TouchableOpacity 
-                        style={styles.primaryButton}
-                        onPress={handleRequestRental}
-                    >
-                        <Text style={styles.primaryButtonText}>
-                            🔑 Solicitar Alquiler
-                        </Text>
-                    </TouchableOpacity>
+                {/* Botões de Ação - Ocultar se for o próprio dono */}
+                {session?.user?.id !== item?.owner_id && (
+                    <View style={styles.actionButtons}>
+                        <TouchableOpacity
+                            style={styles.primaryButton}
+                            onPress={handleRequestRental}
+                        >
+                            <Text style={styles.primaryButtonText}>
+                                🔑 Solicitar Alquiler
+                            </Text>
+                        </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.contactButton}
-                        onPress={handleContact}
-                    >
-                        <Text style={styles.contactButtonText}>
-                            💬 Chat
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                        <TouchableOpacity
+                            style={styles.contactButton}
+                            onPress={handleContact}
+                        >
+                            <Text style={styles.contactButtonText}>
+                                💬 Chat
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
             </View>
 
             <View style={{ height: 30 }} />
             </ScrollView>
-
-            {/* Modal de Chat */}
-            <Modal
-                visible={showChat}
-                animationType="slide"
-                presentationStyle="fullScreen"
-                onRequestClose={() => setShowChat(false)}
-            >
-                <SafeAreaView style={{ flex: 1 }}>
-                    {ownerProfile && (
-                        <ChatWindow
-                            itemId={item.id}
-                            itemTitle={item.title}
-                            ownerProfile={ownerProfile}
-                            ownerProfileId={ownerProfile?.id || item.owner_id}
-                            session={session}
-                            onClose={() => setShowChat(false)}
-                        />
-                    )}
-                </SafeAreaView>
-            </Modal>
         </SafeAreaView>
     );
 }
