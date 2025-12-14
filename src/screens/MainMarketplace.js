@@ -99,7 +99,7 @@ export default function MainMarketplace({ session, navigation, route }) {
     }, [route.params]);
 
     const navigateToDetails = (item) => {
-        if (item.owner_id === session.user.id) {
+        if (session?.user?.id && item.owner_id === session.user.id) {
             navigation.navigate('EditItem', { item: item });
         } else {
             navigation.navigate('ItemDetails', { item: item });
@@ -140,6 +140,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                         <Image
                             source={require('../../assets/images/app-icon.png')}
                             style={styles.logoImage}
+                            resizeMode="contain"
                         />
                         <Text style={styles.logoText}>RentUp</Text>
                     </View>

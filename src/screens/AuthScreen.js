@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  StyleSheet,
   View,
   Text,
   TextInput,
@@ -17,8 +16,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { authScreenStyles as styles } from '../styles/authScreenStyles';
 
-export default function AuthScreen() {
+export default function AuthScreen({ onGuestLogin }) {
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -465,6 +465,31 @@ export default function AuthScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Guest Login Button - Only for Login Mode */}
+            {!isRegistering && (
+              <View style={styles.guestButtonContainer}>
+                <View style={styles.dividerContainer}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>o</Text>
+                  <View style={styles.dividerLine} />
+                </View>
+                <TouchableOpacity
+                  style={styles.guestButton}
+                  onPress={() => {
+                    if (onGuestLogin && typeof onGuestLogin === 'function') {
+                      onGuestLogin();
+                    }
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.guestButtonIcon}>👤</Text>
+                  <Text style={styles.guestButtonText}>
+                    {t('auth.enterAsGuest')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           {/* Footer */}
@@ -479,206 +504,3 @@ export default function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradientBackground: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  brandContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  languageSwitcherContainer: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoImage: {
-    width: 70,
-    height: 70,
-  },
-  brandName: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    letterSpacing: 1,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  brandTagline: {
-    fontSize: 16,
-    color: '#fff',
-    fontWeight: '500',
-    opacity: 0.95,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
-  },
-  formCard: {
-    backgroundColor: '#fff',
-    borderRadius: 25,
-    padding: 30,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  formTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 25,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 15,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    height: 55,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-  },
-  inputIconContainer: {
-    marginRight: 10,
-  },
-  inputIcon: {
-    fontSize: 20,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  eyeIconContainer: {
-    padding: 5,
-  },
-  eyeIcon: {
-    fontSize: 20,
-  },
-  passwordStrengthContainer: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 15,
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-  },
-  passwordStrengthTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#059669',
-    marginBottom: 8,
-  },
-  requirementsList: {
-    gap: 4,
-  },
-  requirementItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 2,
-  },
-  requirementMet: {
-    fontSize: 14,
-    color: '#059669',
-    fontWeight: 'bold',
-    marginRight: 8,
-  },
-  requirementUnmet: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    marginRight: 8,
-  },
-  requirementTextMet: {
-    fontSize: 12,
-    color: '#059669',
-    fontWeight: '500',
-  },
-  requirementTextUnmet: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  submitButton: {
-    marginTop: 10,
-    borderRadius: 15,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowColor: '#059669',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonGradient: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 55,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  toggleQuestion: {
-    fontSize: 14,
-    color: '#666',
-    marginRight: 5,
-  },
-  toggleLink: {
-    fontSize: 14,
-    color: '#10B981',
-    fontWeight: 'bold',
-  },
-  forgotPasswordContainer: {
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  forgotPasswordLink: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 30,
-  },
-  footerText: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontStyle: 'italic',
-  },
-});

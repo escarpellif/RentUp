@@ -33,6 +33,7 @@ const Stack = createNativeStackNavigator();
 export default function App() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isGuest, setIsGuest] = useState(false);
 
     useEffect(() => {
         // Lógica para checar a sessão (mantida do seu código anterior)
@@ -45,18 +46,28 @@ export default function App() {
             (_event, session) => {
                 setSession(session);
                 setLoading(false);
+                // Se fez logout, também desativa modo visitante
+                if (!session) {
+                    setIsGuest(false);
+                }
             }
         );
 
         return () => authListener.subscription.unsubscribe();
     }, []);
 
+    // Função para entrar como visitante
+    const handleGuestLogin = () => {
+        setIsGuest(true);
+        setLoading(false);
+    };
+
     if (loading) {
         return <AnimatedSplashScreen />;
     }
 
-    // Se estiver logado, exibe o Stack Navigator com as telas do app
-    if (session && session.user) {
+    // Se estiver logado OU em modo visitante, exibe o Stack Navigator com as telas do app
+    if ((session?.user) || isGuest) {
         return (
             <NavigationContainer>
                 <Stack.Navigator
@@ -65,67 +76,67 @@ export default function App() {
                     }}
                 >
                     <Stack.Screen name="HomeScreen">
-                        {(props) => <HomeScreen {...props} session={session} />}
+                        {(props) => <HomeScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="Home">
-                        {(props) => <MainMarketplace {...props} session={session} />}
+                        {(props) => <MainMarketplace {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="AddItem">
-                        {(props) => <TipsBeforeAddingScreen {...props} session={session} />}
+                        {(props) => <TipsBeforeAddingScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="AddItemForm">
-                        {(props) => <AddItemFormScreen {...props} session={session} />}
+                        {(props) => <AddItemFormScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="EditItem">
-                        {(props) => <EditItemScreen {...props} session={session} />}
+                        {(props) => <EditItemScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="ItemDetails">
-                        {(props) => <ItemDetailsScreen {...props} session={session} />}
+                        {(props) => <ItemDetailsScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="RequestRental">
-                        {(props) => <RequestRentalScreen {...props} session={session} />}
+                        {(props) => <RequestRentalScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="Profile">
-                        {(props) => <ProfileScreen {...props} session={session} />}
+                        {(props) => <ProfileScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="MyAds">
-                        {(props) => <MyAdsScreen {...props} session={session} />}
+                        {(props) => <MyAdsScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="EditProfile">
-                        {(props) => <EditProfileScreen {...props} session={session} />}
+                        {(props) => <EditProfileScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="DocumentVerification">
-                        {(props) => <DocumentVerificationScreen {...props} session={session} />}
+                        {(props) => <DocumentVerificationScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="AdminVerifications">
-                        {(props) => <AdminVerificationsScreen {...props} session={session} />}
+                        {(props) => <AdminVerificationsScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="UserNotifications">
-                        {(props) => <UserNotificationsScreen {...props} session={session} />}
+                        {(props) => <UserNotificationsScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="ChatsList">
-                        {(props) => <ChatsListScreen {...props} session={session} />}
+                        {(props) => <ChatsListScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="ChatConversation">
-                        {(props) => <ChatConversationScreen {...props} session={session} />}
+                        {(props) => <ChatConversationScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
 
                     <Stack.Screen name="MyRentals">
-                        {(props) => <MyRentalsScreen {...props} session={session} />}
+                        {(props) => <MyRentalsScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
@@ -133,7 +144,7 @@ export default function App() {
     }
 
     // Se não estiver logado, exibe apenas a tela de autenticação
-    return <AuthScreen />;
+    return <AuthScreen onGuestLogin={handleGuestLogin} />;
 }
 
 // Registrar o componente para Expo

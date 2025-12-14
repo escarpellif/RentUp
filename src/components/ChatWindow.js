@@ -14,7 +14,7 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     const conversationId = receiverId && session?.user?.id ? [session.user.id, receiverId].sort().join('_') : '';
 
     const fetchMessages = useCallback(async () => {
-        if (!conversationId || !itemId) return;
+        if (!conversationId || !itemId || !session?.user?.id) return;
 
         try {
             setLoading(true);
@@ -42,7 +42,7 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
         } finally {
             setLoading(false);
         }
-    }, [conversationId, itemId, session.user.id]);
+    }, [conversationId, itemId, session?.user?.id]);
 
     const subscribeToMessagesCallback = useCallback(() => {
         if (!conversationId || !itemId) return () => {};
@@ -86,7 +86,7 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     // Determinar qual é o ID da conversa (sempre ordenado para ser único)
 
     const sendMessage = async () => {
-        if (!messageText.trim()) {
+        if (!messageText.trim() || !session?.user?.id) {
             return;
         }
 
@@ -140,7 +140,7 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     };
 
     const renderMessage = ({ item }) => {
-        const isCurrentUser = item.sender_id === session.user.id;
+        const isCurrentUser = item.sender_id === session?.user?.id;
 
         return (
             <View style={[styles.messageRow, isCurrentUser ? styles.messageRowRight : styles.messageRowLeft]}>

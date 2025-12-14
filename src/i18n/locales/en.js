@@ -39,6 +39,7 @@ export default {
     welcomeBack: 'Welcome back',
     enterEmail: 'Enter your email',
     enterPassword: 'Enter your password',
+    enterAsGuest: 'Enter as Guest',
 
     // Validations
     passwordRequirements: 'Password requirements:',
@@ -60,7 +61,7 @@ export default {
   // Home
   home: {
     title: 'RentUp',
-    subtitle: 'Own less, Access more.',
+    subtitle: 'Rent what you need.\nMonetize what you already have.',
     welcome: 'Welcome',
     marketplace: 'Marketplace',
     myProfile: 'My Profile',

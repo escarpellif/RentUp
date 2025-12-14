@@ -39,6 +39,7 @@ export default {
     welcomeBack: 'Bienvenido de nuevo',
     enterEmail: 'Introduce tu email',
     enterPassword: 'Introduce tu contraseña',
+    enterAsGuest: 'Entrar como Visitante',
 
     // Validações
     passwordRequirements: 'Requisitos de la contraseña:',
@@ -60,7 +61,7 @@ export default {
   // Home
   home: {
     title: 'RentUp',
-    subtitle: 'Posee menos, Accede a más.',
+    subtitle: 'Alquila lo que necesitas.\nRentabiliza lo que ya tienes.',
     welcome: 'Bienvenido',
     marketplace: 'Marketplace',
     myProfile: 'Mi Perfil',

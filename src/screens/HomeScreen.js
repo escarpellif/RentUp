@@ -14,6 +14,8 @@ import {
     ImageBackground,
     Dimensions
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 import {supabase} from '../../supabase';
 import {useAdminNotifications} from '../hooks/useAdminNotifications';
 import {useUserNotifications} from '../hooks/useUserNotifications';
@@ -24,8 +26,9 @@ import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
 import UnifiedRentalModal from '../components/UnifiedRentalModal';
+import ReviewModal from '../components/ReviewModal';
 
-export default function HomeScreen({navigation, session}) {
+export default function HomeScreen({navigation, session, isGuest}) {
     const {t} = useTranslation();
     const [menuVisible, setMenuVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -36,7 +39,7 @@ export default function HomeScreen({navigation, session}) {
     // Hook de notificações (admin badge)
     const {unreadCount} = useAdminNotifications();
     // Hook de notificações para o usuário atual
-    const {unreadCount: userUnread} = useUserNotifications(session?.user?.id);
+    const {unreadCount: userUnread, refresh: refreshUserNotifications} = useUserNotifications(session?.user?.id);
     // Hook de mensagens não lidas
     // Hook de solicitações de locação pendentes
     const {pendingCount: pendingRentals} = usePendingRentalsCount(session?.user?.id);
@@ -44,6 +47,12 @@ export default function HomeScreen({navigation, session}) {
 
     // Buscar se o usuário é admin
     useEffect(() => {
+        // Não buscar se for visitante
+        if (isGuest) {
+            setIsAdmin(false);
+            return;
+        }
+
         async function checkAdmin() {
             const {data, error} = await supabase
                 .from('profiles')
@@ -57,25 +66,44 @@ export default function HomeScreen({navigation, session}) {
         }
 
         checkAdmin();
-    }, [session]);
+    }, [session, isGuest]);
+
+    // Pré-carregar imagens do carrossel para carregamento instantâneo
+    useEffect(() => {
+        async function preloadImages() {
+            try {
+                await Asset.loadAsync([
+                    require('../../assets/images/img-1.png'),
+                    require('../../assets/images/background-homepage2.png')
+                ]);
+            } catch (error) {
+                console.log('Erro ao pré-carregar imagens:', error);
+            }
+        }
+        preloadImages();
+    }, []);
 
     // Adicionar listener para atualizar quando a tela voltar ao foco
     useEffect(() => {
         return navigation.addListener('focus', () => {
             setRefreshKey(prev => prev + 1);
+            // Recarregar notificações quando voltar à tela
+            if (refreshUserNotifications) {
+                refreshUserNotifications();
+            }
         });
-    }, [navigation]);
+    }, [navigation, refreshUserNotifications]);
 
     const categories = [
-        {id: '1', name: t('items.electronics'), icon: '🎮', color: '#fff'},
-        {id: '2', name: t('items.sports'), icon: '🏀', color: '#fff'},
-        {id: '3', name: t('items.vehicles'), icon: '🔧', color: '#fff'},
-        {id: '4', name: t('items.furniture'), icon: '🛋️', color: '#fff'},
-        {id: '5', name: t('items.tools'), icon: '🔨', color: '#fff'},
-        {id: '6', name: t('items.parties'), icon: '🎉', color: '#fff'},
-        {id: '7', name: t('items.garden'), icon: '🌱', color: '#fff'},
-        {id: '8', name: t('items.clothing'), icon: '👕', color: '#fff'},
-        {id: '9', name: t('items.others'), icon: '📦', color: '#fff'},
+        {id: '1', name: t('items.electronics'), icon: 'camera-outline', color: '#16a085', bgColor: '#e8f8f5'},
+        {id: '2', name: t('items.sports'), icon: 'basketball-outline', color: '#e74c3c', bgColor: '#fadbd8'},
+        {id: '3', name: t('items.vehicles'), icon: 'car-outline', color: '#3498db', bgColor: '#d6eaf8'},
+        {id: '4', name: t('items.furniture'), icon: 'bed-outline', color: '#9b59b6', bgColor: '#ebdef0'},
+        {id: '5', name: t('items.tools'), icon: 'construct-outline', color: '#f39c12', bgColor: '#fdebd0'},
+        {id: '6', name: t('items.parties'), icon: 'gift-outline', color: '#e91e63', bgColor: '#fce4ec'},
+        {id: '7', name: t('items.garden'), icon: 'leaf-outline', color: '#27ae60', bgColor: '#d5f4e6'},
+        {id: '8', name: t('items.clothing'), icon: 'shirt-outline', color: '#34495e', bgColor: '#d5d8dc'},
+        {id: '9', name: t('items.others'), icon: 'cube-outline', color: '#95a5a6', bgColor: '#ecf0f1'},
     ];
 
     const handleCategoryPress = (category) => {
@@ -117,7 +145,10 @@ export default function HomeScreen({navigation, session}) {
         <View style={styles.container}>
             
             {/* Modal Unificado de Locações (mostra todas: como locatário E como locador) */}
-            <UnifiedRentalModal session={session} />
+            {!isGuest && session && <UnifiedRentalModal session={session} navigation={navigation} />}
+            {/* Modal de Review (aparece após conclusão de locação) */}
+            {!isGuest && session && <ReviewModal session={session} />}
+
 
             <StatusBar barStyle="dark-content" backgroundColor="#fff"/>
             {/* Header com Menu Hamburger */}
@@ -153,7 +184,7 @@ export default function HomeScreen({navigation, session}) {
                     style={styles.profileButton}
                     onPress={() => navigation.navigate('Profile')}
                 >
-                    <Text style={styles.profileIcon}>👤</Text>
+                    <Ionicons name="person-circle-outline" size={28} color="#2c4455" />
                     {userUnread > 0 && (
                         <View style={styles.userNotificationDot}>
                             <Text style={styles.userNotificationDotText}>{userUnread}</Text>
@@ -194,11 +225,8 @@ export default function HomeScreen({navigation, session}) {
                                     <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
                                     <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
-                                    <Image
-                                        source={require('../../assets/images/img-circular-no-back.png')}
-                                        style={styles.heroImage}
-                                        resizeMode="contain"
-                                    />
+                                    {/* Spacer para manter posição dos botões */}
+                                    <View style={styles.heroSpacer} />
 
                                     <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
                                     <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
@@ -240,7 +268,7 @@ export default function HomeScreen({navigation, session}) {
                                         style={styles.searchButton}
                                         onPress={handleSearch}
                                     >
-                                        <Text style={styles.searchIcon}>🔍</Text>
+                                        <Ionicons name="search" size={20} color="#10B981" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -261,11 +289,8 @@ export default function HomeScreen({navigation, session}) {
                                     <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
                                     <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
-                                    <Image
-                                        source={require('../../assets/images/img-circular-no-back.png')}
-                                        style={styles.heroImage}
-                                        resizeMode="contain"
-                                    />
+                                    {/* Spacer para manter posição dos botões */}
+                                    <View style={styles.heroSpacer} />
 
                                     <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
                                     <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
@@ -307,7 +332,7 @@ export default function HomeScreen({navigation, session}) {
                                         style={styles.searchButton}
                                         onPress={handleSearch}
                                     >
-                                        <Text style={styles.searchIcon}>🔍</Text>
+                                        <Ionicons name="search" size={20} color="#10B981" />
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -350,10 +375,12 @@ export default function HomeScreen({navigation, session}) {
                             {categories.map((category) => (
                                 <TouchableOpacity
                                     key={category.id}
-                                    style={[styles.categoryCard, {backgroundColor: category.color}]}
+                                    style={[styles.categoryCard, {backgroundColor: category.bgColor}]}
                                     onPress={() => handleCategoryPress(category)}
                                 >
-                                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                                    <View style={[styles.categoryIconContainer, {backgroundColor: category.color}]}>
+                                        <Ionicons name={category.icon} size={32} color="#fff" />
+                                    </View>
                                     <Text style={styles.categoryName}>{category.name}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -417,59 +444,54 @@ export default function HomeScreen({navigation, session}) {
                                 <Text style={styles.menuItemText}>{t('menu.marketplace')}</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.menuItem}
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    navigation.navigate('MyAds');
-                                }}
-                            >
-                                <Text style={styles.menuItemIcon}>📦</Text>
-                                <Text style={styles.menuItemText}>{t('menu.myAds')}</Text>
-                            </TouchableOpacity>
+                            {/* Protected Menu Items - Hidden for Guests */}
+                            {!isGuest && (
+                                <>
+                                    <TouchableOpacity
+                                        style={styles.menuItem}
+                                        onPress={() => {
+                                            setMenuVisible(false);
+                                            navigation.navigate('MyAds');
+                                        }}
+                                    >
+                                        <Text style={styles.menuItemIcon}>📦</Text>
+                                        <Text style={styles.menuItemText}>{t('menu.myAds')}</Text>
+                                    </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.menuItem}
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    navigation.navigate('ChatsList');
-                                }}
-                            >
-                                <Text style={styles.menuItemIcon}>💬</Text>
-                                <Text style={styles.menuItemText}>Chats</Text>
-                                {unreadMessages > 0 && (
-                                    <View style={styles.menuBadge}>
-                                        <Text style={styles.menuBadgeText}>{unreadMessages}</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.menuItem}
+                                        onPress={() => {
+                                            setMenuVisible(false);
+                                            navigation.navigate('ChatsList');
+                                        }}
+                                    >
+                                        <Text style={styles.menuItemIcon}>💬</Text>
+                                        <Text style={styles.menuItemText}>Chats</Text>
+                                        {unreadMessages > 0 && (
+                                            <View style={styles.menuBadge}>
+                                                <Text style={styles.menuBadgeText}>{unreadMessages}</Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.menuItem}
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    navigation.navigate('MyRentals');
-                                }}
-                            >
-                                <Text style={styles.menuItemIcon}>🔑</Text>
-                                <Text style={styles.menuItemText}>Mis Locaciones</Text>
-                                {pendingRentals > 0 && (
-                                    <View style={styles.menuBadge}>
-                                        <Text style={styles.menuBadgeText}>{pendingRentals}</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.menuItem}
+                                        onPress={() => {
+                                            setMenuVisible(false);
+                                            navigation.navigate('MyRentals');
+                                        }}
+                                    >
+                                        <Text style={styles.menuItemIcon}>🔑</Text>
+                                        <Text style={styles.menuItemText}>Mis Locaciones</Text>
+                                        {pendingRentals > 0 && (
+                                            <View style={styles.menuBadge}>
+                                                <Text style={styles.menuBadgeText}>{pendingRentals}</Text>
+                                            </View>
+                                        )}
+                                    </TouchableOpacity>
+                                </>
+                            )}
 
-                            <TouchableOpacity
-                                style={styles.menuItem}
-                                onPress={() => {
-                                    setMenuVisible(false);
-                                    navigation.navigate('Profile');
-                                }}
-                            >
-                                <Text style={styles.menuItemIcon}>👤</Text>
-                                <Text style={styles.menuItemText}>{t('menu.myProfile')}</Text>
-                            </TouchableOpacity>
 
                             {/* Admin - Apenas para usuários admin */}
                             {isAdmin && (
@@ -570,6 +592,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: 8,
     },
+    titleTextContainer: {
+        flexDirection: 'column',
+        alignItems: 'center',
+    },
     headerIcon: {
         width: 28,
         height: 28,
@@ -579,11 +605,16 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#2c4455',
     },
+    headerSubtitle: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: '#10B981',
+        textAlign: 'center',
+        lineHeight: 14,
+        marginTop: 2,
+    },
     profileButton: {
         padding: 5,
-    },
-    profileIcon: {
-        fontSize: 24,
     },
     content: {
         flex: 1,
@@ -630,10 +661,8 @@ const styles = StyleSheet.create({
         marginTop: 4,
         lineHeight: 20,
     },
-    heroImage: {
-        width: 150,
+    heroSpacer: {
         height: 150,
-        opacity: 0.1,
         marginVertical: -10,
     },
     heroButtonsContainer: {
@@ -743,9 +772,9 @@ const styles = StyleSheet.create({
     categoriesContainer: {
         backgroundColor: '#fff',
         borderRadius: 16,
-        paddingTop: 35,
-        paddingHorizontal: 16,
-        paddingBottom: 0,
+        paddingTop: 25,
+        paddingHorizontal: 15,
+        paddingBottom: 50,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 1},
@@ -760,22 +789,32 @@ const styles = StyleSheet.create({
     categoryCard: {
         width: '31%',
         aspectRatio: 1,
-        borderRadius: 12,
+        borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 12,
+        padding: 12,
+        backgroundColor: '#fff',
         elevation: 2,
         shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.15,
-        shadowRadius: 2,
+        shadowOffset: {width: 0, height: 2},
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    categoryIconContainer: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 8,
     },
     categoryIcon: {
         fontSize: 32,
         marginBottom: 5,
     },
     categoryName: {
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: '600',
         color: '#2c4455',
         textAlign: 'center',

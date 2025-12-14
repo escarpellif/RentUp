@@ -7,15 +7,13 @@ import {
     StyleSheet,
     TextInput,
     Alert,
-    ScrollView,
-    FlatList,
-    Dimensions
+    ScrollView
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
-const OwnerRentalConfirmationModal = ({session}) => {
+const OwnerRentalConfirmationModal = ({session, navigation}) => {
     const [activeRentals, setActiveRentals] = useState([]);
     const [visible, setVisible] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,18 +45,49 @@ const OwnerRentalConfirmationModal = ({session}) => {
         }
     }, [activeRentals, visible, currentIndex]);
 
+    // Função para calcular o valor que o proprietário receberá
+    const calculateOwnerAmount = (rental) => {
+        if (rental.owner_amount) {
+            return parseFloat(rental.owner_amount);
+        }
+
+        // Calcular baseado no preço anunciado (sem taxa)
+        const basePrice = parseFloat(rental.item?.price_per_day || 0);
+        const days = rental.total_days || 1;
+        let ownerAmount = basePrice * days;
+
+        // Aplicar desconto semanal se houver
+        if (days >= 7 && days < 30 && rental.item?.discount_week) {
+            const discount = parseFloat(rental.item.discount_week) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        // Aplicar desconto mensal se houver
+        if (days >= 30 && rental.item?.discount_month) {
+            const discount = parseFloat(rental.item.discount_month) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        return ownerAmount;
+    };
+
     const fetchActiveRentals = async () => {
         try {
+            // Verificar se session existe antes de acessar user
+            if (!session?.user?.id) {
+                return;
+            }
+
             const {data, error} = await supabase
                 .from('rentals')
                 .select(`
                     *,
                     item:items(*),
                     owner:profiles!rentals_owner_id_fkey(full_name, address, city, postal_code),
-                    renter:profiles!rentals_renter_id_fkey(full_name, phone)
+                    renter:profiles!rentals_renter_id_fkey(full_name)
                 `)
                 .eq('owner_id', session.user.id) // Locador (dono do item)
-                .eq('status', 'approved')
+                .in('status', ['approved', 'active']) // Busca aprovadas E em locação
                 .gte('start_date', new Date().toISOString().split('T')[0])
                 .order('start_date', {ascending: true});
 
@@ -70,12 +99,10 @@ const OwnerRentalConfirmationModal = ({session}) => {
             }
 
             if (data && data.length > 0) {
-                console.log('✅ Mostrando modal com', data.length, 'locação(ões)');
                 setActiveRentals(data);
                 setVisible(true);
                 updateTimeRemaining(data[0]);
             } else {
-                console.log('⚠️ Nenhuma locação ativa encontrada para owner');
                 setVisible(false);
             }
         } catch (error) {
@@ -87,25 +114,50 @@ const OwnerRentalConfirmationModal = ({session}) => {
         if (!rental) return;
 
         const now = new Date();
-        const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
-        const diff = pickupDateTime - now;
 
-        if (diff <= 0) {
-            setTimeRemaining('Hora de entregar el artículo al locatario');
-            return;
-        }
+        if (rental.status === 'approved') {
+            // Tempo até a retirada
+            const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
+            const diff = pickupDateTime - now;
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            if (diff <= 0) {
+                setTimeRemaining('Hora de entregar el artículo al locatario');
+                return;
+            }
 
-        if (days > 0) {
-            setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
-        } else if (hours > 0) {
-            setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
-        } else {
-            setTimeRemaining(`${minutes}m ${seconds}s`);
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            if (days > 0) {
+                setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+            } else if (hours > 0) {
+                setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+            } else {
+                setTimeRemaining(`${minutes}m ${seconds}s`);
+            }
+        } else if (rental.status === 'active') {
+            // Tempo até a devolução
+            const returnDateTime = new Date(`${rental.end_date}T${rental.return_time || '18:00'}:00`);
+            const diff = returnDateTime - now;
+
+            if (diff <= 0) {
+                setTimeRemaining('Hora de recibir la devolución');
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (days > 0) {
+                setTimeRemaining(`${days} días ${hours}h`);
+            } else if (hours > 0) {
+                setTimeRemaining(`${hours}h ${minutes}m`);
+            } else {
+                setTimeRemaining(`${minutes}m`);
+            }
         }
     };
 
@@ -164,24 +216,14 @@ const OwnerRentalConfirmationModal = ({session}) => {
 
                             Alert.alert(
                                 'Éxito',
-                                'Entrega confirmada. El dinero será liberado después de la devolución del artículo.',
+                                'Entrega confirmada. Guarda tu código de devolución para cuando el locatario devuelva el artículo.',
                                 [
                                     {
                                         text: 'OK',
                                         onPress: () => {
-                                            // Remover item confirmado da lista
-                                            const updatedRentals = activeRentals.filter((_, index) => index !== currentIndex);
-                                            setActiveRentals(updatedRentals);
                                             setCodeInput('');
-
-                                            if (updatedRentals.length === 0) {
-                                                setVisible(false);
-                                            } else {
-                                                // Ajustar índice se necessário
-                                                if (currentIndex >= updatedRentals.length) {
-                                                    setCurrentIndex(updatedRentals.length - 1);
-                                                }
-                                            }
+                                            // Refetch para atualizar status (approved → active)
+                                            fetchActiveRentals();
                                         }
                                     }
                                 ]
@@ -207,6 +249,31 @@ const OwnerRentalConfirmationModal = ({session}) => {
         });
     };
 
+    const handleOpenChat = () => {
+        const activeRental = activeRentals[currentIndex];
+
+        // Fechar o modal e navegar para o chat
+        setVisible(false);
+
+        if (navigation) {
+            // Criar objeto otherUser com estrutura correta
+            const otherUser = {
+                id: activeRental.renter_id,
+                full_name: activeRental.renter?.full_name || 'Usuario',
+            };
+
+            // Criar conversation_id único incluindo ITEM_ID
+            const conversationId = [session.user.id, activeRental.renter_id].sort().join('_') + '_' + activeRental.item_id;
+
+            navigation.navigate('ChatConversation', {
+                itemId: activeRental.item_id,
+                item: activeRental.item,
+                otherUser: otherUser,
+                conversationId: conversationId,
+            });
+        }
+    };
+
     if (activeRentals.length === 0 || !visible) {
         return null;
     }
@@ -228,7 +295,9 @@ const OwnerRentalConfirmationModal = ({session}) => {
                     <View style={styles.modalContent}>
                         {/* Header */}
                         <View style={styles.header}>
-                            <Text style={styles.headerTitle}>📦 Entrega Pendiente</Text>
+                            <Text style={styles.headerTitle}>
+                                {activeRental.status === 'approved' ? '📦 Entrega Pendiente' : '⏳ Aguardando Devolución'}
+                            </Text>
                             <TouchableOpacity
                                 style={styles.closeButton}
                                 onPress={() => setVisible(false)}
@@ -245,7 +314,6 @@ const OwnerRentalConfirmationModal = ({session}) => {
                                     onPress={() => {
                                         if (currentIndex > 0) {
                                             const newIndex = currentIndex - 1;
-                                            console.log('⬅️ Navegando para locação', newIndex + 1);
                                             setCurrentIndex(newIndex);
                                             setCodeInput('');
                                         }
@@ -277,7 +345,6 @@ const OwnerRentalConfirmationModal = ({session}) => {
                                     onPress={() => {
                                         if (currentIndex < activeRentals.length - 1) {
                                             const newIndex = currentIndex + 1;
-                                            console.log('➡️ Navegando para locação', newIndex + 1);
                                             setCurrentIndex(newIndex);
                                             setCodeInput('');
                                         }
@@ -292,7 +359,9 @@ const OwnerRentalConfirmationModal = ({session}) => {
 
                         {/* Cronômetro */}
                         <View style={styles.timerContainer}>
-                            <Text style={styles.timerLabel}>Tiempo para entrega:</Text>
+                            <Text style={styles.timerLabel}>
+                                {activeRental.status === 'approved' ? 'Tiempo para entrega:' : 'Tiempo para devolución:'}
+                            </Text>
                             <Text
                                 style={styles.timerValue}
                                 numberOfLines={2}
@@ -327,76 +396,118 @@ const OwnerRentalConfirmationModal = ({session}) => {
                                 </Text>
                             </View>
 
-                            {activeRental.renter?.phone && (
-                                <View style={styles.detailRow}>
-                                    <Text style={styles.detailLabel}>📱 Teléfono:</Text>
-                                    <Text style={styles.detailValue}>
-                                        {activeRental.renter.phone}
-                                    </Text>
-                                </View>
-                            )}
-
                             <View style={styles.detailRow}>
                                 <Text style={styles.detailLabel}>💰 Total a Recibir:</Text>
                                 <Text style={[styles.detailValue, styles.priceText]}>
-                                    €{parseFloat(activeRental.owner_amount || activeRental.subtotal || 0).toFixed(2)}
+                                    €{calculateOwnerAmount(activeRental).toFixed(2)}
                                 </Text>
                             </View>
 
-                            {/* Instrucciones */}
-                            <View style={styles.instructionsContainer}>
-                                <Text style={styles.instructionsTitle}>📋 Instrucciones:</Text>
-                                <Text style={styles.instructionsText}>
-                                    1. Entrega el artículo al locatario{'\n'}
-                                    2. Verifica que ambos estén de acuerdo con el estado{'\n'}
-                                    3. Solicita el código de recogida al locatario{'\n'}
-                                    4. Ingresa el código abajo para confirmar la entrega
-                                </Text>
-                            </View>
+                            {/* SE STATUS É 'APPROVED': Mostra instruções e campo de código */}
+                            {activeRental.status === 'approved' && (
+                                <>
+                                    {/* Instrucciones */}
+                                    <View style={styles.instructionsContainer}>
+                                        <Text style={styles.instructionsTitle}>📋 Instrucciones:</Text>
+                                        <Text style={styles.instructionsText}>
+                                            1. Entrega el artículo al locatario{'\n'}
+                                            2. Verifica que ambos estén de acuerdo con el estado{'\n'}
+                                            3. Solicita el código de recogida al locatario{'\n'}
+                                            4. Ingresa el código abajo para confirmar la entrega
+                                        </Text>
+                                    </View>
 
-                            {/* Campo de Código */}
-                            <View style={styles.codeInputContainer}>
-                                <Text style={styles.codeInputLabel}>Código del Locatario:</Text>
-                                <TextInput
-                                    style={styles.codeInput}
-                                    value={codeInput}
-                                    onChangeText={setCodeInput}
-                                    placeholder="000000"
-                                    keyboardType="number-pad"
-                                    maxLength={6}
-                                    placeholderTextColor="#999"
-                                />
-                                <Text style={styles.codeInputHint}>
-                                    El locatario debe mostrarte su código de 6 dígitos después de confirmar que el
-                                    artículo está de acuerdo con lo anunciado.
-                                </Text>
-                            </View>
+                                    {/* Campo de Código */}
+                                    <View style={styles.codeInputContainer}>
+                                        <Text style={styles.codeInputLabel}>Código del Locatario:</Text>
+                                        <TextInput
+                                            style={styles.codeInput}
+                                            value={codeInput}
+                                            onChangeText={setCodeInput}
+                                            placeholder="000000"
+                                            keyboardType="number-pad"
+                                            maxLength={6}
+                                            placeholderTextColor="#999"
+                                        />
+                                        <Text style={styles.codeInputHint}>
+                                            El locatario debe mostrarte su código de 6 dígitos después de confirmar que el
+                                            artículo está de acuerdo con lo anunciado.
+                                        </Text>
+                                    </View>
 
-                            {/* Código do Owner (Referência) */}
-                            <View style={styles.ownerCodeContainer}>
-                                <Text style={styles.ownerCodeLabel}>Tu Código de Devolución:</Text>
-                                <View style={styles.ownerCodeBadge}>
-                                    <Text style={styles.ownerCodeValue}>
-                                        {activeRental.owner_code || '------'}
-                                    </Text>
-                                </View>
-                                <Text style={styles.ownerCodeHint}>
-                                    Guarda este código. El locatario deberá ingresarlo al devolver el artículo.
-                                </Text>
-                            </View>
+                                    {/* Código do Owner (Referência) */}
+                                    <View style={styles.ownerCodeContainer}>
+                                        <Text style={styles.ownerCodeLabel}>Tu Código de Devolución:</Text>
+                                        <View style={styles.ownerCodeBadge}>
+                                            <Text style={styles.ownerCodeValue}>
+                                                {activeRental.owner_code || '------'}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.ownerCodeHint}>
+                                            Guarda este código. El locatario deberá ingresarlo al devolver el artículo.
+                                        </Text>
+                                    </View>
+                                </>
+                            )}
+
+                            {/* SE STATUS É 'ACTIVE': Mostra apenas owner_code destacado */}
+                            {activeRental.status === 'active' && (
+                                <>
+                                    {/* Mensagem de aguardo */}
+                                    <View style={styles.activeWarning}>
+                                        <Text style={styles.activeWarningIcon}>✅</Text>
+                                        <View style={{flex: 1}}>
+                                            <Text style={styles.activeWarningTitle}>Artículo Entregado</Text>
+                                            <Text style={styles.activeWarningText}>
+                                                El locatario tiene el artículo. Aguarda la devolución en la fecha acordada.
+                                            </Text>
+                                        </View>
+                                    </View>
+
+                                    {/* Código do Owner DESTACADO */}
+                                    <View style={styles.ownerCodeContainerActive}>
+                                        <Text style={styles.ownerCodeLabelActive}>🔑 Tu Código de Devolución:</Text>
+                                        <View style={styles.ownerCodeBadgeActive}>
+                                            <Text style={styles.ownerCodeValueActive}>
+                                                {activeRental.owner_code || '------'}
+                                            </Text>
+                                        </View>
+                                        <Text style={styles.ownerCodeHintActive}>
+                                            📌 Cuando el locatario devuelva el artículo:{'\n'}
+                                            1. Verifica que esté en buenas condiciones{'\n'}
+                                            2. Muestra este código al locatario{'\n'}
+                                            3. El locatario ingresará el código para confirmar la devolución{'\n'}
+                                            4. El pago será liberado automáticamente
+                                        </Text>
+                                    </View>
+                                </>
+                            )}
                         </View>
 
                         {/* Botões */}
                         <View style={styles.buttonsContainer}>
+                            {/* Botão de Chat - Sempre visível */}
                             <TouchableOpacity
-                                style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
-                                onPress={handleConfirmPickup}
-                                disabled={confirming}
+                                style={styles.chatButton}
+                                onPress={handleOpenChat}
                             >
-                                <Text style={styles.confirmButtonText}>
-                                    {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
+                                <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
+                                <Text style={styles.chatButtonText}>
+                                    Chatear con {activeRental.renter?.full_name || 'Locatario'}
                                 </Text>
                             </TouchableOpacity>
+
+                            {activeRental.status === 'approved' && (
+                                <TouchableOpacity
+                                    style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
+                                    onPress={handleConfirmPickup}
+                                    disabled={confirming}
+                                >
+                                    <Text style={styles.confirmButtonText}>
+                                        {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
 
                             <TouchableOpacity
                                 style={styles.closeModalButton}
@@ -609,9 +720,93 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontStyle: 'italic',
     },
+    activeWarning: {
+        marginTop: 20,
+        padding: 15,
+        backgroundColor: '#D1FAE5',
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#10B981',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 12,
+    },
+    activeWarningIcon: {
+        fontSize: 24,
+    },
+    activeWarningTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#065F46',
+        marginBottom: 5,
+    },
+    activeWarningText: {
+        fontSize: 14,
+        color: '#047857',
+        lineHeight: 20,
+    },
+    ownerCodeContainerActive: {
+        marginTop: 20,
+        padding: 20,
+        backgroundColor: '#FEF3C7',
+        borderRadius: 12,
+        borderWidth: 3,
+        borderColor: '#F59E0B',
+        shadowColor: '#F59E0B',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    ownerCodeLabelActive: {
+        fontSize: 16,
+        color: '#92400E',
+        fontWeight: 'bold',
+        marginBottom: 12,
+        textAlign: 'center',
+    },
+    ownerCodeBadgeActive: {
+        backgroundColor: '#fff',
+        padding: 20,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: '#F59E0B',
+    },
+    ownerCodeValueActive: {
+        fontSize: 36,
+        fontWeight: 'bold',
+        color: '#F59E0B',
+        letterSpacing: 6,
+        fontVariant: ['tabular-nums'],
+    },
+    ownerCodeHintActive: {
+        fontSize: 13,
+        color: '#92400E',
+        lineHeight: 20,
+    },
     buttonsContainer: {
         padding: 20,
         gap: 12,
+    },
+    chatButton: {
+        backgroundColor: '#2c4455',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#2c4455',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    chatButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     confirmButton: {
         backgroundColor: '#10B981',

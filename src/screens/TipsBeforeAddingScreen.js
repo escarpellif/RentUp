@@ -17,9 +17,15 @@ import { tipsScreenStyles as styles } from '../styles/tipsScreenStyles';
 
 // Utils
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
+import { requiereAutenticacion } from '../utils/guestCheck';
 
-export default function TipsBeforeAddingScreen({ navigation, session }) {
+export default function TipsBeforeAddingScreen({ navigation, session, isGuest }) {
     const handleContinue = async () => {
+        // Check if user is guest
+        if (!requiereAutenticacion(isGuest, 'Por favor, inicia sesión para anunciar un artículo')) {
+            return;
+        }
+
         // Verificar se o usuário tem verificação aprovada
         const { isVerified, status } = await checkUserVerification(session.user.id);
 

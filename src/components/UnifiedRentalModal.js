@@ -11,9 +11,10 @@ import {
     Linking,
     Platform
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
 
-const UnifiedRentalModal = ({session}) => {
+const UnifiedRentalModal = ({session, navigation}) => {
     const [allRentals, setAllRentals] = useState([]);
     const [visible, setVisible] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -42,8 +43,39 @@ const UnifiedRentalModal = ({session}) => {
         }
     }, [allRentals, visible, currentIndex]);
 
+    // Função para calcular o valor que o proprietário receberá
+    const calculateOwnerAmount = (rental) => {
+        if (rental.owner_amount) {
+            return parseFloat(rental.owner_amount);
+        }
+
+        // Calcular baseado no preço anunciado (sem taxa)
+        const basePrice = parseFloat(rental.item?.price_per_day || 0);
+        const days = rental.total_days || 1;
+        let ownerAmount = basePrice * days;
+
+        // Aplicar desconto semanal se houver
+        if (days >= 7 && days < 30 && rental.item?.discount_week) {
+            const discount = parseFloat(rental.item.discount_week) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        // Aplicar desconto mensal se houver
+        if (days >= 30 && rental.item?.discount_month) {
+            const discount = parseFloat(rental.item.discount_month) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        return ownerAmount;
+    };
+
     const fetchAllRentals = async () => {
         try {
+            // Verificar se session existe antes de acessar user
+            if (!session?.user?.id) {
+                return;
+            }
+
             // Buscar locações onde usuário é LOCATÁRIO (renter)
             // Busca 'approved' (aguardando retirada) E 'active' (em locação, aguardando devolução)
             const {data: renterRentals, error: renterError} = await supabase
@@ -59,7 +91,7 @@ const UnifiedRentalModal = ({session}) => {
                 .gte('start_date', new Date().toISOString().split('T')[0]);
 
             // Buscar locações onde usuário é LOCADOR (owner)
-            // Apenas 'approved' (aguardando entrega) - active não aparece para owner
+            // 'approved' (aguardando entrega) E 'active' (em locação, aguardando devolução)
             const {data: ownerRentals, error: ownerError} = await supabase
                 .from('rentals')
                 .select(`
@@ -69,7 +101,7 @@ const UnifiedRentalModal = ({session}) => {
                     renter:profiles!rentals_renter_id_fkey(full_name)
                 `)
                 .eq('owner_id', session.user.id)
-                .eq('status', 'approved')
+                .in('status', ['approved', 'active']) // ✅ CORRIGIDO: incluir 'active'
                 .gte('start_date', new Date().toISOString().split('T')[0]);
 
             if (renterError && renterError.code !== 'PGRST116') {
@@ -89,16 +121,11 @@ const UnifiedRentalModal = ({session}) => {
             // Ordenar por data
             combinedRentals.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
-            console.log('🔵 TOTAL de locações encontradas:', combinedRentals.length);
-            console.log('  - Como locatário (renter):', renterRentals?.length || 0);
-            console.log('  - Como locador (owner):', ownerRentals?.length || 0);
-
             if (combinedRentals.length > 0) {
                 setAllRentals(combinedRentals);
                 setVisible(true);
                 updateTimeRemaining(combinedRentals[0]);
             } else {
-                console.log('⚠️ Nenhuma locação ativa encontrada');
                 setVisible(false);
             }
         } catch (error) {
@@ -191,16 +218,10 @@ const UnifiedRentalModal = ({session}) => {
                                     {
                                         text: 'OK',
                                         onPress: () => {
-                                            // Remove da lista (owner não vê mais 'active')
-                                            const updatedRentals = allRentals.filter((_, index) => index !== currentIndex);
-                                            setAllRentals(updatedRentals);
+                                            // ✅ Re-buscar rentals ao invés de remover
+                                            // Owner agora verá status 'active' com owner_code destacado
                                             setCodeInput('');
-
-                                            if (updatedRentals.length === 0) {
-                                                setVisible(false);
-                                            } else if (currentIndex >= updatedRentals.length) {
-                                                setCurrentIndex(updatedRentals.length - 1);
-                                            }
+                                            fetchAllRentals();
                                         }
                                     }
                                 ]);
@@ -246,15 +267,22 @@ const UnifiedRentalModal = ({session}) => {
                             onPress: async () => {
                                 setConfirming(true);
                                 try {
-                                    const {error} = await supabase
+
+                                    const {data, error} = await supabase
                                         .from('rentals')
                                         .update({
                                             status: 'completed',
                                             return_confirmed_at: new Date().toISOString()
                                         })
-                                        .eq('id', currentRental.id);
+                                        .eq('id', currentRental.id)
+                                        .select();
 
-                                    if (error) throw error;
+                                    if (error) {
+                                        console.error('❌ Erro ao atualizar status:', error);
+                                        throw error;
+                                    }
+
+                                    console.log('✅ Status atualizado com sucesso:', data);
 
                                     // Notificar owner
                                     await supabase
@@ -267,6 +295,7 @@ const UnifiedRentalModal = ({session}) => {
                                             related_id: currentRental.id,
                                             read: false,
                                         });
+
 
                                     Alert.alert('¡Éxito!', 'Devolución confirmada. Gracias por usar RentUp!', [
                                         {
@@ -339,6 +368,35 @@ const UnifiedRentalModal = ({session}) => {
         });
     };
 
+    const handleOpenChat = () => {
+        const currentRental = allRentals[currentIndex];
+        const isOwner = currentRental.userRole === 'owner';
+
+        // Fechar o modal e navegar para o chat
+        setVisible(false);
+
+        if (navigation) {
+            // Criar objeto otherUser com estrutura correta
+            const otherUserId = isOwner ? currentRental.renter_id : currentRental.owner_id;
+            const otherUser = {
+                id: otherUserId,
+                full_name: isOwner
+                    ? (currentRental.renter?.full_name || 'Locatario')
+                    : (currentRental.owner?.full_name || 'Propietario'),
+            };
+
+            // Criar conversation_id único incluindo ITEM_ID
+            const conversationId = [session.user.id, otherUserId].sort().join('_') + '_' + currentRental.item_id;
+
+            navigation.navigate('ChatConversation', {
+                itemId: currentRental.item_id,
+                item: currentRental.item,
+                otherUser: otherUser,
+                conversationId: conversationId,
+            });
+        }
+    };
+
     if (allRentals.length === 0 || !visible) {
         return null;
     }
@@ -380,7 +438,6 @@ const UnifiedRentalModal = ({session}) => {
                                     onPress={() => {
                                         if (currentIndex > 0) {
                                             const newIndex = currentIndex - 1;
-                                            console.log('⬅️ Navegando para locação', newIndex + 1);
                                             setCurrentIndex(newIndex);
                                             setCodeInput('');
                                         }
@@ -479,39 +536,60 @@ const UnifiedRentalModal = ({session}) => {
                                     <View style={styles.detailRow}>
                                         <Text style={styles.detailLabel}>💰 Total a Recibir:</Text>
                                         <Text style={[styles.detailValue, styles.priceText]}>
-                                            €{parseFloat(currentRental.owner_amount || currentRental.subtotal || 0).toFixed(2)}
+                                            €{calculateOwnerAmount(currentRental).toFixed(2)}
                                         </Text>
                                     </View>
 
-                                    {/* Campo de Código para Owner */}
-                                    <View style={styles.codeInputContainer}>
-                                        <Text style={styles.codeInputLabel}>Código del Locatario:</Text>
-                                        <TextInput
-                                            style={styles.codeInput}
-                                            value={codeInput}
-                                            onChangeText={setCodeInput}
-                                            placeholder="000000"
-                                            keyboardType="number-pad"
-                                            maxLength={6}
-                                            placeholderTextColor="#999"
-                                        />
-                                        <Text style={styles.codeInputHint}>
-                                            El locatario debe mostrarte su código de 6 dígitos
-                                        </Text>
-                                    </View>
+                                    {/* Campo de Código para Owner - APENAS se status = 'approved' */}
+                                    {currentRental.status === 'approved' && (
+                                        <View style={styles.codeInputContainer}>
+                                            <Text style={styles.codeInputLabel}>Código del Locatario:</Text>
+                                            <TextInput
+                                                style={styles.codeInput}
+                                                value={codeInput}
+                                                onChangeText={setCodeInput}
+                                                placeholder="000000"
+                                                keyboardType="number-pad"
+                                                maxLength={6}
+                                                placeholderTextColor="#999"
+                                            />
+                                            <Text style={styles.codeInputHint}>
+                                                El locatario debe mostrarte su código de 6 dígitos después de confirmar que
+                                                el artículo está de acuerdo con lo anunciado.
+                                            </Text>
+                                        </View>
+                                    )}
 
-                                    {/* Owner Code */}
-                                    <View style={styles.ownerCodeContainer}>
-                                        <Text style={styles.ownerCodeLabel}>Tu Código de Devolución:</Text>
-                                        <View style={styles.ownerCodeBadge}>
-                                            <Text style={styles.ownerCodeValue}>
+                                    {/* Owner Code - Sempre visível, mas destaque diferente se active */}
+                                    <View style={[
+                                        styles.ownerCodeContainer,
+                                        currentRental.status === 'active' && styles.ownerCodeContainerHighlight
+                                    ]}>
+                                        <Text style={[
+                                            styles.ownerCodeLabel,
+                                            currentRental.status === 'active' && styles.ownerCodeLabelHighlight
+                                        ]}>
+                                            {currentRental.status === 'active'
+                                                ? '⏳ Aguardando Devolución - Tu Código:'
+                                                : 'Tu Código de Devolución:'
+                                            }
+                                        </Text>
+                                        <View style={[
+                                            styles.ownerCodeBadge,
+                                            currentRental.status === 'active' && styles.ownerCodeBadgeHighlight
+                                        ]}>
+                                            <Text style={[
+                                                styles.ownerCodeValue,
+                                                currentRental.status === 'active' && styles.ownerCodeValueHighlight
+                                            ]}>
                                                 {currentRental.owner_code || '------'}
                                             </Text>
                                         </View>
                                         <Text style={styles.ownerCodeHint}>
-                                            Debes proporcionar este código al locatario después de garantizar que el artículo ha sido
-                                            devuelto en las mismas condiciones en que fue retirado.
-                                            (Según el tipo de artículo, se deben considerar los desgastes naturales de uso.)
+                                            {currentRental.status === 'active'
+                                                ? '✅ Artículo entregado. Muestra este código al locatario cuando devuelva el artículo en buenas condiciones.'
+                                                : 'Debes proporcionar este código al locatario después de garantizar que el artículo ha sido devuelto en las mismas condiciones en que fue retirado.'
+                                            }
                                         </Text>
                                     </View>
                                 </>
@@ -541,7 +619,8 @@ const UnifiedRentalModal = ({session}) => {
                                                 </Text>
                                             </View>
                                             <Text style={styles.renterCodeHint}>
-                                                Entrega este código al propietario del artículo después de confirmar que el
+                                                Entrega este código al propietario del artículo después de confirmar que
+                                                el
                                                 artículo está de acuerdo con lo anunciado.
                                             </Text>
                                         </View>
@@ -553,12 +632,15 @@ const UnifiedRentalModal = ({session}) => {
                                             <View style={styles.returnWarning}>
                                                 <Text style={styles.returnWarningIcon}>⏰</Text>
                                                 <Text style={styles.returnWarningText}>
-                                                    Artículo en locación. Debes devolverlo hasta el {formatDate(currentRental.end_date)} a las {currentRental.return_time || '18:00'}.
+                                                    Artículo en locación. Debes devolverlo hasta
+                                                    el {formatDate(currentRental.end_date)} a
+                                                    las {currentRental.return_time || '18:00'}.
                                                 </Text>
                                             </View>
 
                                             <View style={styles.codeInputContainer}>
-                                                <Text style={styles.codeInputLabel}>Código de Devolución del Propietario:</Text>
+                                                <Text style={styles.codeInputLabel}>Código de Devolución del
+                                                    Propietario:</Text>
                                                 <TextInput
                                                     style={styles.codeInput}
                                                     value={codeInput}
@@ -569,7 +651,8 @@ const UnifiedRentalModal = ({session}) => {
                                                     placeholderTextColor="#999"
                                                 />
                                                 <Text style={styles.codeInputHint}>
-                                                    El propietario debe mostrarte su código de 6 dígitos después de verificar que el artículo está en buenas condiciones
+                                                    El propietario debe mostrarte su código de 6 dígitos después de
+                                                    verificar que el artículo está en buenas condiciones
                                                 </Text>
                                             </View>
                                         </>
@@ -581,15 +664,29 @@ const UnifiedRentalModal = ({session}) => {
                         {/* Botões */}
                         <View style={styles.buttonsContainer}>
                             {isOwner ? (
-                                <TouchableOpacity
-                                    style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
-                                    onPress={handleConfirmAction}
-                                    disabled={confirming}
-                                >
-                                    <Text style={styles.confirmButtonText}>
-                                        {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
-                                    </Text>
-                                </TouchableOpacity>
+                                <>
+                                    {currentRental.status === 'approved' ? (
+                                        <TouchableOpacity
+                                            style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
+                                            onPress={handleConfirmAction}
+                                            disabled={confirming}
+                                        >
+                                            <Text style={styles.confirmButtonText}>
+                                                {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ) : (
+                                        <View style={styles.waitingContainer}>
+                                            <Text style={styles.waitingIcon}>⏳</Text>
+                                            <Text style={styles.waitingText}>
+                                                Aguardando devolución del artículo
+                                            </Text>
+                                            <Text style={styles.waitingSubtext}>
+                                                El locatario debe devolver el artículo y confirmar con tu código
+                                            </Text>
+                                        </View>
+                                    )}
+                                </>
                             ) : (
                                 <>
                                     {currentRental.status === 'approved' ? (
@@ -610,9 +707,23 @@ const UnifiedRentalModal = ({session}) => {
                                                 {confirming ? 'Confirmando...' : '✓ Confirmar Devolución'}
                                             </Text>
                                         </TouchableOpacity>
-                                    )}
-                                </>
+                                )}
+                            </>
                             )}
+
+                            {/* Botão de Chat - Sempre visível */}
+                            <TouchableOpacity
+                                style={styles.chatButton}
+                                onPress={handleOpenChat}
+                            >
+                                <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
+                                <Text style={styles.chatButtonText}>
+                                    Chatear con {isOwner
+                                        ? (currentRental.renter?.full_name || 'Locatario')
+                                        : (currentRental.owner?.full_name || 'Propietario')
+                                    }
+                                </Text>
+                            </TouchableOpacity>
 
                             <TouchableOpacity
                                 style={styles.closeModalButton}
@@ -892,6 +1003,30 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontStyle: 'italic',
     },
+    // Estilos de destaque quando status = 'active'
+    ownerCodeContainerHighlight: {
+        backgroundColor: '#DBEAFE',
+        borderColor: '#2563EB',
+        borderWidth: 3,
+        borderStyle: 'solid',
+    },
+    ownerCodeLabelHighlight: {
+        color: '#1E40AF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    ownerCodeBadgeHighlight: {
+        backgroundColor: '#2563EB',
+        shadowColor: '#2563EB',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 8,
+    },
+    ownerCodeValueHighlight: {
+        color: '#fff',
+        fontSize: 36,
+    },
     renterCodeContainer: {
         marginTop: 20,
         padding: 15,
@@ -990,6 +1125,51 @@ const styles = StyleSheet.create({
     },
     mapsButtonText: {
         fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    waitingContainer: {
+        backgroundColor: '#F3F4F6',
+        padding: 20,
+        borderRadius: 12,
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#D1D5DB',
+        borderStyle: 'dashed',
+    },
+    waitingIcon: {
+        fontSize: 48,
+        marginBottom: 12,
+    },
+    waitingText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#374151',
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    waitingSubtext: {
+        fontSize: 13,
+        color: '#6B7280',
+        textAlign: 'center',
+        fontStyle: 'italic',
+    },
+    chatButton: {
+        backgroundColor: '#2c4455',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#2c4455',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+        marginBottom: 12,
+    },
+    chatButtonText: {
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#fff',
     },

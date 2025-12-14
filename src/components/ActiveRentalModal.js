@@ -11,11 +11,12 @@ import {
     ScrollView,
     Dimensions
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const ActiveRentalModal = ({session}) => {
+const ActiveRentalModal = ({session, navigation}) => {
     const [activeRentals, setActiveRentals] = useState([]);
     const [visible, setVisible] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -47,6 +48,11 @@ const ActiveRentalModal = ({session}) => {
 
     const fetchActiveRentals = async () => {
         try {
+            // Verificar se session existe antes de acessar user
+            if (!session?.user?.id) {
+                return;
+            }
+
             const {data, error} = await supabase
                 .from('rentals')
                 .select(`
@@ -68,12 +74,10 @@ const ActiveRentalModal = ({session}) => {
             }
 
             if (data && data.length > 0) {
-                console.log('✅ Mostrando modal com', data.length, 'locação(ões)');
                 setActiveRentals(data);
                 setVisible(true);
                 updateTimeRemaining(data[0]);
             } else {
-                console.log('⚠️ Nenhuma locação ativa encontrada para renter');
                 setVisible(false);
             }
         } catch (error) {
@@ -149,6 +153,31 @@ const ActiveRentalModal = ({session}) => {
             month: 'long',
             year: 'numeric'
         });
+    };
+
+    const handleOpenChat = () => {
+        const activeRental = activeRentals[currentIndex];
+
+        // Fechar o modal e navegar para o chat
+        setVisible(false);
+
+        if (navigation) {
+            // Criar objeto otherUser com estrutura correta
+            const otherUser = {
+                id: activeRental.owner_id,
+                full_name: activeRental.owner?.full_name || 'Propietario',
+            };
+
+            // Criar conversation_id único incluindo ITEM_ID
+            const conversationId = [session.user.id, activeRental.owner_id].sort().join('_') + '_' + activeRental.item_id;
+
+            navigation.navigate('ChatConversation', {
+                itemId: activeRental.item_id,
+                item: activeRental.item,
+                otherUser: otherUser,
+                conversationId: conversationId,
+            });
+        }
     };
 
     if (activeRentals.length === 0 || !visible) {
@@ -289,6 +318,17 @@ const ActiveRentalModal = ({session}) => {
 
                     {/* Botões */}
                     <View style={styles.buttonsContainer}>
+                        {/* Botão de Chat */}
+                        <TouchableOpacity
+                            style={styles.chatButton}
+                            onPress={handleOpenChat}
+                        >
+                            <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
+                            <Text style={styles.chatButtonText}>
+                                Chatear con {activeRental.owner?.full_name || 'Propietario'}
+                            </Text>
+                        </TouchableOpacity>
+
                         <TouchableOpacity
                             style={styles.mapsButton}
                             onPress={openMaps}
@@ -452,6 +492,24 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         padding: 20,
         gap: 12,
+    },
+    chatButton: {
+        backgroundColor: '#2c4455',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#2c4455',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    chatButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     mapsButton: {
         flexDirection: 'row',

@@ -5,11 +5,12 @@ import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
 import ApproximateLocationMap from '../components/ApproximateLocationMap';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
+import { requiereAutenticacion } from '../utils/guestCheck';
 
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-export default function ItemDetailsScreen({ route, navigation, session }) {
+export default function ItemDetailsScreen({ route, navigation, session, isGuest }) {
     const { item, autoOpenChat = false, openChatWith = null } = route.params || {};
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -31,7 +32,7 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
         setLoading(true);
         const { data, error } = await supabase
             .from('profiles')
-            .select('id, username, full_name, rating_avg_locador, rating_count_locador')
+            .select('id, username, full_name, rating_average, rating_count')
             .eq('id', item.owner_id)
             .single();
 
@@ -64,6 +65,11 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     }
 
     const handleContact = () => {
+        // Check if user is guest
+        if (!requiereAutenticacion(isGuest, 'Por favor, inicia sesión para chatear con el anunciante')) {
+            return;
+        }
+
         // Usar openChatWith se foi passado (caso de dono conversando com interessado)
         // Senão, usar ownerProfile (caso de interessado conversando com dono)
         const profileToChat = openChatWith || ownerProfile;
@@ -93,6 +99,11 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
     };
 
     const handleRequestRental = async () => {
+        // Check if user is guest
+        if (!requiereAutenticacion(isGuest, 'Por favor, inicia sesión para solicitar un alquiler')) {
+            return;
+        }
+
         // Verificar se o usuário tem verificação aprovada
         const { isVerified, status } = await checkUserVerification(session.user.id);
 
@@ -200,7 +211,7 @@ export default function ItemDetailsScreen({ route, navigation, session }) {
                                 <Text style={styles.ownerName}>
                                     {ownerProfile?.full_name || 'Usuario'}
                                 </Text>
-                                {renderStars(ownerProfile?.rating_avg_locador || 0, ownerProfile?.rating_count_locador || 0)}
+                                {renderStars(ownerProfile?.rating_average || 0, ownerProfile?.rating_count || 0)}
                             </View>
                         </View>
                     )}

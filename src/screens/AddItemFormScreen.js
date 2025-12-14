@@ -383,22 +383,33 @@ export default function AddItemFormScreen({ session, navigation }) {
 
     return (
         <SafeAreaView style={styles.safeContainer}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+            <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
-            {/* Header Moderno */}
+            {/* Header Verde - Mesmo layout do Marketplace */}
             <View style={styles.headerContainer}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.backArrow}>←</Text>
-                </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Anunciar Artículo</Text>
-                    <Text style={styles.headerSubtitle}>Comparte lo que no usas</Text>
+                <View style={styles.headerTopRow}>
+                    {/* Botão Voltar + Título */}
+                    <View style={styles.leftHeader}>
+                        <TouchableOpacity
+                            style={styles.backButton}
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.backArrow}>←</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Anunciar Artículo</Text>
+                    </View>
+
+                    {/* RentUp à Direita */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/images/app-icon.png')}
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.logoText}>RentUp</Text>
+                    </View>
                 </View>
-                <View style={styles.headerSpacer} />
             </View>
 
             <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -961,45 +972,54 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
     headerContainer: {
+        backgroundColor: '#10B981',
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: '#059669',
+    },
+    headerTopRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    leftHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
+        gap: 12,
     },
     backButton: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
     },
     backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
+        fontSize: 24,
+        color: '#fff',
+        fontWeight: 'bold',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#2c4455',
+        color: '#fff',
     },
-    headerSubtitle: {
-        fontSize: 12,
-        color: '#666',
-        marginTop: 2,
+    logoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
-    headerSpacer: {
-        width: 40,
+    logoImage: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+    },
+    logoText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     scrollContent: {
         flex: 1,

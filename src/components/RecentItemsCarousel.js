@@ -29,7 +29,15 @@ export default function RecentItemsCarousel({ navigation, session }) {
         try {
             const { data, error } = await supabase
                 .from('items')
-                .select('*')
+                .select(`
+                    *,
+                    owner:profiles!items_owner_id_fkey(
+                        id,
+                        full_name,
+                        rating_average,
+                        rating_count
+                    )
+                `)
                 .eq('is_available', true)
                 .order('created_at', { ascending: false })
                 .limit(10);
@@ -140,10 +148,10 @@ export default function RecentItemsCarousel({ navigation, session }) {
 
                                 {/* Rating */}
                                 <View style={styles.ratingContainer}>
-                                    {renderStars(item.average_rating || 0)}
+                                    {renderStars(Math.round(item.owner?.rating_average || 0))}
                                     <Text style={styles.ratingText}>
-                                        {item.average_rating > 0 
-                                            ? `(${item.average_rating.toFixed(1)})` 
+                                        {item.owner?.rating_average > 0
+                                            ? `${parseFloat(item.owner.rating_average).toFixed(1)} (${item.owner.rating_count || 0})`
                                             : '(Sin valoraciones)'}
                                     </Text>
                                 </View>

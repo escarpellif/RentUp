@@ -59,6 +59,32 @@ export default function MyRentalsScreen({ navigation, session }) {
         return Math.floor(100000 + Math.random() * 900000).toString();
     };
 
+    // Função para calcular o valor que o proprietário receberá
+    const calculateOwnerAmount = (rental) => {
+        if (rental.owner_amount) {
+            return parseFloat(rental.owner_amount);
+        }
+
+        // Calcular baseado no preço anunciado (sem taxa)
+        const basePrice = parseFloat(rental.item?.price_per_day || 0);
+        const days = rental.total_days || 1;
+        let ownerAmount = basePrice * days;
+
+        // Aplicar desconto semanal se houver
+        if (days >= 7 && days < 30 && rental.item?.discount_week) {
+            const discount = parseFloat(rental.item.discount_week) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        // Aplicar desconto mensal se houver
+        if (days >= 30 && rental.item?.discount_month) {
+            const discount = parseFloat(rental.item.discount_month) || 0;
+            ownerAmount = ownerAmount * (1 - discount / 100);
+        }
+
+        return ownerAmount;
+    };
+
     const handleApprove = async (rentalId) => {
         Alert.alert(
             'Aprobar Solicitud',
@@ -75,8 +101,22 @@ export default function MyRentalsScreen({ navigation, session }) {
                             const ownerCode = generateCode();
                             const renterCode = generateCode();
 
-                            // Calcular valor que o locador recebe (total - taxa de serviço)
-                            const ownerAmount = rental.subtotal;
+                            // Calcular valor que o locador recebe (preço base * dias com descontos aplicados)
+                            const basePrice = parseFloat(rental.item.price_per_day);
+                            const days = rental.total_days;
+                            let ownerAmount = basePrice * days;
+
+                            // Aplicar desconto semanal se houver
+                            if (days >= 7 && days < 30 && rental.item.discount_week) {
+                                const discount = parseFloat(rental.item.discount_week) || 0;
+                                ownerAmount = ownerAmount * (1 - discount / 100);
+                            }
+
+                            // Aplicar desconto mensal se houver
+                            if (days >= 30 && rental.item.discount_month) {
+                                const discount = parseFloat(rental.item.discount_month) || 0;
+                                ownerAmount = ownerAmount * (1 - discount / 100);
+                            }
 
                             const { error } = await supabase
                                 .from('rentals')
@@ -213,7 +253,7 @@ export default function MyRentalsScreen({ navigation, session }) {
                     <View style={styles.rentalInfo}>
                         <Text style={styles.rentalLabel}>💰 Recibirás:</Text>
                         <Text style={[styles.rentalValue, styles.ownerAmount]}>
-                            €{rental.owner_amount ? parseFloat(rental.owner_amount).toFixed(2) : parseFloat(rental.subtotal || 0).toFixed(2)}
+                            €{calculateOwnerAmount(rental).toFixed(2)}
                         </Text>
                     </View>
                 ) : (
