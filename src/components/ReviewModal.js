@@ -150,7 +150,7 @@ const ReviewModal = ({session}) => {
 
             Alert.alert(
                 '¡Gracias!',
-                'Tu evaluación ha sido enviada. Ayuda a mejorar la comunidad RentUp.',
+                'Tu evaluación ha sido enviada. Ayuda a mejorar la comunidad ALUKO.',
                 [
                     {
                         text: 'OK',

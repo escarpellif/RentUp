@@ -27,6 +27,7 @@ import UserNotificationsScreen from './src/screens/UserNotificationsScreen';
 import ChatsListScreen from './src/screens/ChatsListScreen';
 import ChatConversationScreen from './src/screens/ChatConversationScreen';
 import MyRentalsScreen from './src/screens/MyRentalsScreen';
+import StaticContentScreen from './src/screens/StaticContentScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,16 @@ export default function App() {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
+    const [minSplashTimeElapsed, setMinSplashTimeElapsed] = useState(false);
+
+    useEffect(() => {
+        // Timer mínimo de 3 segundos para o splash screen
+        const splashTimer = setTimeout(() => {
+            setMinSplashTimeElapsed(true);
+        }, 3000); // 3 segundos
+
+        return () => clearTimeout(splashTimer);
+    }, []);
 
     useEffect(() => {
         // Lógica para checar a sessão (mantida do seu código anterior)
@@ -62,7 +73,8 @@ export default function App() {
         setLoading(false);
     };
 
-    if (loading) {
+    // Mostrar splash enquanto está carregando OU enquanto não passou o tempo mínimo
+    if (loading || !minSplashTimeElapsed) {
         return <AnimatedSplashScreen />;
     }
 
@@ -137,6 +149,10 @@ export default function App() {
 
                     <Stack.Screen name="MyRentals">
                         {(props) => <MyRentalsScreen {...props} session={session} isGuest={isGuest} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="StaticContent">
+                        {(props) => <StaticContentScreen {...props} />}
                     </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>

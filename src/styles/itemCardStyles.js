@@ -2,7 +2,6 @@ import { StyleSheet } from 'react-native';
 
 export const itemCardStyles = StyleSheet.create({
     card: {
-        width: '50%',
         backgroundColor: '#fff',
         borderRadius: 16,
         marginBottom: 20,
@@ -15,9 +14,10 @@ export const itemCardStyles = StyleSheet.create({
     },
     categoryHeader: {
         backgroundColor: '#fff',
-        paddingHorizontal: 12,
+        paddingHorizontal: 0,
         paddingVertical: 8,
-        paddingBottom: 0,
+        paddingLeft: 14,
+        paddingBottom: 6,
         marginBottom: 0,
         borderBottomColor: '#eee',
     },
@@ -31,15 +31,15 @@ export const itemCardStyles = StyleSheet.create({
         position: 'relative',
         width: '100%',
         height: 200,
-        backgroundColor: '#fff',
-        padding: 12,
+        backgroundColor: '#f5f5f5',
+        padding: 0,
         justifyContent: 'center',
         alignItems: 'center',
     },
     cardImage: {
         width: '100%',
         height: '100%',
-        borderRadius: 8,
+        borderRadius: 0,
     },
     cardImagePlaceholder: {
         width: '100%',
@@ -80,6 +80,7 @@ export const itemCardStyles = StyleSheet.create({
     },
     cardContent: {
         padding: 14,
+        paddingTop: 12,
         paddingBottom: 12,
     },
     cardTitle: {
@@ -94,6 +95,12 @@ export const itemCardStyles = StyleSheet.create({
         color: '#666',
         marginBottom: 10,
         lineHeight: 18,
+    },
+    distanceText: {
+        fontSize: 12,
+        color: '#10B981',
+        fontWeight: '600',
+        marginBottom: 8,
     },
     footerContainer: {
         flexDirection: 'row',
@@ -148,5 +155,31 @@ export const itemCardStyles = StyleSheet.create({
         right: 0,
         height: 2,
         backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    },
+    deliveryInfoText: {
+        fontSize: 11,
+        color: '#10B981',
+        fontWeight: '600',
+        marginTop: 4,
+        marginBottom: 6,
+    },
+    deliveryBadge: {
+        position: 'absolute',
+        bottom: 12,
+        left: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+        backgroundColor: '#3B82F6',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    deliveryBadgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
 });

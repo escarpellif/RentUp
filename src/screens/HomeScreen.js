@@ -25,6 +25,7 @@ import {useTranslation} from 'react-i18next';
 import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
+import Footer from '../components/Footer';
 import UnifiedRentalModal from '../components/UnifiedRentalModal';
 import ReviewModal from '../components/ReviewModal';
 
@@ -177,7 +178,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
                         style={styles.headerIcon}
                         resizeMode="contain"
                     />
-                    <Text style={styles.headerTitle}>RentUp</Text>
+                    <Text style={styles.headerTitle}>ALUKO</Text>
                 </View>
 
                 <TouchableOpacity
@@ -396,6 +397,9 @@ export default function HomeScreen({navigation, session, isGuest}) {
 
                 {/* Testimonials Section */}
                 <TestimonialsSection/>
+
+                {/* Footer */}
+                <Footer navigation={navigation} />
             </ScrollView>
 
             {/* Menu Modal */}
@@ -482,7 +486,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
                                         }}
                                     >
                                         <Text style={styles.menuItemIcon}>🔑</Text>
-                                        <Text style={styles.menuItemText}>Mis Locaciones</Text>
+                                        <Text style={styles.menuItemText}>Mis Transacciones</Text>
                                         {pendingRentals > 0 && (
                                             <View style={styles.menuBadge}>
                                                 <Text style={styles.menuBadgeText}>{pendingRentals}</Text>

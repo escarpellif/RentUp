@@ -54,7 +54,7 @@ export const authScreenStyles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
     opacity: 0.95,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    textAlign: 'center',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import * as Location from 'expo-location';
 import { supabase } from '../../supabase';
 import { recentItemsCarouselStyles as styles } from '../styles/recentItemsCarouselStyles';
+import { calculateDistance } from '../utils/locationHelper';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -12,7 +14,31 @@ const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 export default function RecentItemsCarousel({ navigation, session }) {
     const [recentItems, setRecentItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [userLocation, setUserLocation] = useState(null);
     const userId = session?.user?.id;
+
+    // Obter localização do usuário
+    useEffect(() => {
+        getUserLocation();
+    }, []);
+
+    const getUserLocation = async () => {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
+
+            setUserLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        } catch (error) {
+            console.error('Error obteniendo localización:', error);
+        }
+    };
 
     useEffect(() => {
         fetchRecentItems();
@@ -73,6 +99,47 @@ export default function RecentItemsCarousel({ navigation, session }) {
             );
         }
         return stars;
+    };
+
+    // Calcular distância do item ao usuário
+    const getItemDistance = (item) => {
+        if (!userLocation || !item.coordinates?.latitude || !item.coordinates?.longitude) {
+            return null;
+        }
+
+        const distance = calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            item.coordinates.latitude,
+            item.coordinates.longitude
+        );
+
+        return distance;
+    };
+
+    // Formatar distância
+    const formatDistance = (dist) => {
+        if (!dist) return null;
+        if (dist < 1) {
+            return `${Math.round(dist * 1000)}m`;
+        }
+        return `${dist.toFixed(1)} km`;
+    };
+
+    // Extrair bairro do endereço completo
+    const getNeighborhood = (location) => {
+        if (!location) return '';
+
+        // Tentar extrair o bairro do formato "Rua X, Bairro, Cidade"
+        const parts = location.split(',').map(part => part.trim());
+
+        // Se tiver pelo menos 2 partes, a segunda geralmente é o bairro
+        if (parts.length >= 2) {
+            return parts[1]; // Retorna o bairro
+        }
+
+        // Se não conseguir separar, retorna a primeira parte
+        return parts[0] || location;
     };
 
     const handleItemPress = (item) => {
@@ -167,15 +234,32 @@ export default function RecentItemsCarousel({ navigation, session }) {
                                     </Text>
                                 </View>
 
-                                {/* Location */}
-                                {item.location && (
-                                    <View style={styles.locationContainer}>
-                                        <Text style={styles.locationIcon}>📍</Text>
-                                        <Text style={styles.locationText} numberOfLines={1}>
-                                            {item.location}
-                                        </Text>
-                                    </View>
-                                )}
+                                {/* Location - Distância e Bairro */}
+                                {(() => {
+                                    const distance = getItemDistance(item);
+                                    const neighborhood = getNeighborhood(item.location_full || item.location);
+
+                                    if (distance && neighborhood) {
+                                        return (
+                                            <View style={styles.locationContainer}>
+                                                <Text style={styles.locationIcon}>📍</Text>
+                                                <Text style={styles.locationText} numberOfLines={1}>
+                                                    {formatDistance(distance)} ({neighborhood})
+                                                </Text>
+                                            </View>
+                                        );
+                                    } else if (neighborhood) {
+                                        return (
+                                            <View style={styles.locationContainer}>
+                                                <Text style={styles.locationIcon}>📍</Text>
+                                                <Text style={styles.locationText} numberOfLines={1}>
+                                                    {neighborhood}
+                                                </Text>
+                                            </View>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </View>
 
                             {/* New Badge (if created in last 7 days) */}

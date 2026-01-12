@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RentalCalendar from '../components/RentalCalendar';
 import { supabase } from '../../supabase';
 
 export default function RequestRentalScreen({ route, navigation, session }) {
-    const { item, ownerProfile, bookingDates } = route.params || {};
+    const { item, ownerProfile, bookingDates, editingRental } = route.params || {};
 
-    // Se vierem bookingDates (do calendário), usamos como datas iniciais
-    const initialStart = bookingDates && bookingDates.startDate ? new Date(bookingDates.startDate) : new Date();
-    const initialEnd = bookingDates && bookingDates.endDate ? new Date(bookingDates.endDate) : new Date(Date.now() + 86400000);
+    // Se estiver editando, usar dados do rental existente
+    const initialStart = editingRental
+        ? new Date(editingRental.start_date)
+        : (bookingDates && bookingDates.startDate ? new Date(bookingDates.startDate) : new Date());
+    const initialEnd = editingRental
+        ? new Date(editingRental.end_date)
+        : (bookingDates && bookingDates.endDate ? new Date(bookingDates.endDate) : new Date(Date.now() + 86400000));
+    const initialPickupTime = editingRental?.pickup_time || '10:00';
+    const initialReturnTime = editingRental?.return_time || '18:00';
+    const initialDeliveryMethod = editingRental?.delivery_method || 'pickup';
 
     const [startDate, setStartDate] = useState(initialStart);
     const [endDate, setEndDate] = useState(initialEnd);
     const [showCalendar, setShowCalendar] = useState(false);
-    const [pickupTime, setPickupTime] = useState('10:00');
-    const [returnTime, setReturnTime] = useState('18:00');
+    const [pickupTime, setPickupTime] = useState(initialPickupTime);
+    const [returnTime, setReturnTime] = useState(initialReturnTime);
+    const [deliveryMethod, setDeliveryMethod] = useState(initialDeliveryMethod); // 'pickup' ou 'delivery'
 
     // Callback do calendário
     const handleDateRangeChange = (start, end) => {
@@ -114,8 +122,14 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
-        // Não adiciona taxa pois já está incluída
-        return subtotal.toFixed(2);
+        let total = subtotal;
+
+        // Adicionar taxa de entrega se delivery estiver selecionado e não for gratuito
+        if (deliveryMethod === 'delivery' && item?.delivery_fee && !item?.is_free_delivery) {
+            total += parseFloat(item.delivery_fee);
+        }
+
+        return total.toFixed(2);
     };
 
     const handleConfirmRental = async () => {
@@ -156,79 +170,166 @@ export default function RequestRentalScreen({ route, navigation, session }) {
             ? `\n\nDepósito de Garantía: €${parseFloat(item.deposit_value).toFixed(2)}\n(No saldrá de tu cuenta, solo será bloqueado)`
             : '';
 
+        // ✅ Mensagem adicional se estiver editando locação aprovada/ativa
+        const editWarning = editingRental && (editingRental.status === 'approved' || editingRental.status === 'active')
+            ? '\n\n⚠️ ATENCIÓN: La solicitud volverá a estado PENDIENTE y necesitará nueva aprobación del anunciante.'
+            : '';
+
         Alert.alert(
-            'Confirmar Solicitud',
-            `¿Deseas confirmar el alquiler?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\n💰 Valor Total: €${total}\n(Tasa de servicio ya incluida)${depositMessage}\n\nEl anunciante recibirá tu solicitud.`,
+            editingRental ? 'Confirmar Edición' : 'Confirmar Solicitud',
+            `¿Deseas ${editingRental ? 'guardar los cambios' : 'confirmar el alquiler'}?\n\nArtículo: ${item?.title || 'Sin título'}\nPeríodo: ${days} ${days === 1 ? 'día' : 'días'}\nRecogida: ${formatDate(startDate)} a las ${pickupTime}\nDevolución: ${formatDate(endDate)} a las ${returnTime}\n\n💰 Valor Total: €${total}\n(Tasa de servicio ya incluida)${depositMessage}${editWarning}\n\n${editingRental ? 'Los cambios serán notificados al anunciante.' : 'El anunciante recibirá tu solicitud.'}`,
             [
                 { text: 'Cancelar', style: 'cancel' },
                 {
-                    text: 'Confirmar',
+                    text: editingRental ? 'Guardar' : 'Confirmar',
                     onPress: async () => {
                         try {
-                            // Salvar solicitação de aluguel no banco de dados
-                            const { data: rentalData, error: rentalError } = await supabase
-                                .from('rentals')
-                                .insert({
-                                    item_id: item.id,
-                                    renter_id: session.user.id,
-                                    owner_id: item.owner_id,
+                            if (editingRental) {
+                                // MODO EDIÇÃO - Atualizar rental existente
+
+                                // ✅ Se estava aprovado ou ativo, voltar para PENDING e limpar códigos
+                                const wasApprovedOrActive = editingRental.status === 'approved' || editingRental.status === 'active';
+
+                                const updateData = {
                                     start_date: startDate.toISOString(),
                                     end_date: endDate.toISOString(),
                                     pickup_time: pickupTime,
                                     return_time: returnTime,
                                     total_days: days,
-                                    price_per_day: parseFloat(item.price_per_day),
                                     subtotal: subtotal,
                                     service_fee: serviceFee,
                                     total_amount: parseFloat(total),
-                                    deposit_amount: item?.deposit_value ? parseFloat(item.deposit_value) : 0,
-                                    status: 'pending',
-                                })
-                                .select()
-                                .single();
+                                };
 
-                            if (rentalError) throw rentalError;
+                                // ✅ Se estava aprovado/ativo, resetar para pending e limpar códigos
+                                if (wasApprovedOrActive) {
+                                    updateData.status = 'pending';
+                                    updateData.owner_code = null;
+                                    updateData.renter_code = null;
+                                    updateData.owner_code_used = false;
+                                    updateData.renter_code_used = false;
+                                    updateData.pickup_confirmed_at = null;
+                                }
 
-                            // Buscar informações do solicitante para a notificação
-                            const { data: renterProfile } = await supabase
-                                .from('profiles')
-                                .select('username, full_name')
-                                .eq('id', session.user.id)
-                                .single();
+                                const { error: updateError } = await supabase
+                                    .from('rentals')
+                                    .update(updateData)
+                                    .eq('id', editingRental.id);
 
-                            const renterName = renterProfile?.full_name || renterProfile?.username || 'Alguien';
+                                if (updateError) throw updateError;
 
-                            // Criar notificação para o anunciante
-                            const { error: notificationError } = await supabase
-                                .from('user_notifications')
-                                .insert({
-                                    user_id: item.owner_id,
-                                    type: 'rental_request',
-                                    title: `Nueva solicitud de alquiler`,
-                                    message: `${renterName} quiere alquilar tu artículo "${item.title}" del ${formatDate(startDate)} al ${formatDate(endDate)}`,
-                                    related_id: rentalData?.id,
-                                    read: false,
-                                });
+                                // ✅ Se estava aprovado/ativo, remover bloqueio de datas anterior
+                                if (wasApprovedOrActive) {
+                                    await supabase
+                                        .from('item_availability')
+                                        .delete()
+                                        .eq('rental_id', editingRental.id);
+                                }
 
-                            if (notificationError) {
-                                console.error('Erro ao criar notificação:', notificationError);
+                                // Notificar o proprietário sobre a mudança
+                                const { data: renterProfile } = await supabase
+                                    .from('profiles')
+                                    .select('username, full_name')
+                                    .eq('id', session.user.id)
+                                    .single();
+
+                                const renterName = renterProfile?.full_name || renterProfile?.username || 'Alguien';
+
+                                const notificationMessage = wasApprovedOrActive
+                                    ? `${renterName} modificó su alquiler de "${item.title}". La solicitud necesita nueva aprobación.`
+                                    : `${renterName} actualizó su solicitud de alquiler para "${item.title}"`;
+
+                                await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: item.owner_id,
+                                        type: wasApprovedOrActive ? 'rental_request' : 'rental_updated',
+                                        title: wasApprovedOrActive ? 'Nueva Solicitud de Aprobación' : 'Solicitud actualizada',
+                                        message: notificationMessage,
+                                        related_id: editingRental.id,
+                                        read: false,
+                                    });
+
+                                const successMessage = wasApprovedOrActive
+                                    ? 'Los cambios han sido guardados. La solicitud volverá a estado PENDIENTE y el anunciante necesitará aprobarla nuevamente.'
+                                    : 'Los cambios han sido guardados y el anunciante fue notificado.';
+
+                                Alert.alert(
+                                    '¡Éxito!',
+                                    successMessage,
+                                    [
+                                        {
+                                            text: 'OK',
+                                            onPress: () => navigation.navigate('HomeScreen')
+                                        }
+                                    ]
+                                );
+                            } else {
+                                // MODO CRIAÇÃO - Salvar nova solicitação de aluguel
+                                const { data: rentalData, error: rentalError } = await supabase
+                                    .from('rentals')
+                                    .insert({
+                                        item_id: item.id,
+                                        renter_id: session.user.id,
+                                        owner_id: item.owner_id,
+                                        start_date: startDate.toISOString(),
+                                        end_date: endDate.toISOString(),
+                                        pickup_time: pickupTime,
+                                        return_time: returnTime,
+                                        total_days: days,
+                                        price_per_day: parseFloat(item.price_per_day),
+                                        subtotal: subtotal,
+                                        service_fee: serviceFee,
+                                        total_amount: parseFloat(total),
+                                        deposit_amount: item?.deposit_value ? parseFloat(item.deposit_value) : 0,
+                                        status: 'pending',
+                                    })
+                                    .select()
+                                    .single();
+
+                                if (rentalError) throw rentalError;
+
+                                // Buscar informações do solicitante para a notificação
+                                const { data: renterProfile } = await supabase
+                                    .from('profiles')
+                                    .select('username, full_name')
+                                    .eq('id', session.user.id)
+                                    .single();
+
+                                const renterName = renterProfile?.full_name || renterProfile?.username || 'Alguien';
+
+                                // Criar notificação para o anunciante
+                                const { error: notificationError } = await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: item.owner_id,
+                                        type: 'rental_request',
+                                        title: `Nueva solicitud de alquiler`,
+                                        message: `${renterName} quiere alquilar tu artículo "${item.title}" del ${formatDate(startDate)} al ${formatDate(endDate)}`,
+                                        related_id: rentalData?.id,
+                                        read: false,
+                                    });
+
+                                if (notificationError) {
+                                    console.error('Erro ao criar notificação:', notificationError);
+                                }
+
+                                Alert.alert(
+                                    '¡Éxito!',
+                                    'Tu solicitud ha sido enviada al anunciante.',
+                                    [
+                                        {
+                                            text: 'OK',
+                                            onPress: () => navigation.navigate('HomeScreen')
+                                        }
+                                    ]
+                                );
                             }
-
-                            Alert.alert(
-                                '¡Éxito!',
-                                'Tu solicitud ha sido enviada al anunciante.',
-                                [
-                                    {
-                                        text: 'OK',
-                                        onPress: () => navigation.goBack()
-                                    }
-                                ]
-                            );
                         } catch (error) {
                             console.error('Error al enviar solicitud:', error);
                             Alert.alert(
                                 'Error',
-                                'No se pudo enviar la solicitud. Por favor, inténtalo de nuevo.',
+                                'No se pudo ${editingRental ? "guardar los cambios" : "enviar la solicitud"}. Por favor, inténtalo de nuevo.',
                                 [{ text: 'OK' }]
                             );
                         }
@@ -248,35 +349,48 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 
     return (
         <SafeAreaView style={styles.safeContainer}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+            <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
-            {/* Header com Botão Voltar */}
+            {/* Header Verde - Mesmo layout do ItemDetailsScreen */}
             <View style={styles.headerContainer}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.backArrow}>←</Text>
-                </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Solicitar Alquiler</Text>
+                <View style={styles.headerTopRow}>
+                    {/* Botão Voltar + Título */}
+                    <View style={styles.leftHeader}>
+                        <TouchableOpacity
+                            style={styles.backButtonCircle}
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.backArrow}>←</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>{editingRental ? 'Editar Alquiler' : 'Solicitar Alquiler'}</Text>
+                    </View>
+
+                    {/* ALUKO à Direita */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/images/app-icon.png')}
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.logoText}>ALUKO</Text>
+                    </View>
                 </View>
-                <View style={styles.headerSpacer} />
             </View>
 
             <ScrollView style={styles.container}>
             <View style={styles.content}>
-                {/* Informações do Item */}
-                <View style={styles.itemCard}>
+                {/* Card: Informações do Item */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>📦 Artículo</Text>
                     <Text style={styles.itemTitle}>{item?.title || 'Sin título'}</Text>
                     <Text style={styles.itemPrice}>€{(parseFloat(item?.price_per_day || 0) * 1.18).toFixed(2)} / día</Text>
                     <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
                 </View>
 
-                {/* Seleção de Período */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Período del Alquiler</Text>
+                {/* Card: Seleção de Período */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>📅 Período del Alquiler</Text>
 
                     {/* Botão para mostrar o calendário */}
                     {!showCalendar && (
@@ -284,7 +398,6 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                             style={styles.selectDatesButton}
                             onPress={() => setShowCalendar(true)}
                         >
-                            <Text style={styles.selectDatesIcon}>📅</Text>
                             <Text style={styles.selectDatesText}>Seleccionar Fechas en el Calendario</Text>
                         </TouchableOpacity>
                     )}
@@ -297,78 +410,133 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                                 onDateRangeChange={handleDateRangeChange}
                                 initialStartDate={startDate}
                                 initialEndDate={endDate}
+                                excludeRentalId={editingRental?.id}  // ✅ Excluir rental atual ao editar
                             />
                         </View>
                     )}
                 </View>
 
-                {/* Horários de Retirada e Devolución */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>⏰ Horarios</Text>
+                {/* Card: Método de Entrega (só mostra se item tiver opção de delivery) */}
+                {item?.delivery_type === 'delivery' && (
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>🚚 Método de Entrega</Text>
 
-                    {/* Hora de Retirada */}
-                    <View style={styles.timeContainer}>
-                        <Text style={styles.timeLabel}>Hora de Recogida:</Text>
-                        <View style={styles.timeSelector}>
+                        <View style={styles.deliveryMethodContainer}>
+                            {/* Opção: Retirar */}
                             <TouchableOpacity
-                                style={styles.timeButton}
-                                onPress={() => {
-                                    const hours = getAvailableHours();
+                                style={[styles.deliveryMethodOption, deliveryMethod === 'pickup' && styles.deliveryMethodActive]}
+                                onPress={() => setDeliveryMethod('pickup')}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={styles.deliveryMethodIcon}>📍</Text>
+                                <Text style={[styles.deliveryMethodText, deliveryMethod === 'pickup' && styles.deliveryMethodTextActive]}>
+                                    Recogida en el local
+                                </Text>
+                                {deliveryMethod === 'pickup' && (
+                                    <View style={styles.deliveryMethodCheck}>
+                                        <Text style={styles.deliveryMethodCheckText}>✓</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
 
-                                    Alert.alert(
-                                        'Selecciona Hora de Recogida',
-                                        '',
-                                        hours.map(hour => ({
-                                            text: hour,
-                                            onPress: () => {
-                                                setPickupTime(hour);
-                                                // Se é 1 dia de aluguel, ajustar returnTime
-                                                if (calculateDays() === 1) {
+                            {/* Opção: Entrega */}
+                            <TouchableOpacity
+                                style={[styles.deliveryMethodOption, deliveryMethod === 'delivery' && styles.deliveryMethodActive]}
+                                onPress={() => setDeliveryMethod('delivery')}
+                                activeOpacity={0.7}
+                            >
+                                <Text style={styles.deliveryMethodIcon}>🚚</Text>
+                                <View style={styles.deliveryMethodTextContainer}>
+                                    <Text style={[styles.deliveryMethodText, deliveryMethod === 'delivery' && styles.deliveryMethodTextActive]}>
+                                        Recibir en casa
+                                    </Text>
+                                    {item?.is_free_delivery ? (
+                                        <Text style={styles.deliveryMethodSubtext}>Gratis</Text>
+                                    ) : (
+                                        <Text style={styles.deliveryMethodSubtext}>+€{parseFloat(item?.delivery_fee || 0).toFixed(2)}</Text>
+                                    )}
+                                </View>
+                                {deliveryMethod === 'delivery' && (
+                                    <View style={styles.deliveryMethodCheck}>
+                                        <Text style={styles.deliveryMethodCheckText}>✓</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+
+                        {deliveryMethod === 'delivery' && item?.delivery_distance && (
+                            <Text style={styles.deliveryNote}>
+                                📍 El anunciante entrega hasta {item.delivery_distance} km
+                            </Text>
+                        )}
+                    </View>
+                )}
+
+                {/* Card: Horários de Retirada e Devolución - SEMPRE MOSTRA */}
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>⏰ Horarios</Text>
+
+                        {/* Hora de Retirada */}
+                        <View style={styles.timeContainer}>
+                            <Text style={styles.timeLabel}>Hora de Recogida:</Text>
+                            <View style={styles.timeSelector}>
+                                <TouchableOpacity
+                                    style={styles.timeButton}
+                                    onPress={() => {
+                                        const hours = getAvailableHours();
+
+                                        Alert.alert(
+                                            'Selecciona Hora de Recogida',
+                                            '',
+                                            hours.map(hour => ({
+                                                text: hour,
+                                                onPress: () => {
+                                                    setPickupTime(hour);
+                                                    // Sempre ajustar returnTime para o mesmo horário
                                                     setReturnTime(hour);
                                                 }
-                                            }
-                                        }))
-                                    );
-                                }}
-                            >
-                                <Text style={styles.timeIcon}>🕐</Text>
-                                <Text style={styles.timeValue}>{pickupTime}</Text>
-                            </TouchableOpacity>
+                                            }))
+                                        );
+                                    }}
+                                >
+                                    <Text style={styles.timeIcon}>🕐</Text>
+                                    <Text style={styles.timeValue}>{pickupTime}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                        {/* Hora de Devolución */}
+                        <View style={styles.timeContainer}>
+                            <Text style={styles.timeLabel}>Hora de Devolución:</Text>
+                            <View style={styles.timeSelector}>
+                                <TouchableOpacity
+                                    style={styles.timeButton}
+                                    onPress={() => {
+                                        let hours = getAvailableHours();
+
+                                        // Bloquear horários DEPOIS do pickupTime (só permitir igual ou antes)
+                                        const pickupHour = parseInt(pickupTime.split(':')[0]);
+                                        hours = hours.filter(hour => {
+                                            const h = parseInt(hour.split(':')[0]);
+                                            return h <= pickupHour;
+                                        });
+
+                                        Alert.alert(
+                                            'Selecciona Hora de Devolución',
+                                            `Para mantener ${calculateDays()} ${calculateDays() === 1 ? 'día' : 'días'}, devuelve hasta las ${pickupTime}`,
+                                            hours.map(hour => ({
+                                                text: hour,
+                                                onPress: () => setReturnTime(hour)
+                                            }))
+                                        );
+                                    }}
+                                >
+                                    <Text style={styles.timeIcon}>🕐</Text>
+                                    <Text style={styles.timeValue}>{returnTime}</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
-
-                    {/* Hora de Devolución */}
-                    <View style={styles.timeContainer}>
-                        <Text style={styles.timeLabel}>Hora de Devolución:</Text>
-                        <View style={styles.timeSelector}>
-                            <TouchableOpacity
-                                style={styles.timeButton}
-                                onPress={() => {
-                                    let hours = getAvailableHours();
-
-                                    // Limitar horários até o pickupTime para evitar dia extra
-                                    const pickupHour = parseInt(pickupTime.split(':')[0]);
-                                    hours = hours.filter(hour => {
-                                        const h = parseInt(hour.split(':')[0]);
-                                        return h <= pickupHour;
-                                    });
-
-                                    Alert.alert(
-                                        'Selecciona Hora de Devolución',
-                                        `Para mantener ${calculateDays()} ${calculateDays() === 1 ? 'día' : 'días'}, devuelve hasta las ${pickupTime}`,
-                                        hours.map(hour => ({
-                                            text: hour,
-                                            onPress: () => setReturnTime(hour)
-                                        }))
-                                    );
-                                }}
-                            >
-                                <Text style={styles.timeIcon}>🕐</Text>
-                                <Text style={styles.timeValue}>{returnTime}</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
 
                 {/* Resumo do Aluguel */}
                 <View style={styles.summaryCard}>
@@ -416,6 +584,21 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 
                     <View style={styles.divider} />
 
+                    {/* Taxa de Entrega (se aplicável) */}
+                    {deliveryMethod === 'delivery' && item?.delivery_fee && !item?.is_free_delivery && (
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.summaryLabel}>🚚 Entrega a domicilio:</Text>
+                            <Text style={styles.summaryValue}>€{parseFloat(item.delivery_fee).toFixed(2)}</Text>
+                        </View>
+                    )}
+
+                    {deliveryMethod === 'delivery' && item?.is_free_delivery && (
+                        <View style={styles.summaryRow}>
+                            <Text style={styles.freeDeliveryLabel}>🎁 Entrega a domicilio:</Text>
+                            <Text style={styles.freeDeliveryValue}>GRATIS</Text>
+                        </View>
+                    )}
+
                     <View style={styles.summaryRow}>
                         <Text style={styles.totalLabel}>Valor Total:</Text>
                         <Text style={styles.totalValue}>€{calculateTotal()}</Text>
@@ -456,9 +639,9 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                 >
                     <Text style={styles.cancelButtonText}>Cancelar</Text>
                 </TouchableOpacity>
-            </View>
 
             <View style={{ height: 30 }} />
+            </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -467,95 +650,117 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#F5F5F5',
         paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
     headerContainer: {
+        backgroundColor: '#10B981',
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        ...Platform.select({
+            ios: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+            },
+            android: {
+                elevation: 4,
+            },
+        }),
+    },
+    headerTopRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
+    leftHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        flex: 1,
+    },
+    backButtonCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
     },
     backArrow: {
         fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
+        color: '#fff',
+        fontWeight: 'bold',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#fff',
     },
-    headerSpacer: {
-        width: 40,
+    logoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    logoImage: {
+        width: 24,
+        height: 24,
+        borderRadius: 6,
+    },
+    logoText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#F5F5F5',
     },
     content: {
-        padding: 20,
+        padding: 16,
     },
-    itemCard: {
-        backgroundColor: '#f8f9fa',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 20,
+    card: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 20,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2c4455',
+        marginBottom: 16,
     },
     itemTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 5,
+        color: '#2c4455',
+        marginBottom: 8,
     },
     itemPrice: {
-        fontSize: 18,
-        color: '#28a745',
-        fontWeight: '600',
-        marginBottom: 5,
+        fontSize: 20,
+        color: '#10B981',
+        fontWeight: 'bold',
+        marginBottom: 6,
     },
     ownerName: {
         fontSize: 14,
-        color: '#6c757d',
-    },
-    section: {
-        marginBottom: 20,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 15,
+        color: '#666',
     },
     selectDatesButton: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: '#007bff',
-        padding: 15,
-        borderRadius: 10,
-        marginBottom: 15,
-    },
-    selectDatesIcon: {
-        fontSize: 24,
-        marginRight: 10,
+        padding: 16,
+        borderRadius: 12,
+        marginBottom: 12,
     },
     selectDatesText: {
         color: '#fff',
@@ -563,40 +768,28 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     calendarContainer: {
-        marginBottom: 15,
-    },
-    hideCalendarButton: {
-        backgroundColor: '#10B981',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    hideCalendarText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '600',
+        marginTop: 8,
     },
     timeContainer: {
-        marginBottom: 20,
+        marginBottom: 16,
     },
     timeLabel: {
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: '600',
-        color: '#333',
+        color: '#2c4455',
         marginBottom: 10,
     },
     timeSelector: {
-        marginTop: 5,
+        marginTop: 4,
     },
     timeButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#F8F9FA',
         padding: 16,
         borderRadius: 12,
         borderWidth: 2,
-        borderColor: '#007bff',
+        borderColor: '#10B981',
         gap: 12,
     },
     timeIcon: {
@@ -605,19 +798,26 @@ const styles = StyleSheet.create({
     timeValue: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#007bff',
+        color: '#10B981',
     },
     summaryCard: {
-        backgroundColor: '#e7f5ff',
+        backgroundColor: '#fff',
+        borderRadius: 16,
         padding: 20,
-        borderRadius: 10,
         marginBottom: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+        borderLeftWidth: 4,
+        borderLeftColor: '#10B981',
     },
     summaryTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 15,
+        color: '#2c4455',
+        marginBottom: 16,
     },
     summaryRow: {
         flexDirection: 'row',
@@ -726,5 +926,83 @@ const styles = StyleSheet.create({
         color: '#dc3545',
         fontSize: 16,
         fontWeight: '600',
+    },
+    deliveryMethodContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginBottom: 15,
+    },
+    deliveryMethodOption: {
+        flex: 1,
+        flexDirection: 'column',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        minHeight: 100,
+        justifyContent: 'center',
+    },
+    deliveryMethodActive: {
+        backgroundColor: '#E8F5E9',
+        borderColor: '#10B981',
+    },
+    deliveryMethodIcon: {
+        fontSize: 28,
+        marginBottom: 8,
+    },
+    deliveryMethodTextContainer: {
+        alignItems: 'center',
+    },
+    deliveryMethodText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#666',
+        textAlign: 'center',
+    },
+    deliveryMethodTextActive: {
+        color: '#10B981',
+    },
+    deliveryMethodSubtext: {
+        fontSize: 11,
+        color: '#999',
+        marginTop: 4,
+    },
+    deliveryMethodCheck: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#10B981',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    deliveryMethodCheckText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+    },
+    deliveryNote: {
+        fontSize: 13,
+        color: '#666',
+        fontStyle: 'italic',
+        backgroundColor: '#F8F9FA',
+        padding: 10,
+        borderRadius: 8,
+        borderLeftWidth: 3,
+        borderLeftColor: '#10B981',
+    },
+    freeDeliveryLabel: {
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#10B981',
+    },
+    freeDeliveryValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#10B981',
     },
 });

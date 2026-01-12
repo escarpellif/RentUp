@@ -94,5 +94,23 @@ export const testimonialsStyles = StyleSheet.create({
         fontSize: 13,
         color: '#666',
     },
+    paginationContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 20,
+        gap: 8,
+    },
+    paginationDot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#D1D5DB',
+        transition: 'all 0.3s ease',
+    },
+    paginationDotActive: {
+        width: 24,
+        backgroundColor: '#10B981',
+    },
 });
 

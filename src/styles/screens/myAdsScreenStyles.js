@@ -3,64 +3,100 @@ import { StyleSheet, Platform } from 'react-native';
 export const myAdsScreenStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#E8EAED',
     paddingTop: Platform.OS === 'android' ? 25 : 0,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#E8EAED',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
     color: '#666',
   },
-  header: {
+  // Header Verde - Mesmo layout do Marketplace
+  headerContainer: {
+    backgroundColor: '#10B981',
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  headerTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: 8,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+  leftHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backButtonCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   backArrow: {
-    fontSize: 22,
-    color: '#2c4455',
-  },
-  headerTitleContainer: {
-    flex: 1,
-    alignItems: 'center',
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2c4455',
-  },
-  addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#10B981',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    fontSize: 20,
     color: '#fff',
   },
-  content: {
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  logoImage: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+  },
+  logoText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  addButtonRow: {
+    marginTop: 4,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 8,
+  },
+  addButtonIcon: {
+    fontSize: 20,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  scrollContent: {
     flex: 1,
   },
   emptyContainer: {
@@ -107,9 +143,9 @@ export const myAdsScreenStyles = StyleSheet.create({
     fontWeight: '600',
     color: '#666',
     marginBottom: 15,
-    paddingHorizontal: 0,
   },
   itemWrapper: {
+    width: '100%',
     marginBottom: 20,
     backgroundColor: '#fff',
     borderRadius: 12,

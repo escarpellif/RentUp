@@ -11,7 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import es from './locales/es';
 import en from './locales/en';
 
-const LANGUAGE_KEY = '@RentUp:language';
+const LANGUAGE_KEY = '@ALUKO:language';
 
 // Recursos de tradução
 const resources = {

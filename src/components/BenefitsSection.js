@@ -8,7 +8,7 @@ export default function BenefitsSection() {
             id: 1,
             icon: '✅',
             title: 'Todos están verificados',
-            subtitle: 'RentUp es seguro.',
+            subtitle: 'ALUKO es seguro.',
             description: 'Todos los anunciantes y arrendadores tienen su identidad verificada.'
         },
         {
@@ -23,7 +23,7 @@ export default function BenefitsSection() {
             icon: '💰',
             title: 'Más barato que comprar',
             subtitle: 'A menudo 60% más barato',
-            description: 'Es a menudo 60% más barato alquilar a través de RentUp que a una empresa.'
+            description: 'Es a menudo 60% más barato alquilar a través de ALUKO que a una empresa.'
         },
         {
             id: 4,
@@ -52,7 +52,7 @@ export default function BenefitsSection() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>¿Por qué elegir RentUp?</Text>
+            <Text style={styles.sectionTitle}>¿Por qué elegir ALUKO?</Text>
             <Text style={styles.sectionSubtitle}>Descubre todas las ventajas de alquilar</Text>
 
             <View style={styles.benefitsGrid}>

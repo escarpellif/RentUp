@@ -342,6 +342,8 @@ export const subcategories = {
     ],
 };
 export const sortOptions = [
+    { id: 'default', label: 'Ordenar por...', icon: '📋' },
+    { id: 'distance', label: 'Más Próximo', icon: '📍' },
     { id: 'recent', label: 'Más Recientes', icon: '🕐' },
     { id: 'price_low', label: 'Menor Precio', icon: '💰' },
     { id: 'price_high', label: 'Mayor Precio', icon: '💎' },

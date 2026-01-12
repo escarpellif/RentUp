@@ -111,13 +111,23 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
     };
 
     const updateTimeRemaining = (rental = activeRentals[currentIndex]) => {
-        if (!rental) return;
+        if (!rental || !rental.start_date || !rental.end_date) {
+            setTimeRemaining('Calculando...');
+            return;
+        }
 
         const now = new Date();
 
         if (rental.status === 'approved') {
             // Tempo até a retirada
             const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
+
+            // Verificar se a data é válida
+            if (isNaN(pickupDateTime.getTime())) {
+                setTimeRemaining('Fecha inválida');
+                return;
+            }
+
             const diff = pickupDateTime - now;
 
             if (diff <= 0) {
@@ -140,6 +150,13 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
         } else if (rental.status === 'active') {
             // Tempo até a devolução
             const returnDateTime = new Date(`${rental.end_date}T${rental.return_time || '18:00'}:00`);
+
+            // Verificar se a data é válida
+            if (isNaN(returnDateTime.getTime())) {
+                setTimeRemaining('Fecha inválida');
+                return;
+            }
+
             const diff = returnDateTime - now;
 
             if (diff <= 0) {
@@ -280,6 +297,11 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
 
     const activeRental = activeRentals[currentIndex];
 
+    // Verificação adicional de segurança
+    if (!activeRental) {
+        return null;
+    }
+
     return (
         <Modal
             visible={visible}
@@ -393,6 +415,17 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                 <Text style={styles.detailLabel}>👤 Locatario:</Text>
                                 <Text style={styles.detailValue}>
                                     {activeRental.renter?.full_name || 'Usuario'}
+                                </Text>
+                            </View>
+
+                            <View style={styles.detailRow}>
+                                <Text style={styles.detailLabel}>📍 Dirección de Entrega:</Text>
+                                <Text style={styles.detailValue}>
+                                    {activeRental.item?.street ? (
+                                        `${activeRental.item.street}${activeRental.item.number ? `, ${activeRental.item.number}` : ''}${activeRental.item.complement ? `, ${activeRental.item.complement}` : ''}\n${activeRental.item.postal_code} ${activeRental.item.city}${activeRental.item.province ? `, ${activeRental.item.province}` : ''}`
+                                    ) : (
+                                        'Dirección no disponible'
+                                    )}
                                 </Text>
                             </View>
 

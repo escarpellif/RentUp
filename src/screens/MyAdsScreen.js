@@ -12,7 +12,8 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
-  StatusBar
+  StatusBar,
+  Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
@@ -100,41 +101,43 @@ export default function MyAdsScreen({ navigation, session }) {
               console.error('Error deleting item:', error);
               Alert.alert(t('common.error'), t('items.deleteError'));
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
-  const handlePauseToggle = async (item) => {
-    const isPaused = item.is_paused || false;
-    const actionText = isPaused ? 'Reactivar' : 'Pausar';
-    const statusText = isPaused ? 'reactivado' : 'pausado';
+  const handleToggleActive = async (item) => {
+    const newStatus = !(item.is_active ?? true);
+    const statusText = newStatus ? 'activar' : 'pausar';
 
     Alert.alert(
-      `${actionText} Anuncio`,
-      `¿Deseas ${actionText.toLowerCase()} el anuncio "${item.title}"?`,
+      newStatus ? 'Activar Anuncio' : 'Pausar Anuncio',
+      `¿Deseas ${statusText} "${item.title}"?${!newStatus ? '\n\nEl anuncio aparecerá como NO DISPONIBLE.' : '\n\nEl anuncio volverá a estar DISPONIBLE.'}`,
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: actionText,
+          text: t('common.ok'),
           onPress: async () => {
             try {
               const { error } = await supabase
                 .from('items')
-                .update({ is_paused: !isPaused })
+                .update({ is_active: newStatus })
                 .eq('id', item.id);
 
               if (error) throw error;
 
-              Alert.alert('Éxito', `Anuncio ${statusText} correctamente`);
+              Alert.alert(
+                t('common.success'),
+                newStatus ? 'Anuncio activado correctamente' : 'Anuncio pausado correctamente'
+              );
               fetchMyItems();
             } catch (error) {
-              console.error('Error toggling pause:', error);
-              Alert.alert('Error', `No se pudo ${actionText.toLowerCase()} el anuncio`);
+              console.error('Error toggling item status:', error);
+              Alert.alert(t('common.error'), 'No se pudo cambiar el estado del anuncio');
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -150,29 +153,49 @@ export default function MyAdsScreen({ navigation, session }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+      <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <View style={styles.headerTitleContainer}>
-          <Text style={styles.headerTitle}>{t('menu.myAds')}</Text>
+      {/* Header Verde - Mesmo layout do Marketplace */}
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTopRow}>
+          {/* Botão Voltar + Título */}
+          <View style={styles.leftHeader}>
+            <TouchableOpacity
+              style={styles.backButtonCircle}
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{t('menu.myAds')}</Text>
+          </View>
+
+          {/* ALUKO à Direita */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/images/app-icon.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.logoText}>ALUKO</Text>
+          </View>
         </View>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('AddItem')}
-        >
-          <Text style={styles.addButtonText}>+</Text>
-        </TouchableOpacity>
+
+        {/* Botão Adicionar Anúncio */}
+        <View style={styles.addButtonRow}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('AddItem')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.addButtonIcon}>+</Text>
+            <Text style={styles.addButtonText}>{t('items.addItem')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
-        style={styles.content}
+        style={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -214,11 +237,11 @@ export default function MyAdsScreen({ navigation, session }) {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.pauseButton]}
-                    onPress={() => handlePauseToggle(item)}
+                    onPress={() => handleToggleActive(item)}
                   >
-                    <Text style={styles.actionIcon}>{item.is_paused ? '▶️' : '⏸️'}</Text>
+                    <Text style={styles.actionIcon}>{(item.is_active ?? true) ? '⏸️' : '▶️'}</Text>
                     <Text style={styles.actionText}>
-                      {item.is_paused ? 'Reactivar' : 'Pausar'}
+                      {(item.is_active ?? true) ? 'Pausar' : 'Activar'}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity

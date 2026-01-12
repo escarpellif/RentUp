@@ -238,14 +238,12 @@ export const mainMarketplaceStyles = StyleSheet.create({
         paddingTop: 14,
         paddingBottom: 80,
         backgroundColor: '#E8EAED',
-        paddingHorizontal: 10,
+        paddingHorizontal: 12,
     },
     row: {
         justifyContent: 'space-between',
         paddingHorizontal: 0,
-        marginBottom: 10,
-        gap: 10,
-        width: '100%',
+        gap: 12,
     },
     emptyContainer: {
         flex: 1,

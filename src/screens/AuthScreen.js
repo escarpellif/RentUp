@@ -52,7 +52,7 @@ export default function AuthScreen({ onGuestLogin }) {
 
             // Redireciona para página customizada no GitHub Pages
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-              redirectTo: 'https://escarpellif.github.io/RentUp/',
+              redirectTo: 'https://escarpellif.github.io/aluko/',
             });
 
             setLoading(false);
@@ -281,9 +281,9 @@ export default function AuthScreen({ onGuestLogin }) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={styles.brandName}>RentUp</Text>
+            <Text style={styles.brandName}>ALUKO</Text>
             <Text style={styles.brandTagline}>
-              {isRegistering ? t('auth.createAccount') : t('auth.welcomeBack')}
+              {t('home.subtitle')}
             </Text>
           </View>
 
@@ -490,13 +490,6 @@ export default function AuthScreen({ onGuestLogin }) {
                 </TouchableOpacity>
               </View>
             )}
-          </View>
-
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              {t('home.subtitle')}
-            </Text>
           </View>
         </ScrollView>
       </LinearGradient>

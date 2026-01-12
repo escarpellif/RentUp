@@ -68,7 +68,7 @@ const AnimatedSplashScreenEnhanced = () => {
             </Animated.View>
 
             {/* Nome do App (opcional) */}
-            <Text style={styles.appName}>RentUp</Text>
+            <Text style={styles.appName}>ALUKO</Text>
             <Text style={styles.tagline}>Posee menos, Accede a más</Text>
         </View>
     );

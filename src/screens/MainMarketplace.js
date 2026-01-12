@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, TextInput, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { supabase } from '../../supabase';
 import ItemCard from '../components/ItemCard';
 import { categories, sortOptions } from '../constants/categoryConfig';
 import { mainMarketplaceStyles as styles } from '../styles/mainMarketplaceStyles';
+import { calculateDistance } from '../utils/locationHelper';
 
 export default function MainMarketplace({ session, navigation, route }) {
     const [items, setItems] = useState([]);
@@ -12,11 +14,37 @@ export default function MainMarketplace({ session, navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('Todos');
-    const [sortBy, setSortBy] = useState('recent');
+    const [sortBy, setSortBy] = useState('default');
     const [showCategories, setShowCategories] = useState(false);
     const [showSort, setShowSort] = useState(false);
-    const [itemsToShow, setItemsToShow] = useState(6); // Mostrar apenas 6 itens inicialmente
+    const [itemsToShow, setItemsToShow] = useState(6);
+    const [userLocation, setUserLocation] = useState(null);
 
+    // Função para obter localização do usuário
+    async function getUserLocation() {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+
+            if (status !== 'granted') {
+                return;
+            }
+
+            const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
+
+            setUserLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        } catch (error) {
+            console.error('Error obteniendo localización:', error);
+        }
+    }
+
+    useEffect(() => {
+        getUserLocation();
+    }, []);
 
     async function fetchItems() {
         setLoading(true);
@@ -79,14 +107,39 @@ export default function MainMarketplace({ session, navigation, route }) {
                     return parseFloat(b.price_per_day) - parseFloat(a.price_per_day);
                 case 'title':
                     return a.title.localeCompare(b.title);
+                case 'distance':
+                    // Ordenar por proximidade
+                    if (!userLocation) return 0;
+
+                    const distanceA = (a.coordinates?.latitude && a.coordinates?.longitude)
+                        ? calculateDistance(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            a.coordinates.latitude,
+                            a.coordinates.longitude
+                        )
+                        : Infinity;
+
+                    const distanceB = (b.coordinates?.latitude && b.coordinates?.longitude)
+                        ? calculateDistance(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            b.coordinates.latitude,
+                            b.coordinates.longitude
+                        )
+                        : Infinity;
+
+                    return distanceA - distanceB;
                 case 'recent':
-                default:
                     return new Date(b.created_at) - new Date(a.created_at);
+                case 'default':
+                default:
+                    return 0; // Manter ordem original
             }
         });
 
         setFilteredItems(sorted);
-    }, [searchQuery, selectedCategory, items, sortBy]);
+    }, [searchQuery, selectedCategory, items, sortBy, userLocation]);
 
     // Verificar se há parâmetros de busca/categoria da HomeScreen
     useEffect(() => {
@@ -135,14 +188,14 @@ export default function MainMarketplace({ session, navigation, route }) {
                         <Text style={styles.headerTitle}>Marketplace</Text>
                     </View>
 
-                    {/* RentUp à Direita */}
+                    {/* ALUKO à Direita */}
                     <View style={styles.logoContainer}>
                         <Image
                             source={require('../../assets/images/app-icon.png')}
                             style={styles.logoImage}
                             resizeMode="contain"
                         />
-                        <Text style={styles.logoText}>RentUp</Text>
+                        <Text style={styles.logoText}>ALUKO</Text>
                     </View>
                 </View>
 
@@ -268,7 +321,12 @@ export default function MainMarketplace({ session, navigation, route }) {
                 data={filteredItems.slice(0, itemsToShow)}
                 keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
-                    <ItemCard item={item} onDetailsPress={navigateToDetails} userId={session?.user?.id} />
+                    <ItemCard
+                        item={item}
+                        onDetailsPress={navigateToDetails}
+                        userId={session?.user?.id}
+                        userLocation={userLocation}
+                    />
                 )
                 }
                 numColumns={2}

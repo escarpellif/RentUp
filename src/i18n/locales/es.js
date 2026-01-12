@@ -60,7 +60,7 @@ export default {
 
   // Home
   home: {
-    title: 'RentUp',
+    title: 'ALUKO',
     subtitle: 'Alquila lo que necesitas.\nRentabiliza lo que ya tienes.',
     welcome: 'Bienvenido',
     marketplace: 'Marketplace',
@@ -253,6 +253,20 @@ export default {
     myProfile: 'Mi Perfil',
     admin: 'Admin - Verificaciones',
     logout: 'Salir',
+  },
+
+  // Footer
+  footer: {
+    followUs: 'Síguenos en Redes Sociales',
+    company: 'Compañía',
+    legal: 'Legal',
+    aboutUs: 'Sobre Nosotros',
+    faqs: 'Preguntas Frecuentes',
+    support: 'Soporte',
+    userPolicy: 'Política de Usuario',
+    cancellation: 'Cancelación y Reembolso',
+    privacy: 'Política de Privacidad',
+    allRightsReserved: 'Todos los derechos reservados.',
   },
 };
 

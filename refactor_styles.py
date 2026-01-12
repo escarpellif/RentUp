@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # Configuração
-BASE_DIR = Path("/media/fernando/22cd7c3e-30fb-467e-9342-38056af1e886/fernando/MyApp/RentUp")
+BASE_DIR = Path("/media/fernando/22cd7c3e-30fb-467e-9342-38056af1e886/fernando/MyApp/aluko")
 SCREENS_DIR = BASE_DIR / "src/screens"
 STYLES_DIR = BASE_DIR / "src/styles/screens"
 

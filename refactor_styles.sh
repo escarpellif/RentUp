@@ -3,7 +3,7 @@
 # Script para separar CSS dos arquivos de screens
 # Este script cria arquivos de estilos separados e remove os estilos inline
 
-cd "/media/fernando/22cd7c3e-30fb-467e-9342-38056af1e886/fernando/MyApp/RentUp"
+cd "/media/fernando/22cd7c3e-30fb-467e-9342-38056af1e886/fernando/MyApp/aluko"
 
 echo "🔧 Refatorando arquivos de screens..."
 echo ""

@@ -13,7 +13,8 @@ export default function RentalCalendar({
     itemId,
     onDateRangeChange,
     initialStartDate,
-    initialEndDate
+    initialEndDate,
+    excludeRentalId  // ✅ NOVO: ID do rental a excluir dos bloqueios (para edição)
 }) {
     // Se não for modal (sem visible prop), renderiza inline
     const isModal = visible !== undefined;
@@ -31,18 +32,25 @@ export default function RentalCalendar({
         if (!itemId) return;
 
         try {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('item_availability')
-                .select('start_date, end_date')
+                .select('start_date, end_date, rental_id')
                 .eq('item_id', itemId)
                 .eq('status', 'blocked');
+
+            // ✅ Se estiver editando, excluir o rental atual dos bloqueios
+            if (excludeRentalId) {
+                query = query.neq('rental_id', excludeRentalId);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
             setBlockedDates(data || []);
         } catch (error) {
             console.error('Erro ao buscar datas bloqueadas:', error);
         }
-    }, [itemId]);
+    }, [itemId, excludeRentalId]);
 
     useEffect(() => {
         fetchBlockedDates();

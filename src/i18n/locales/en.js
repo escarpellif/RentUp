@@ -60,7 +60,7 @@ export default {
 
   // Home
   home: {
-    title: 'RentUp',
+    title: 'ALUKO',
     subtitle: 'Rent what you need.\nMonetize what you already have.',
     welcome: 'Welcome',
     marketplace: 'Marketplace',
@@ -244,6 +244,20 @@ export default {
     myProfile: 'My Profile',
     admin: 'Admin - Verifications',
     logout: 'Logout',
+  },
+
+  // Footer
+  footer: {
+    followUs: 'Follow Us on Social Media',
+    company: 'Company',
+    legal: 'Legal',
+    aboutUs: 'About Us',
+    faqs: 'FAQs',
+    support: 'Support',
+    userPolicy: 'User Policy',
+    cancellation: 'Cancellation & Refund',
+    privacy: 'Privacy Policy',
+    allRightsReserved: 'All rights reserved.',
   },
 };
 

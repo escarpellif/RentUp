@@ -73,6 +73,11 @@ export default function AddItemFormScreen({ session, navigation }) {
     const [pickupEveningStart, setPickupEveningStart] = useState('18:00');
     const [pickupEveningEnd, setPickupEveningEnd] = useState('23:00');
 
+    // Estados para entrega
+    const [deliveryDistance, setDeliveryDistance] = useState('');
+    const [isFreeDelivery, setIsFreeDelivery] = useState(true);
+    const [deliveryFee, setDeliveryFee] = useState('');
+
     const categories = [
         'Electrónicos',
         'Deportes',
@@ -89,6 +94,30 @@ export default function AddItemFormScreen({ session, navigation }) {
     useEffect(() => {
         fetchUserProfile();
     }, []);
+
+    // Função para formatar valor em Euro (adicionar vírgula e pontos automaticamente)
+    const formatEuroValue = (value) => {
+        // Remove tudo que não é número
+        const onlyNumbers = value.replace(/\D/g, '');
+
+        if (onlyNumbers === '') return '';
+
+        // Converte para número e divide por 100 para adicionar os centavos
+        const numberValue = parseInt(onlyNumbers, 10) / 100;
+
+        // Formata como moeda europeia (vírgula para centavos, ponto para milhares)
+        return numberValue.toLocaleString('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
+    // Função para converter valor formatado de volta para número
+    const parseEuroValue = (formattedValue) => {
+        if (!formattedValue) return 0;
+        // Remove pontos de milhar e substitui vírgula por ponto
+        return parseFloat(formattedValue.replace(/\./g, '').replace(',', '.'));
+    };
 
     // Função para buscar o perfil do usuário
     const fetchUserProfile = async () => {
@@ -118,19 +147,22 @@ export default function AddItemFormScreen({ session, navigation }) {
     useEffect(() => {
         if (useProfileAddress && userProfile) {
             if (userProfile.address && userProfile.postal_code && userProfile.city) {
-                setLocation(userProfile.address);
-                setLocationFull(userProfile.address);
-                setLocationApprox(`${userProfile.city} - ${userProfile.postal_code}`);
-                setPostalCode(userProfile.postal_code);
-
                 // Preencher campos separados
                 setStreet(userProfile.address || '');
                 setCity(userProfile.city || '');
                 setCountry('España');
                 setComplement('');
+                setPostalCode(userProfile.postal_code || '');
+
+                // Criar endereço completo formatado
+                const fullAddress = `${userProfile.address}, ${userProfile.city}, ${userProfile.postal_code}, España`;
+
+                // Preencher location e locationFull
+                setLocation(userProfile.address);
+                setLocationFull(fullAddress);
+                setLocationApprox(`${userProfile.city} - ${userProfile.postal_code}`);
 
                 // Buscar coordenadas do endereço
-                const fullAddress = `${userProfile.address}, ${userProfile.city}, ${userProfile.postal_code}, España`;
                 getCoordinatesFromAddress(fullAddress).then(coords => {
                     if (coords) {
                         setCoordinates(coords);
@@ -150,6 +182,9 @@ export default function AddItemFormScreen({ session, navigation }) {
             setLocationApprox('');
             setCoordinates(null);
             setPostalCode('');
+            setStreet('');
+            setCity('');
+            setComplement('');
         }
     }, [useProfileAddress]);
 
@@ -168,7 +203,7 @@ export default function AddItemFormScreen({ session, navigation }) {
                 `https://nominatim.openstreetmap.org/search?postalcode=${code}&country=Spain&format=json&addressdetails=1&limit=5`,
                 {
                     headers: {
-                        'User-Agent': 'RentUpApp/1.0'
+                        'User-Agent': 'ALUKOApp/1.0'
                     }
                 }
             );
@@ -253,131 +288,155 @@ export default function AddItemFormScreen({ session, navigation }) {
     };
 
     async function handleSubmit() {
+        // Array para armazenar campos vazios
+        const missingFields = [];
+
+        // Validar campos obrigatórios e coletar os que estão faltando
+        if (!title || title.trim() === '') missingFields.push('Título');
+        if (!description || description.trim() === '') missingFields.push('Descripción');
+        if (!pricePerDay || pricePerDay.trim() === '') missingFields.push('Precio por día');
+
         const hasAtLeastOnePhoto = photos.some(photo => photo !== null);
-        
-        // Validação completa de todos os campos obrigatórios
-        if (!title || !description || !pricePerDay || !hasAtLeastOnePhoto) {
-            Alert.alert('Campos Incompletos', 'Por favor, preencha título, descrição, preço e adicione pelo menos uma foto.');
-            return;
-        }
+        if (!hasAtLeastOnePhoto) missingFields.push('Al menos una foto');
 
-        if (!fullName || fullName.trim() === '') {
-            Alert.alert('Nome Completo Obrigatório', 'Por favor, preencha seu nome completo.');
-            return;
-        }
+        if (!fullName || fullName.trim() === '') missingFields.push('Nombre completo');
+        if (!phone || phone.trim() === '') missingFields.push('Teléfono de contacto');
 
-        if (!phone || phone.trim() === '') {
-            Alert.alert('Telefone Obrigatório', 'Por favor, preencha seu telefone de contato.');
-            return;
-        }
+        if (!street || street.trim() === '') missingFields.push('Calle/Avenida');
+        if (!city || city.trim() === '') missingFields.push('Ciudad');
+        if (!postalCode || postalCode.trim() === '') missingFields.push('Código postal');
+        if (!coordinates) missingFields.push('Coordenadas (seleccione el código postal primero)');
 
-        if (!location || !locationFull || !coordinates) {
-            Alert.alert('Endereço Obrigatório', 'Por favor, selecione o endereço completo de retirada do item.');
+        // Se houver campos faltando, mostrar mensagem específica
+        if (missingFields.length > 0) {
+            Alert.alert(
+                'Campos Incompletos',
+                `Por favor, completa los siguientes campos:\n\n• ${missingFields.join('\n• ')}`,
+                [{ text: 'OK' }]
+            );
             return;
         }
 
         setLoading(true);
 
-        // Atualizar perfil do usuário com nome completo, telefone e endereço
-        const { error: profileError } = await supabase
-            .from('profiles')
-            .update({
+        try {
+            // Criar endereço completo
+            const fullAddress = `${street}${complement ? ', ' + complement : ''}, ${city}, ${postalCode}, ${country}`;
+
+            // Atualizar perfil do usuário
+            const profileUpdateData = {
                 full_name: fullName,
                 phone: phone,
-                address: location,
-                postal_code: postalCode || locationApprox.split(' - ')[1],
-                city: locationApprox.split(' - ')[0],
                 updated_at: new Date().toISOString()
-            })
-            .eq('id', session.user.id);
+            };
 
-        if (profileError) {
-            console.error('Erro ao atualizar perfil:', profileError);
-            Alert.alert('Aviso', 'Houve um problema ao salvar seus dados pessoais, mas continuaremos com o anúncio.');
-        }
+            // Apenas atualizar endereço no perfil se marcou "Usar mi dirección de cadastro"
+            if (useProfileAddress) {
+                profileUpdateData.address = street;
+                profileUpdateData.postal_code = postalCode;
+                profileUpdateData.city = city;
+            }
 
-        const uploadedPaths = [];
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .update(profileUpdateData)
+                .eq('id', session.user.id);
 
-        for (let i = 0; i < photos.length; i++) {
-            if (photos[i]) {
-                const uploadedPath = await uploadImage(photos[i]);
-                if (uploadedPath) {
-                    uploadedPaths.push(uploadedPath);
+            if (profileError) {
+                console.error('Erro ao atualizar perfil:', profileError);
+                Alert.alert('Aviso', 'Houve um problema ao salvar seus dados pessoais, pero continuaremos con el anuncio.');
+            }
+
+            const uploadedPaths = [];
+
+            for (let i = 0; i < photos.length; i++) {
+                if (photos[i]) {
+                    const uploadedPath = await uploadImage(photos[i]);
+                    if (uploadedPath) {
+                        uploadedPaths.push(uploadedPath);
+                    }
                 }
             }
-        }
 
-        if (uploadedPaths.length === 0) {
-            Alert.alert('Error', 'No se pudo subir ninguna foto');
+            if (uploadedPaths.length === 0) {
+                Alert.alert('Error', 'No se pudo subir ninguna foto');
+                setLoading(false);
+                return;
+            }
+
+            const { error } = await supabase
+                .from('items')
+                .insert({
+                    owner_id: session.user.id,
+                    title,
+                    description,
+                    price_per_day: parseEuroValue(pricePerDay),
+                    deposit_value: depositValue ? parseEuroValue(depositValue) : 0,
+                    discount_week: discountWeek ? parseFloat(discountWeek) : 0,
+                    discount_month: discountMonth ? parseFloat(discountMonth) : 0,
+                    category,
+                    subcategory: subcategory || null,
+                    location: street,
+                    location_full: fullAddress,
+                    location_approx: `${city} - ${postalCode}`,
+                    coordinates: coordinates,
+                    coordinates_approx: coordinates ? addRandomOffset(coordinates) : null,
+                    street: street,
+                    complement: complement,
+                    city: city,
+                    country: country,
+                    postal_code: postalCode,
+                    photo_url: uploadedPaths[0],
+                    photos: uploadedPaths,
+                    delivery_type: deliveryType,
+                    delivery_distance: deliveryDistance ? parseFloat(deliveryDistance) : null,
+                    is_free_delivery: isFreeDelivery,
+                    delivery_fee: deliveryFee ? parseEuroValue(deliveryFee) : 0,
+                    flexible_hours: flexibleHours,
+                    pickup_days: Object.keys(pickupDays).filter(day => pickupDays[day]),
+                    pickup_time_start: flexibleHours ? '06:00' : pickupTimeStart,
+                    pickup_time_end: flexibleHours ? '23:00' : pickupTimeEnd,
+                    pickup_morning: pickupMorning,
+                    pickup_morning_start: pickupMorningStart,
+                    pickup_morning_end: pickupMorningEnd,
+                    pickup_afternoon: pickupAfternoon,
+                    pickup_afternoon_start: pickupAfternoonStart,
+                    pickup_afternoon_end: pickupAfternoonEnd,
+                    pickup_evening: pickupEvening,
+                    pickup_evening_start: pickupEveningStart,
+                    pickup_evening_end: pickupEveningEnd,
+                });
+
             setLoading(false);
-            return;
-        }
 
-        const { error } = await supabase
-            .from('items')
-            .insert({
-                owner_id: session.user.id,
-                title,
-                description,
-                price_per_day: parseFloat(pricePerDay),
-                deposit_value: depositValue ? parseFloat(depositValue) : 0,
-                discount_week: discountWeek ? parseFloat(discountWeek) : 0,
-                discount_month: discountMonth ? parseFloat(discountMonth) : 0,
-                category,
-                subcategory: subcategory || null,
-                location,
-                location_full: locationFull,
-                location_approx: locationApprox,
-                coordinates: coordinates,
-                coordinates_approx: coordinates ? addRandomOffset(coordinates) : null,
-                street: street,
-                complement: complement,
-                city: city,
-                country: country,
-                postal_code: postalCode,
-                photo_url: uploadedPaths[0],
-                photos: uploadedPaths,
-                delivery_type: deliveryType,
-                flexible_hours: flexibleHours,
-                pickup_days: Object.keys(pickupDays).filter(day => pickupDays[day]),
-                pickup_time_start: flexibleHours ? '06:00' : pickupTimeStart,
-                pickup_time_end: flexibleHours ? '23:00' : pickupTimeEnd,
-                pickup_morning: pickupMorning,
-                pickup_morning_start: pickupMorningStart,
-                pickup_morning_end: pickupMorningEnd,
-                pickup_afternoon: pickupAfternoon,
-                pickup_afternoon_start: pickupAfternoonStart,
-                pickup_afternoon_end: pickupAfternoonEnd,
-                pickup_evening: pickupEvening,
-                pickup_evening_start: pickupEveningStart,
-                pickup_evening_end: pickupEveningEnd,
-            });
-
-        setLoading(false);
-
-        if (error) {
-            Alert.alert('Error al Anunciar', error.message);
-        } else {
-            Alert.alert(
-                '¡Éxito!',
-                '¡Tu artículo ha sido anunciado en el marketplace!',
-                [
-                    {
-                        text: 'OK',
-                        onPress: () => navigation.navigate('Home')
-                    }
-                ]
-            );
-            // Limpar os campos após o sucesso
-            setTitle('');
-            setDescription('');
-            setPricePerDay('');
-            setLocation('');
-            setLocationFull('');
-            setLocationApprox('');
-            setCoordinates(null);
-            setPhotos([null, null, null]);
-            setPhotoPaths([null, null, null]);
+            if (error) {
+                Alert.alert('Error al Anunciar', error.message);
+            } else {
+                Alert.alert(
+                    '¡Éxito!',
+                    '¡Tu artículo ha sido anunciado en el marketplace!',
+                    [
+                        {
+                            text: 'OK',
+                            onPress: () => navigation.navigate('Home')
+                        }
+                    ]
+                );
+                // Limpar os campos após o sucesso
+                setTitle('');
+                setDescription('');
+                setPricePerDay('');
+                setLocation('');
+                setLocationFull('');
+                setLocationApprox('');
+                setCoordinates(null);
+                setPhotos([null, null, null]);
+                setPhotoPaths([null, null, null]);
+            }
+        } catch (error) {
+            setLoading(false);
+            console.error('Error en handleSubmit:', error);
+            Alert.alert('Error', 'Ocurrió un error al publicar el anuncio');
         }
     }
 
@@ -400,14 +459,14 @@ export default function AddItemFormScreen({ session, navigation }) {
                         <Text style={styles.headerTitle}>Anunciar Artículo</Text>
                     </View>
 
-                    {/* RentUp à Direita */}
+                    {/* ALUKO à Direita */}
                     <View style={styles.logoContainer}>
                         <Image
                             source={require('../../assets/images/app-icon.png')}
                             style={styles.logoImage}
                             resizeMode="contain"
                         />
-                        <Text style={styles.logoText}>RentUp</Text>
+                        <Text style={styles.logoText}>ALUKO</Text>
                     </View>
                 </View>
             </View>
@@ -456,9 +515,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                         <Text style={styles.currencySymbol}>€</Text>
                         <TextInput
                             style={styles.priceInput}
-                            onChangeText={setPricePerDay}
+                            onChangeText={(text) => {
+                                const formatted = formatEuroValue(text);
+                                setPricePerDay(formatted);
+                            }}
                             value={pricePerDay}
-                            placeholder="0.00"
+                            placeholder="0,00"
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                         />
@@ -491,9 +553,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                         <Text style={styles.currencySymbol}>€</Text>
                         <TextInput
                             style={styles.priceInput}
-                            onChangeText={setDepositValue}
+                            onChangeText={(text) => {
+                                const formatted = formatEuroValue(text);
+                                setDepositValue(formatted);
+                            }}
                             value={depositValue}
-                            placeholder="0.00"
+                            placeholder="0,00"
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                         />
@@ -658,23 +723,84 @@ export default function AddItemFormScreen({ session, navigation }) {
                                 </View>
                             )}
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.deliveryOption, deliveryType === 'both' && styles.deliveryOptionActive]}
-                            onPress={() => setDeliveryType('both')}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.deliveryOptionIcon}>🔄</Text>
-                            <Text style={[styles.deliveryOptionText, deliveryType === 'both' && styles.deliveryOptionTextActive]}>
-                                Ambas Opciones
-                            </Text>
-                            {deliveryType === 'both' && (
-                                <View style={styles.deliveryCheckmark}>
-                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
                     </View>
+
+                    {/* Campos de Entrega (mostrar apenas se delivery) */}
+                    {deliveryType === 'delivery' && (
+                        <View style={styles.deliveryDetailsContainer}>
+                            <Text style={styles.deliveryDetailsTitle}>📦 Detalles de Entrega</Text>
+
+                            <Text style={styles.label}>Distancia Máxima de Entrega (km)</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setDeliveryDistance}
+                                value={deliveryDistance}
+                                placeholder="Ej: 5"
+                                placeholderTextColor="#999"
+                                keyboardType="numeric"
+                            />
+
+                            {/* Toggle Entrega Gratuita */}
+                            <Text style={styles.label}>Tipo de Entrega</Text>
+                            <View style={styles.deliveryFeeTypeContainer}>
+                                <TouchableOpacity
+                                    style={[styles.deliveryFeeOption, isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    onPress={() => {
+                                        setIsFreeDelivery(true);
+                                        setDeliveryFee('');
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.deliveryFeeIcon}>🎁</Text>
+                                    <Text style={[styles.deliveryFeeText, isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                        Entrega Gratis
+                                    </Text>
+                                    {isFreeDelivery && (
+                                        <View style={styles.smallCheckmark}>
+                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.deliveryFeeOption, !isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    onPress={() => setIsFreeDelivery(false)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.deliveryFeeIcon}>💰</Text>
+                                    <Text style={[styles.deliveryFeeText, !isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                        Cobro por Entrega
+                                    </Text>
+                                    {!isFreeDelivery && (
+                                        <View style={styles.smallCheckmark}>
+                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Campo de valor da entrega (só mostra se não for grátis) */}
+                            {!isFreeDelivery && (
+                                <>
+                                    <Text style={styles.label}>Valor de la Entrega</Text>
+                                    <View style={styles.priceInputContainer}>
+                                        <Text style={styles.currencySymbol}>€</Text>
+                                        <TextInput
+                                            style={styles.priceInput}
+                                            onChangeText={(text) => {
+                                                const formatted = formatEuroValue(text);
+                                                setDeliveryFee(formatted);
+                                            }}
+                                            value={deliveryFee}
+                                            placeholder="0,00"
+                                            placeholderTextColor="#999"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    )}
 
                     {/* Disponibilidad de Recogida */}
                     <Text style={styles.label}>⏰ Disponibilidad de Recogida</Text>
@@ -1454,6 +1580,69 @@ const styles = StyleSheet.create({
     timeRangeSeparator: {
         fontSize: 20,
         color: '#666',
+        fontWeight: 'bold',
+    },
+    deliveryDetailsContainer: {
+        marginTop: 20,
+        padding: 16,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#10B981',
+    },
+    deliveryDetailsTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 12,
+    },
+    deliveryFeeTypeContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 8,
+        marginBottom: 12,
+    },
+    deliveryFeeOption: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+        padding: 10,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        gap: 6,
+        minHeight: 44,
+    },
+    deliveryFeeOptionActive: {
+        backgroundColor: '#E8F5E9',
+        borderColor: '#10B981',
+    },
+    deliveryFeeIcon: {
+        fontSize: 16,
+    },
+    deliveryFeeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#666',
+        flexShrink: 1,
+    },
+    deliveryFeeTextActive: {
+        color: '#10B981',
+    },
+    smallCheckmark: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#10B981',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 4,
+    },
+    smallCheckmarkText: {
+        color: '#fff',
+        fontSize: 12,
         fontWeight: 'bold',
     },
 });

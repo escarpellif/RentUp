@@ -62,7 +62,7 @@ const ActiveRentalModal = ({session, navigation}) => {
                     renter:profiles!rentals_renter_id_fkey(full_name)
                 `)
                 .eq('renter_id', session.user.id)
-                .eq('status', 'approved')
+                .in('status', ['approved', 'active'])  // ✅ Buscar approved E active
                 .gte('start_date', new Date().toISOString().split('T')[0])
                 .order('start_date', {ascending: true});
 
@@ -86,10 +86,20 @@ const ActiveRentalModal = ({session, navigation}) => {
     };
 
     const updateTimeRemaining = (rental = activeRentals[currentIndex]) => {
-        if (!rental) return;
+        if (!rental || !rental.start_date || !rental.pickup_time) {
+            setTimeRemaining('Calculando...');
+            return;
+        }
 
         const now = new Date();
         const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
+
+        // Verificar se a data é válida
+        if (isNaN(pickupDateTime.getTime())) {
+            setTimeRemaining('Fecha inválida');
+            return;
+        }
+
         const diff = pickupDateTime - now;
 
         if (diff <= 0) {
@@ -112,6 +122,8 @@ const ActiveRentalModal = ({session, navigation}) => {
     };
 
     const openMaps = () => {
+        const activeRental = activeRentals[currentIndex];
+
         if (!activeRental?.owner) {
             Alert.alert('Error', 'No se pudo obtener la dirección');
             return;
@@ -185,6 +197,11 @@ const ActiveRentalModal = ({session, navigation}) => {
     }
 
     const activeRental = activeRentals[currentIndex];
+
+    // Verificação adicional de segurança
+    if (!activeRental) {
+        return null;
+    }
 
     return (
         <Modal
@@ -299,7 +316,11 @@ const ActiveRentalModal = ({session, navigation}) => {
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>📍 Dirección:</Text>
                             <Text style={styles.detailValue}>
-                                {activeRental.owner?.address}, {activeRental.owner?.city}
+                                {activeRental.item?.street ? (
+                                    `${activeRental.item.street}${activeRental.item.number ? `, ${activeRental.item.number}` : ''}${activeRental.item.complement ? `, ${activeRental.item.complement}` : ''}\n${activeRental.item.postal_code} ${activeRental.item.city}${activeRental.item.province ? `, ${activeRental.item.province}` : ''}`
+                                ) : (
+                                    activeRental.owner?.address ? `${activeRental.owner.address}, ${activeRental.owner.city}` : 'Dirección no disponible'
+                                )}
                             </Text>
                         </View>
 

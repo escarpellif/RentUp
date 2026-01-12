@@ -87,8 +87,8 @@ const UnifiedRentalModal = ({session, navigation}) => {
                     renter:profiles!rentals_renter_id_fkey(full_name)
                 `)
                 .eq('renter_id', session.user.id)
-                .in('status', ['approved', 'active'])
-                .gte('start_date', new Date().toISOString().split('T')[0]);
+                .in('status', ['approved', 'active']);
+                // ✅ REMOVIDO filtro de data temporariamente para debug
 
             // Buscar locações onde usuário é LOCADOR (owner)
             // 'approved' (aguardando entrega) E 'active' (em locação, aguardando devolução)
@@ -101,8 +101,8 @@ const UnifiedRentalModal = ({session, navigation}) => {
                     renter:profiles!rentals_renter_id_fkey(full_name)
                 `)
                 .eq('owner_id', session.user.id)
-                .in('status', ['approved', 'active']) // ✅ CORRIGIDO: incluir 'active'
-                .gte('start_date', new Date().toISOString().split('T')[0]);
+                .in('status', ['approved', 'active']);
+                // ✅ REMOVIDO filtro de data temporariamente para debug
 
             if (renterError && renterError.code !== 'PGRST116') {
                 console.error('Erro ao buscar locações como renter:', renterError);
@@ -118,15 +118,34 @@ const UnifiedRentalModal = ({session, navigation}) => {
                 ...(ownerRentals || []).map(r => ({...r, userRole: 'owner'}))
             ];
 
+            console.log('🔵 UnifiedRentalModal - Locações encontradas:');
+            console.log('   - Como Renter:', renterRentals?.length || 0);
+            console.log('   - Como Owner:', ownerRentals?.length || 0);
+            console.log('   - Total combinado:', combinedRentals.length);
+            console.log('   - Data atual (filtro):', new Date().toISOString().split('T')[0]);
+
+            if (combinedRentals.length > 0) {
+                console.log('   - Primeira locação:', {
+                    id: combinedRentals[0].id,
+                    status: combinedRentals[0].status,
+                    start_date: combinedRentals[0].start_date,
+                    pickup_time: combinedRentals[0].pickup_time,
+                    userRole: combinedRentals[0].userRole
+                });
+                console.log('   - Dados completos da primeira locação:', combinedRentals[0]);
+            }
+
             // Ordenar por data
             combinedRentals.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
             if (combinedRentals.length > 0) {
                 setAllRentals(combinedRentals);
                 setVisible(true);
+                console.log('✅ Modal setado como VISIBLE com', combinedRentals.length, 'locação(ões)');
                 updateTimeRemaining(combinedRentals[0]);
             } else {
                 setVisible(false);
+                console.log('⚪ Modal setado como HIDDEN (nenhuma locação)');
             }
         } catch (error) {
             console.error('Erro ao buscar locações:', error);
@@ -134,25 +153,85 @@ const UnifiedRentalModal = ({session, navigation}) => {
     };
 
     const updateTimeRemaining = (rental = allRentals[currentIndex]) => {
-        if (!rental) return;
+        // ✅ Validação completa
+        if (!rental || !rental.start_date || !rental.pickup_time) {
+            setTimeRemaining('Calculando...');
+            return;
+        }
 
         const now = new Date();
-        const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
-        const diff = pickupDateTime - now;
 
-        if (diff <= 0) {
-            if (rental.userRole === 'renter') {
-                setTimeRemaining('Hora de recoger el artículo');
+        // ✅ Extrair apenas a data (YYYY-MM-DD) do start_date e end_date
+        const startDateOnly = rental.start_date.split('T')[0];
+        const endDateOnly = rental.end_date.split('T')[0];
+
+        // Criar datetime de retirada e devolução
+        const pickupDateTime = new Date(`${startDateOnly}T${rental.pickup_time}:00`);
+        const returnDateTime = new Date(`${endDateOnly}T${rental.return_time || '18:00'}:00`);
+
+        // ✅ Verificar se as datas são válidas
+        if (isNaN(pickupDateTime.getTime()) || isNaN(returnDateTime.getTime())) {
+            setTimeRemaining('Fecha inválida');
+            console.error('❌ Data inválida:', {
+                start_date: rental.start_date,
+                end_date: rental.end_date,
+                pickup_time: rental.pickup_time,
+                return_time: rental.return_time
+            });
+            return;
+        }
+
+        console.log('✅ Datas criadas:', {
+            pickupDateTime: pickupDateTime.toISOString(),
+            returnDateTime: returnDateTime.toISOString(),
+            now: now.toISOString(),
+            status: rental.status
+        });
+
+        // ✅ Se status é 'active' OU já passou horário de retirada, mostrar tempo até DEVOLUÇÃO
+        if (rental.status === 'active' || now >= pickupDateTime) {
+            const diffReturn = returnDateTime - now;
+
+            if (diffReturn <= 0) {
+                if (rental.userRole === 'renter') {
+                    setTimeRemaining('⏰ Hora de devolver el artículo');
+                } else {
+                    setTimeRemaining('⏰ Hora de recibir la devolución');
+                }
+                return;
+            }
+
+            const days = Math.floor(diffReturn / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffReturn % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diffReturn % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diffReturn % (1000 * 60)) / 1000);
+
+            if (days > 0) {
+                setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
+            } else if (hours > 0) {
+                setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
             } else {
-                setTimeRemaining('Hora de entregar el artículo');
+                setTimeRemaining(`${minutes}m ${seconds}s`);
             }
             return;
         }
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        // ✅ Caso contrário, mostrar tempo até RETIRADA (status approved)
+        const diffPickup = pickupDateTime - now;
+
+        if (diffPickup <= 0) {
+            if (rental.userRole === 'renter') {
+                setTimeRemaining('⏰ Hora de recoger el artículo');
+            } else {
+                setTimeRemaining('⏰ Hora de entregar el artículo');
+            }
+            return;
+        }
+
+        const days = Math.floor(diffPickup / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffPickup % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffPickup % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffPickup % (1000 * 60)) / 1000);
 
         if (days > 0) {
             setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
@@ -297,7 +376,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                         });
 
 
-                                    Alert.alert('¡Éxito!', 'Devolución confirmada. Gracias por usar RentUp!', [
+                                    Alert.alert('¡Éxito!', 'Devolución confirmada. Gracias por usar ALUKO!', [
                                         {
                                             text: 'OK',
                                             onPress: () => {
@@ -325,6 +404,113 @@ const UnifiedRentalModal = ({session, navigation}) => {
                 );
             }
         }
+    };
+
+    const handleEditRental = (rental) => {
+        // Fechar modal e navegar para tela de edição
+        setVisible(false);
+
+        if (rental.status === 'approved') {
+            Alert.alert(
+                'Editar Alquiler',
+                'Esta solicitud ya fue aprobada. Los cambios volverán la solicitud a estado PENDIENTE y necesitará nueva aprobación.\n\n¿Deseas continuar?',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                        text: 'Continuar',
+                        onPress: () => {
+                            if (navigation) {
+                                navigation.navigate('RequestRental', {
+                                    item: rental.item,
+                                    ownerProfile: rental.owner,
+                                    editingRental: rental,
+                                });
+                            }
+                        }
+                    }
+                ]
+            );
+        } else {
+            if (navigation) {
+                navigation.navigate('RequestRental', {
+                    item: rental.item,
+                    ownerProfile: rental.owner,
+                    editingRental: rental,
+                });
+            }
+        }
+    };
+
+    const handleCancelRental = (rental) => {
+        Alert.alert(
+            'Cancelar Solicitud',
+            rental.status === 'approved'
+                ? '¿Estás seguro de que deseas cancelar este alquiler?\n\nATENCIÓN: El alquiler ya fue aprobado. Se notificará al propietario.'
+                : '¿Estás seguro de que deseas cancelar esta solicitud?',
+            [
+                { text: 'No', style: 'cancel' },
+                {
+                    text: 'Sí, Cancelar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            if (rental.status === 'pending') {
+                                // Se pendente, deletar
+                                const { error } = await supabase
+                                    .from('rentals')
+                                    .delete()
+                                    .eq('id', rental.id);
+
+                                if (error) throw error;
+
+                                Alert.alert('Éxito', 'Solicitud eliminada');
+                            } else {
+                                // Se aprovado, marcar como cancelado
+                                const { error } = await supabase
+                                    .from('rentals')
+                                    .update({ status: 'cancelled' })
+                                    .eq('id', rental.id);
+
+                                if (error) throw error;
+
+                                // Remover bloqueios de data
+                                await supabase
+                                    .from('item_availability')
+                                    .delete()
+                                    .eq('rental_id', rental.id);
+
+                                // Notificar proprietário
+                                await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: rental.owner_id,
+                                        type: 'rental_cancelled',
+                                        title: 'Alquiler Cancelado',
+                                        message: `${rental.renter?.full_name || 'El locatario'} canceló el alquiler de "${rental.item?.title}"`,
+                                        related_id: rental.id,
+                                        read: false,
+                                    });
+
+                                Alert.alert('Éxito', 'Alquiler cancelado');
+                            }
+
+                            // Atualizar lista
+                            const updatedRentals = allRentals.filter(r => r.id !== rental.id);
+                            setAllRentals(updatedRentals);
+
+                            if (updatedRentals.length === 0) {
+                                setVisible(false);
+                            } else if (currentIndex >= updatedRentals.length) {
+                                setCurrentIndex(updatedRentals.length - 1);
+                            }
+                        } catch (error) {
+                            console.error('Erro ao cancelar:', error);
+                            Alert.alert('Error', 'No se pudo cancelar la solicitud');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const openMaps = (rental) => {
@@ -495,7 +681,10 @@ const UnifiedRentalModal = ({session, navigation}) => {
                         {/* Cronômetro */}
                         <View style={[styles.timerContainer, isOwner ? styles.timerOwner : styles.timerRenter]}>
                             <Text style={styles.timerLabel}>
-                                {isOwner ? 'Tiempo para entrega:' : 'Tiempo para recogida:'}
+                                {currentRental.status === 'active'
+                                    ? (isOwner ? 'Tiempo para devolución:' : 'Tiempo para devolución:')
+                                    : (isOwner ? 'Tiempo para entrega:' : 'Tiempo para recogida:')
+                                }
                             </Text>
                             <Text
                                 style={[styles.timerValue, isOwner ? styles.timerValueOwner : styles.timerValueRenter]}
@@ -690,13 +879,34 @@ const UnifiedRentalModal = ({session, navigation}) => {
                             ) : (
                                 <>
                                     {currentRental.status === 'approved' ? (
-                                        <TouchableOpacity
-                                            style={styles.mapsButton}
-                                            onPress={() => openMaps(currentRental)}
-                                        >
-                                            <Text style={styles.mapsButtonIcon}>📍</Text>
-                                            <Text style={styles.mapsButtonText}>Iniciar Pick Up</Text>
-                                        </TouchableOpacity>
+                                        <>
+                                            <TouchableOpacity
+                                                style={styles.mapsButton}
+                                                onPress={() => openMaps(currentRental)}
+                                            >
+                                                <Text style={styles.mapsButtonIcon}>📍</Text>
+                                                <Text style={styles.mapsButtonText}>Iniciar Pick Up</Text>
+                                            </TouchableOpacity>
+
+                                            {/* Botões de Editar e Cancelar para o Renter */}
+                                            <View style={styles.actionButtonsRow}>
+                                                <TouchableOpacity
+                                                    style={styles.editRentalButton}
+                                                    onPress={() => handleEditRental(currentRental)}
+                                                >
+                                                    <Ionicons name="pencil" size={18} color="#fff" />
+                                                    <Text style={styles.editRentalButtonText}>Editar</Text>
+                                                </TouchableOpacity>
+
+                                                <TouchableOpacity
+                                                    style={styles.cancelRentalButton}
+                                                    onPress={() => handleCancelRental(currentRental)}
+                                                >
+                                                    <Ionicons name="close-circle" size={18} color="#fff" />
+                                                    <Text style={styles.cancelRentalButtonText}>Cancelar</Text>
+                                                </TouchableOpacity>
+                                            </View>
+                                        </>
                                     ) : (
                                         <TouchableOpacity
                                             style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
@@ -1183,6 +1393,51 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         color: '#666',
+    },
+    actionButtonsRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 8,
+    },
+    editRentalButton: {
+        flex: 1,
+        backgroundColor: '#3B82F6',
+        paddingVertical: 14,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        shadowColor: '#3B82F6',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    editRentalButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    cancelRentalButton: {
+        flex: 1,
+        backgroundColor: '#EF4444',
+        paddingVertical: 14,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+        shadowColor: '#EF4444',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    cancelRentalButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
 });
 

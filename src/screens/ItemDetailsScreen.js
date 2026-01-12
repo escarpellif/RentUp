@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
-import ApproximateLocationMap from '../components/ApproximateLocationMap';
+import ExactLocationMap from '../components/ExactLocationMap';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 import { requiereAutenticacion } from '../utils/guestCheck';
 
@@ -104,6 +104,45 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
             return;
         }
 
+        // Verificar se já existe uma solicitação pendente ou aprovada para este item
+        try {
+            const { data: existingRentals, error: rentalCheckError } = await supabase
+                .from('rentals')
+                .select('id, status, start_date, end_date')
+                .eq('item_id', item.id)
+                .eq('renter_id', session.user.id)
+                .in('status', ['pending', 'approved', 'active'])
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (rentalCheckError) {
+                console.error('Erro ao verificar solicitações:', rentalCheckError);
+            }
+
+            // Se já existe uma solicitação pendente ou ativa
+            if (existingRentals && existingRentals.length > 0) {
+                const rental = existingRentals[0];
+                let statusMessage = '';
+
+                if (rental.status === 'pending') {
+                    statusMessage = 'Ya has solicitado el alquiler de este artículo.\n\nPor favor, aguarda la respuesta del anunciante.';
+                } else if (rental.status === 'approved') {
+                    statusMessage = 'Ya tienes una solicitud aprobada para este artículo.\n\nVerifica tus locaciones activas.';
+                } else if (rental.status === 'active') {
+                    statusMessage = 'Actualmente estás alquilando este artículo.\n\nDebes devolverlo antes de solicitar un nuevo alquiler.';
+                }
+
+                Alert.alert(
+                    'Solicitud Existente',
+                    statusMessage,
+                    [{ text: 'Entendido' }]
+                );
+                return;
+            }
+        } catch (error) {
+            console.error('Erro ao verificar solicitações:', error);
+        }
+
         // Verificar se o usuário tem verificação aprovada
         const { isVerified, status } = await checkUserVerification(session.user.id);
 
@@ -112,7 +151,7 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
             return;
         }
 
-        // Se verificado, continuar para solicitar aluguel
+        // Se verificado e sem solicitação pendente, continuar para solicitar aluguel
         navigation.navigate('RequestRental', {
             item: item,
             ownerProfile: ownerProfile
@@ -140,82 +179,156 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
 
     return (
         <SafeAreaView style={styles.safeContainer}>
-            <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
+            <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
-            {/* Header com Botão Voltar */}
+            {/* Header Verde - Mesmo layout do Marketplace */}
             <View style={styles.headerContainer}>
-                <TouchableOpacity
-                    style={styles.backButton}
-                    onPress={() => navigation.goBack()}
-                    activeOpacity={0.7}
-                >
-                    <Text style={styles.backArrow}>←</Text>
-                </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Detalles del Artículo</Text>
+                <View style={styles.headerTopRow}>
+                    {/* Botão Voltar + Título */}
+                    <View style={styles.leftHeader}>
+                        <TouchableOpacity
+                            style={styles.backButtonCircle}
+                            onPress={() => navigation.goBack()}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.backArrow}>←</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Detalles del Artículo</Text>
+                    </View>
+
+                    {/* ALUKO à Direita */}
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/images/app-icon.png')}
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.logoText}>ALUKO</Text>
+                    </View>
                 </View>
-                <View style={styles.headerSpacer} />
             </View>
 
-            <ScrollView style={styles.container}>
-                {/* Carrossel de Fotos */}
-                {photos.length > 0 ? (
-                    <PhotoCarousel photos={photos} supabaseUrl={SUPABASE_URL} />
-                ) : (
-                    <View style={styles.noPhotoContainer}>
-                        <Text style={styles.noPhotoText}>📷</Text>
-                        <Text style={styles.noPhotoLabel}>Sin foto disponible</Text>
-                    </View>
-                )}
-
-                {/* Informações Principais */}
-                <View style={styles.contentContainer}>
-                <Text style={styles.title}>{item?.title || 'Sin título'}</Text>
-
-                <View style={styles.priceContainer}>
-                    <Text style={styles.price}>
-                        €{(session?.user?.id === item?.owner_id
-                            ? parseFloat(item?.price_per_day || 0)
-                            : parseFloat(item?.price_per_day || 0) * 1.18
-                        ).toFixed(2)}
-                    </Text>
-                    <Text style={styles.priceLabel}> / dia</Text>
-                </View>
-
-                <View style={styles.infoRow}>
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{item.category}</Text>
-                    </View>
-                </View>
-
-                {/* Descrição */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Descripción</Text>
-                    <Text style={styles.description}>{item.description}</Text>
-                </View>
-
-                {/* Approximate Location Map */}
-                <ApproximateLocationMap
-                    coordinates={item.coordinates_approx}
-                    locationApprox={item.location_approx || item.location}
-                />
-
-                {/* Informações do Dono */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Anunciante</Text>
-                    {loading ? (
-                        <Text>Cargando...</Text>
+            <ScrollView style={styles.scrollContainer}>
+                {/* Card Branco com Conteúdo */}
+                <View style={styles.cardContainer}>
+                    {/* Carrossel de Fotos */}
+                    {photos.length > 0 ? (
+                        <PhotoCarousel photos={photos} supabaseUrl={SUPABASE_URL} />
                     ) : (
-                        <View style={styles.ownerCard}>
-                            <View style={styles.ownerInfo}>
-                                <Text style={styles.ownerName}>
-                                    {ownerProfile?.full_name || 'Usuario'}
-                                </Text>
-                                {renderStars(ownerProfile?.rating_average || 0, ownerProfile?.rating_count || 0)}
-                            </View>
+                        <View style={styles.noPhotoContainer}>
+                            <Text style={styles.noPhotoText}>📷</Text>
+                            <Text style={styles.noPhotoLabel}>Sin foto disponible</Text>
                         </View>
                     )}
-                </View>
+
+                    {/* Informações Principais */}
+                    <View style={styles.contentContainer}>
+                        {/* Categoria no topo */}
+                        <View style={styles.categoryBadgeContainer}>
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>{item.category}</Text>
+                            </View>
+                        </View>
+
+                        <Text style={styles.title}>{item?.title || 'Sin título'}</Text>
+
+                        <View style={styles.priceContainer}>
+                            <Text style={styles.price}>
+                                €{(session?.user?.id === item?.owner_id
+                                    ? parseFloat(item?.price_per_day || 0)
+                                    : parseFloat(item?.price_per_day || 0) * 1.18
+                                ).toFixed(2)}
+                            </Text>
+                            <Text style={styles.priceLabel}> / día</Text>
+                        </View>
+
+                        {/* Descrição */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Descripción</Text>
+                            <Text style={styles.description}>{item.description}</Text>
+                        </View>
+
+                        {/* Opções de Entrega */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>🚚 Opciones de Entrega</Text>
+                            {item.delivery_type === 'delivery' ? (
+                                <View style={styles.deliveryOptionsContainer}>
+                                    {item.is_free_delivery ? (
+                                        <>
+                                            <View style={styles.deliveryOption}>
+                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                            </View>
+                                            <Text style={styles.orText}>O</Text>
+                                            <View style={styles.deliveryOption}>
+                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={styles.deliveryOptionText}>Entrega gratis</Text>
+                                            </View>
+                                            {item.delivery_distance && (
+                                                <Text style={styles.deliveryNote}>
+                                                    📍 Entrega hasta {item.delivery_distance} km
+                                                </Text>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <View style={styles.deliveryOption}>
+                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                            </View>
+                                            <Text style={styles.orText}>O</Text>
+                                            <View style={styles.deliveryOption}>
+                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={styles.deliveryOptionText}>
+                                                    Entrega mediante tasa de €{parseFloat(item.delivery_fee || 0).toFixed(2)}
+                                                </Text>
+                                            </View>
+                                            {item.delivery_distance && (
+                                                <Text style={styles.deliveryNote}>
+                                                    📍 Entrega hasta {item.delivery_distance} km
+                                                </Text>
+                                            )}
+                                        </>
+                                    )}
+                                </View>
+                            ) : (
+                                <View style={styles.deliveryOptionsContainer}>
+                                    <View style={styles.deliveryOption}>
+                                        <Text style={styles.deliveryOptionIcon}>✓</Text>
+                                        <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </View>
+
+                        {/* Ubicación */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Ubicación</Text>
+                            <Text style={styles.locationText}>📍 {item.location_full || item.location}</Text>
+                        </View>
+
+                        {/* Exact Location Map */}
+                        <ExactLocationMap
+                            coordinates={item.coordinates}
+                            location={item.location_full || item.location}
+                        />
+
+                        {/* Informações do Dono */}
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Anunciante</Text>
+                            {loading ? (
+                                <Text>Cargando...</Text>
+                            ) : (
+                                <View style={styles.ownerCardLeft}>
+                                    <Text style={styles.ownerNameLeft}>
+                                        {ownerProfile?.full_name || 'Usuario'}
+                                    </Text>
+                                    <View style={styles.starsContainerLeft}>
+                                        {renderStars(ownerProfile?.rating_average || 0, ownerProfile?.rating_count || 0)}
+                                    </View>
+                                </View>
+                            )}
+                        </View>
 
                 {/* Informações Adicionais */}
                 <View style={styles.section}>
@@ -256,6 +369,8 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                         </TouchableOpacity>
                     </View>
                 )}
+                </View>
+                {/* Fim do Card Branco */}
             </View>
 
             <View style={{ height: 30 }} />
@@ -267,48 +382,80 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
 const styles = StyleSheet.create({
     safeContainer: {
         flex: 1,
-        backgroundColor: '#F8F9FA',
+        backgroundColor: '#E8EAED',
         paddingTop: Platform.OS === 'android' ? 25 : 0,
     },
+    // Header Verde - Mesmo layout do Marketplace
     headerContainer: {
+        backgroundColor: '#10B981',
+        paddingTop: 12,
+        paddingBottom: 12,
+        paddingHorizontal: 16,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 4,
+    },
+    headerTopRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
     },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
+    leftHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    backButtonCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
     },
     backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
+        fontSize: 20,
+        color: '#fff',
+        fontWeight: 'bold',
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#fff',
     },
-    headerSpacer: {
-        width: 40,
+    logoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
-    container: {
+    logoImage: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+    },
+    logoText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    scrollContainer: {
         flex: 1,
+        backgroundColor: '#E8EAED',
+    },
+    cardContainer: {
         backgroundColor: '#fff',
+        marginHorizontal: 16,
+        marginTop: 16,
+        marginBottom: 16,
+        borderRadius: 12,
+        overflow: 'hidden',
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
     },
     noPhotoContainer: {
         width: '100%',
@@ -328,11 +475,16 @@ const styles = StyleSheet.create({
     contentContainer: {
         padding: 20,
     },
+    categoryBadgeContainer: {
+        flexDirection: 'row',
+        marginBottom: 12,
+    },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 10,
         color: '#333',
+        textAlign: 'left',
     },
     priceContainer: {
         flexDirection: 'row',
@@ -342,7 +494,7 @@ const styles = StyleSheet.create({
     price: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#28a745',
+        color: '#10B981',
     },
     priceLabel: {
         fontSize: 18,
@@ -359,6 +511,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 15,
+        alignSelf: 'flex-start',
     },
     badgeText: {
         color: '#fff',
@@ -368,6 +521,12 @@ const styles = StyleSheet.create({
     location: {
         fontSize: 14,
         color: '#6c757d',
+    },
+    locationText: {
+        fontSize: 16,
+        color: '#495057',
+        lineHeight: 24,
+        textAlign: 'left',
     },
     section: {
         marginTop: 20,
@@ -379,12 +538,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#2c4455',
+        textAlign: 'left',
     },
     description: {
         fontSize: 16,
         lineHeight: 24,
         color: '#495057',
+        textAlign: 'left',
     },
     ownerCard: {
         justifyContent: 'center',
@@ -392,6 +553,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#f8f9fa',
         padding: 15,
         borderRadius: 10,
+    },
+    ownerCardLeft: {
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        backgroundColor: 'transparent',
+        padding: 0,
     },
     ownerInfo: {
         alignItems: 'center',
@@ -402,6 +569,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         textAlign: 'center',
+        marginBottom: 8,
+    },
+    ownerNameLeft: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        textAlign: 'left',
         marginBottom: 8,
     },
     contactButton: {
@@ -420,6 +594,11 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 5,
     },
+    starsContainerLeft: {
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        marginTop: 5,
+    },
     starsRow: {
         flexDirection: 'row',
         justifyContent: 'center',
@@ -433,7 +612,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '600',
         color: '#333',
-        textAlign: 'center',
+        textAlign: 'left',
     },
     infoItem: {
         flexDirection: 'row',
@@ -476,5 +655,44 @@ const styles = StyleSheet.create({
         color: '#007bff',
         fontSize: 16,
         fontWeight: '600',
+    },
+    deliveryOptionsContainer: {
+        backgroundColor: '#F8F9FA',
+        padding: 16,
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#10B981',
+    },
+    deliveryOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
+        gap: 10,
+    },
+    deliveryOptionIcon: {
+        fontSize: 18,
+        color: '#10B981',
+        fontWeight: 'bold',
+    },
+    deliveryOptionText: {
+        fontSize: 15,
+        color: '#333',
+        fontWeight: '500',
+    },
+    deliveryNote: {
+        fontSize: 13,
+        color: '#666',
+        fontStyle: 'italic',
+        marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#E0E0E0',
+    },
+    orText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#999',
+        textAlign: 'center',
+        marginVertical: 8,
     },
 });

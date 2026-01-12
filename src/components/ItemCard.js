@@ -2,14 +2,34 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { categoryConfig } from '../constants/categoryConfig';
 import { itemCardStyles } from '../styles/itemCardStyles';
+import { calculateDistance } from '../utils/locationHelper';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
-const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = null }) => {
+const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = null, userLocation = null }) => {
     // Validação para evitar erros
     if (!item) {
         return null;
     }
+
+    // Calcular distância se userLocation e coordenadas do item existirem
+    const distance = (userLocation && item.coordinates?.latitude && item.coordinates?.longitude)
+        ? calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            item.coordinates.latitude,
+            item.coordinates.longitude
+        )
+        : null;
+
+    // Formatar distância para exibição
+    const formatDistance = (dist) => {
+        if (!dist) return null;
+        if (dist < 1) {
+            return `${Math.round(dist * 1000)}m`; // Menos de 1km, mostrar em metros
+        }
+        return `${dist.toFixed(1)} km`; // Mostrar em km com 1 decimal
+    };
 
     // Validação segura para photo_url
     const imageUrl = (item.photo_url && typeof item.photo_url === 'string')
@@ -23,9 +43,14 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = n
     // Suporta tanto onPress quanto onDetailsPress
     const handlePress = onPress || onDetailsPress;
 
+    // Define o estilo de largura baseado em fullWidth
+    const cardWidthStyle = fullWidth
+        ? { width: '100%' }
+        : { flex: 1, maxWidth: '48%' };
+
     return (
         <TouchableOpacity
-            style={[itemCardStyles.card, fullWidth && { width: '100%' }]}
+            style={[itemCardStyles.card, cardWidthStyle]}
             onPress={() => handlePress && handlePress(item)}
             activeOpacity={0.9}
         >
@@ -52,7 +77,7 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = n
                 <View style={itemCardStyles.imageOverlay} />
 
                 {/* Badge de Pausado */}
-                {item.is_paused && (
+                {!(item.is_active ?? true) && (
                     <View style={itemCardStyles.pausedBadge}>
                         <Text style={itemCardStyles.pausedBadgeText}>⏸️ Pausado</Text>
                     </View>
@@ -71,6 +96,13 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = n
                     {item.description || 'Sin descripción'}
                 </Text>
 
+                {/* Distância */}
+                {distance !== null && (
+                    <Text style={itemCardStyles.distanceText}>
+                        📍 {formatDistance(distance)}
+                    </Text>
+                )}
+
                 {/* Preço e Status na mesma linha */}
                 <View style={itemCardStyles.footerContainer}>
                     <View style={itemCardStyles.priceContainer}>
@@ -85,7 +117,11 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = n
                     </View>
 
                     {/* Status Badge no Canto Inferior Direito */}
-                    {item.is_available ? (
+                    {!(item.is_active ?? true) ? (
+                        <View style={[itemCardStyles.statusBadgeSmall, itemCardStyles.statusBadgeUnavailable]}>
+                            <Text style={itemCardStyles.statusBadgeText}>No Disponible</Text>
+                        </View>
+                    ) : item.is_available ? (
                         <View style={itemCardStyles.statusBadgeSmall}>
                             <Text style={itemCardStyles.statusBadgeText}>Disponible</Text>
                         </View>

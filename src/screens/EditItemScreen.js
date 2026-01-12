@@ -80,6 +80,48 @@ export default function EditItemScreen({ route, navigation, session }) {
     const [pickupEveningStart, setPickupEveningStart] = useState(item?.pickup_evening_start || '18:00');
     const [pickupEveningEnd, setPickupEveningEnd] = useState(item?.pickup_evening_end || '23:00');
 
+    // Estados para entrega
+    const [deliveryDistance, setDeliveryDistance] = useState(item?.delivery_distance?.toString() || '');
+    const [isFreeDelivery, setIsFreeDelivery] = useState(item?.is_free_delivery !== false);
+    const [deliveryFee, setDeliveryFee] = useState(item?.delivery_fee?.toString() || '');
+
+    // Função para formatar valor em Euro (adicionar vírgula e pontos automaticamente)
+    const formatEuroValue = (value) => {
+        // Remove tudo que não é número
+        const onlyNumbers = value.replace(/\D/g, '');
+
+        if (onlyNumbers === '') return '';
+
+        // Converte para número e divide por 100 para adicionar os centavos
+        const numberValue = parseInt(onlyNumbers, 10) / 100;
+
+        // Formata como moeda europeia (vírgula para centavos, ponto para milhares)
+        return numberValue.toLocaleString('es-ES', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        });
+    };
+
+    // Função para converter valor formatado de volta para número
+    const parseEuroValue = (formattedValue) => {
+        if (!formattedValue) return 0;
+        // Remove pontos de milhar e substitui vírgula por ponto
+        return parseFloat(formattedValue.replace(/\./g, '').replace(',', '.'));
+    };
+
+    // Formatar valores existentes ao carregar
+    useEffect(() => {
+        if (item?.price_per_day) {
+            setPricePerDay(formatEuroValue(item.price_per_day.toString().replace('.', '')));
+        }
+        if (item?.deposit_value) {
+            setDepositValue(formatEuroValue(item.deposit_value.toString().replace('.', '')));
+        }
+        if (item?.delivery_fee) {
+            setDeliveryFee(formatEuroValue(item.delivery_fee.toString().replace('.', '')));
+        }
+    }, [item]);
+
     // Carregar fotos existentes e perfil do usuário ao montar o componente
     useEffect(() => {
         loadExistingPhotos();
@@ -174,7 +216,7 @@ export default function EditItemScreen({ route, navigation, session }) {
                 `https://nominatim.openstreetmap.org/search?postalcode=${code}&country=Spain&format=json&addressdetails=1&limit=5`,
                 {
                     headers: {
-                        'User-Agent': 'RentUpApp/1.0'
+                        'User-Agent': 'ALUKOApp/1.0'
                     }
                 }
             );
@@ -209,7 +251,7 @@ export default function EditItemScreen({ route, navigation, session }) {
 
     const pickImage = async (index) => {
         let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaType.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [4, 3],
             quality: 0.5,
@@ -304,8 +346,8 @@ export default function EditItemScreen({ route, navigation, session }) {
             .update({
                 title,
                 description,
-                price_per_day: parseFloat(pricePerDay),
-                deposit_value: depositValue ? parseFloat(depositValue) : 0,
+                price_per_day: parseEuroValue(pricePerDay),
+                deposit_value: depositValue ? parseEuroValue(depositValue) : 0,
                 discount_week: discountWeek ? parseFloat(discountWeek) : 0,
                 discount_month: discountMonth ? parseFloat(discountMonth) : 0,
                 category,
@@ -323,6 +365,9 @@ export default function EditItemScreen({ route, navigation, session }) {
                 photo_url: uploadedPaths[0],
                 photos: uploadedPaths,
                 delivery_type: deliveryType,
+                delivery_distance: deliveryDistance ? parseFloat(deliveryDistance) : null,
+                is_free_delivery: isFreeDelivery,
+                delivery_fee: deliveryFee ? parseEuroValue(deliveryFee) : 0,
                 flexible_hours: flexibleHours,
                 pickup_days: Object.keys(pickupDays).filter(day => pickupDays[day]),
                 pickup_time_start: flexibleHours ? '06:00' : pickupTimeStart,
@@ -421,9 +466,12 @@ export default function EditItemScreen({ route, navigation, session }) {
                         <Text style={styles.currencySymbol}>€</Text>
                         <TextInput
                             style={styles.priceInput}
-                            onChangeText={setPricePerDay}
+                            onChangeText={(text) => {
+                                const formatted = formatEuroValue(text);
+                                setPricePerDay(formatted);
+                            }}
                             value={pricePerDay}
-                            placeholder="0.00"
+                            placeholder="0,00"
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                         />
@@ -436,9 +484,12 @@ export default function EditItemScreen({ route, navigation, session }) {
                         <Text style={styles.currencySymbol}>€</Text>
                         <TextInput
                             style={styles.priceInput}
-                            onChangeText={setDepositValue}
+                            onChangeText={(text) => {
+                                const formatted = formatEuroValue(text);
+                                setDepositValue(formatted);
+                            }}
                             value={depositValue}
-                            placeholder="0.00"
+                            placeholder="0,00"
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                         />
@@ -840,23 +891,84 @@ export default function EditItemScreen({ route, navigation, session }) {
                                 </View>
                             )}
                         </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.deliveryOption, deliveryType === 'both' && styles.deliveryOptionActive]}
-                            onPress={() => setDeliveryType('both')}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.deliveryOptionIcon}>🔄</Text>
-                            <Text style={[styles.deliveryOptionText, deliveryType === 'both' && styles.deliveryOptionTextActive]}>
-                                Ambas Opciones
-                            </Text>
-                            {deliveryType === 'both' && (
-                                <View style={styles.deliveryCheckmark}>
-                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
-                                </View>
-                            )}
-                        </TouchableOpacity>
                     </View>
+
+                    {/* Campos de Entrega (mostrar apenas se delivery) */}
+                    {deliveryType === 'delivery' && (
+                        <View style={styles.deliveryDetailsContainer}>
+                            <Text style={styles.deliveryDetailsTitle}>📦 Detalles de Entrega</Text>
+
+                            <Text style={styles.label}>Distancia Máxima de Entrega (km)</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={setDeliveryDistance}
+                                value={deliveryDistance}
+                                placeholder="Ej: 5"
+                                placeholderTextColor="#999"
+                                keyboardType="numeric"
+                            />
+
+                            {/* Toggle Entrega Gratuita */}
+                            <Text style={styles.label}>Tipo de Entrega</Text>
+                            <View style={styles.deliveryFeeTypeContainer}>
+                                <TouchableOpacity
+                                    style={[styles.deliveryFeeOption, isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    onPress={() => {
+                                        setIsFreeDelivery(true);
+                                        setDeliveryFee('');
+                                    }}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.deliveryFeeIcon}>🎁</Text>
+                                    <Text style={[styles.deliveryFeeText, isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                        Entrega Gratis
+                                    </Text>
+                                    {isFreeDelivery && (
+                                        <View style={styles.smallCheckmark}>
+                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.deliveryFeeOption, !isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    onPress={() => setIsFreeDelivery(false)}
+                                    activeOpacity={0.7}
+                                >
+                                    <Text style={styles.deliveryFeeIcon}>💰</Text>
+                                    <Text style={[styles.deliveryFeeText, !isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                        Cobro por Entrega
+                                    </Text>
+                                    {!isFreeDelivery && (
+                                        <View style={styles.smallCheckmark}>
+                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                            </View>
+
+                            {/* Campo de valor da entrega (só mostra se não for grátis) */}
+                            {!isFreeDelivery && (
+                                <>
+                                    <Text style={styles.label}>Valor de la Entrega</Text>
+                                    <View style={styles.priceInputContainer}>
+                                        <Text style={styles.currencySymbol}>€</Text>
+                                        <TextInput
+                                            style={styles.priceInput}
+                                            onChangeText={(text) => {
+                                                const formatted = formatEuroValue(text);
+                                                setDeliveryFee(formatted);
+                                            }}
+                                            value={deliveryFee}
+                                            placeholder="0,00"
+                                            placeholderTextColor="#999"
+                                            keyboardType="numeric"
+                                        />
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    )}
                 </View>
 
                 {/* Card: Fotos */}
@@ -1410,6 +1522,69 @@ const styles = StyleSheet.create({
     timeRangeSeparator: {
         fontSize: 20,
         color: '#666',
+        fontWeight: 'bold',
+    },
+    deliveryDetailsContainer: {
+        marginTop: 20,
+        padding: 16,
+        backgroundColor: '#F8F9FA',
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#10B981',
+    },
+    deliveryDetailsTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 12,
+    },
+    deliveryFeeTypeContainer: {
+        flexDirection: 'row',
+        gap: 8,
+        marginTop: 8,
+        marginBottom: 12,
+    },
+    deliveryFeeOption: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+        padding: 10,
+        borderRadius: 10,
+        borderWidth: 2,
+        borderColor: '#E8E8E8',
+        gap: 6,
+        minHeight: 44,
+    },
+    deliveryFeeOptionActive: {
+        backgroundColor: '#E8F5E9',
+        borderColor: '#10B981',
+    },
+    deliveryFeeIcon: {
+        fontSize: 16,
+    },
+    deliveryFeeText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#666',
+        flexShrink: 1,
+    },
+    deliveryFeeTextActive: {
+        color: '#10B981',
+    },
+    smallCheckmark: {
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        backgroundColor: '#10B981',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginLeft: 4,
+    },
+    smallCheckmarkText: {
+        color: '#fff',
+        fontSize: 12,
         fontWeight: 'bold',
     },
 });

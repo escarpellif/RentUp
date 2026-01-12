@@ -130,6 +130,14 @@ export default function MyRentalsScreen({ navigation, session }) {
 
                             if (error) throw error;
 
+                            // ✅ Marcar notificação original como lida (rental_request)
+                            await supabase
+                                .from('user_notifications')
+                                .update({ read: true })
+                                .eq('related_id', rentalId)
+                                .eq('user_id', rental.owner_id)
+                                .eq('type', 'rental_request');
+
                             // Criar notificação para o locatário com código
                             await supabase
                                 .from('user_notifications')
@@ -159,7 +167,135 @@ export default function MyRentalsScreen({ navigation, session }) {
         );
     };
 
-    const handleReject = async (rentalId) => {
+    const handleReject = async (rentalId, reason) => {
+        if (!reason || reason.trim() === '') {
+            Alert.alert('Error', 'Por favor, ingresa un motivo para el rechazo');
+            return;
+        }
+
+        try {
+            // Atualizar status para rejected
+            const { error } = await supabase
+                .from('rentals')
+                .update({
+                    status: 'rejected',
+                    rejection_reason: reason
+                })
+                .eq('id', rentalId);
+
+            if (error) throw error;
+
+            // Buscar dados do rental para notificação
+            const rental = rentals.find(r => r.id === rentalId);
+
+            // Enviar notificação ao solicitante
+            await supabase
+                .from('user_notifications')
+                .insert({
+                    user_id: rental.renter_id,
+                    type: 'rental_rejected',
+                    title: 'Solicitud Rechazada',
+                    message: `Tu solicitud para "${rental.item?.title}" fue rechazada. Motivo: ${reason}`,
+                    related_id: rentalId,
+                    read: false,
+                });
+
+            Alert.alert('Éxito', 'Solicitud rechazada');
+            fetchRentals();
+        } catch (error) {
+            console.error('Erro ao rejeitar:', error);
+            Alert.alert('Error', 'No se pudo rechazar la solicitud');
+        }
+    };
+
+    const handleEditRental = (rental) => {
+        // Se a locação já foi aprovada ou está ativa, mostrar alerta
+        if (rental.status === 'approved' || rental.status === 'active') {
+            Alert.alert(
+                'Editar Alquiler',
+                'Esta solicitud ya fue aprobada. Los cambios serán notificados al propietario y pueden requerir nueva aprobación.\n\n¿Deseas continuar?',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    {
+                        text: 'Continuar',
+                        onPress: () => {
+                            // Navegar para tela de editar com os dados do rental
+                            navigation.navigate('RequestRental', {
+                                item: rental.item,
+                                ownerProfile: rental.owner,
+                                editingRental: rental, // Passar dados para edição
+                            });
+                        }
+                    }
+                ]
+            );
+        } else {
+            // Se ainda está pendente, navegar direto
+            navigation.navigate('RequestRental', {
+                item: rental.item,
+                ownerProfile: rental.owner,
+                editingRental: rental, // Passar dados para edição
+            });
+        }
+    };
+
+    const handleCancelRental = (rentalId) => {
+        const rental = rentals.find(r => r.id === rentalId);
+
+        Alert.alert(
+            'Cancelar Solicitud',
+            `¿Estás seguro de que deseas cancelar ${rental.status === 'pending' ? 'esta solicitud' : 'este alquiler'}?\n\n${rental.status === 'approved' || rental.status === 'active' ? 'ATENCIÓN: El alquiler ya fue aprobado. Se notificará al propietario.' : ''}`,
+            [
+                { text: 'No', style: 'cancel' },
+                {
+                    text: 'Sí, Cancelar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            // Deletar ou marcar como cancelado dependendo do status
+                            if (rental.status === 'pending') {
+                                // Se ainda está pendente, pode deletar
+                                const { error } = await supabase
+                                    .from('rentals')
+                                    .delete()
+                                    .eq('id', rentalId);
+
+                                if (error) throw error;
+                            } else {
+                                // Se já foi aprovado, marcar como cancelado
+                                const { error } = await supabase
+                                    .from('rentals')
+                                    .update({ status: 'cancelled' })
+                                    .eq('id', rentalId);
+
+                                if (error) throw error;
+
+                                // Notificar o proprietário
+                                await supabase
+                                    .from('user_notifications')
+                                    .insert({
+                                        user_id: rental.owner_id,
+                                        type: 'rental_cancelled',
+                                        title: 'Alquiler Cancelado',
+                                        message: `${rental.renter?.full_name} canceló el alquiler de "${rental.item?.title}"`,
+                                        related_id: rentalId,
+                                        read: false,
+                                    });
+                            }
+
+                            Alert.alert('Éxito', rental.status === 'pending' ? 'Solicitud eliminada' : 'Alquiler cancelado');
+                            fetchRentals();
+                        } catch (error) {
+                            console.error('Erro ao cancelar:', error);
+                            Alert.alert('Error', 'No se pudo cancelar la solicitud');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleRejectWithReason = (rentalId) => {
         Alert.prompt(
             'Rechazar Solicitud',
             'Por favor, indica el motivo del rechazo:',
@@ -185,8 +321,17 @@ export default function MyRentalsScreen({ navigation, session }) {
 
                             if (error) throw error;
 
-                            // Criar notificação para o locatário com o motivo da recusa
+                            // ✅ Marcar notificação original como lida (rental_request)
                             const rental = rentals.find(r => r.id === rentalId);
+
+                            await supabase
+                                .from('user_notifications')
+                                .update({ read: true })
+                                .eq('related_id', rentalId)
+                                .eq('user_id', rental.owner_id)
+                                .eq('type', 'rental_request');
+
+                            // Criar notificação para o locatário com o motivo da recusa
                             await supabase
                                 .from('user_notifications')
                                 .insert({
@@ -249,6 +394,21 @@ export default function MyRentalsScreen({ navigation, session }) {
                     <Text style={styles.rentalValue}>{endDate} a las {returnTime} ({rental.total_days} días)</Text>
                 </View>
 
+                {/* Mostrar endereço completo do item */}
+                {rental.item?.street && (
+                    <View style={styles.rentalInfo}>
+                        <Text style={styles.rentalLabel}>📍 Dirección:</Text>
+                        <Text style={styles.rentalValue}>
+                            {rental.item.street}
+                            {rental.item.number ? `, ${rental.item.number}` : ''}
+                            {rental.item.complement ? `, ${rental.item.complement}` : ''}
+                            {'\n'}
+                            {rental.item.postal_code} {rental.item.city}
+                            {rental.item.province ? `, ${rental.item.province}` : ''}
+                        </Text>
+                    </View>
+                )}
+
                 {isOwner ? (
                     <View style={styles.rentalInfo}>
                         <Text style={styles.rentalLabel}>💰 Recibirás:</Text>
@@ -305,9 +465,39 @@ export default function MyRentalsScreen({ navigation, session }) {
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.rejectButton}
-                            onPress={() => handleReject(rental.id)}
+                            onPress={() => handleRejectWithReason(rental.id)}
                         >
                             <Text style={styles.rejectButtonText}>✗ Rechazar</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+
+                {/* Botões de ação para o renter (locatário) */}
+                {!isOwner && (rental.status === 'pending' || rental.status === 'approved' || rental.status === 'active') && (
+                    <View style={styles.actionButtons}>
+                        {rental.status === 'pending' && (
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => handleEditRental(rental)}
+                            >
+                                <Text style={styles.editButtonText}>✏️ Editar</Text>
+                            </TouchableOpacity>
+                        )}
+                        {(rental.status === 'approved' || rental.status === 'active') && (
+                            <TouchableOpacity
+                                style={styles.editButton}
+                                onPress={() => handleEditRental(rental)}
+                            >
+                                <Text style={styles.editButtonText}>✏ Editar</Text>
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={() => handleCancelRental(rental.id)}
+                        >
+                            <Text style={styles.cancelButtonText}>
+                                {rental.status === 'pending' ? '🗑️ Eliminar' : '✗ Cancelar'}
+                            </Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -689,6 +879,33 @@ const styles = StyleSheet.create({
         color: '#666',
         marginTop: 4,
         fontStyle: 'italic',
+        textAlign: 'center',
+    },
+    editButton: {
+        flex: 1,
+        backgroundColor: '#3B82F6',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        marginRight: 8,
+    },
+    editButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
+    cancelButton: {
+        flex: 1,
+        backgroundColor: '#EF4444',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+    },
+    cancelButtonText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 'bold',
         textAlign: 'center',
     },
 });

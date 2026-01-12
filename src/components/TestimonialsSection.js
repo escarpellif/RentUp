@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { testimonialsStyles as styles } from '../styles/testimonialsStyles';
 
@@ -7,6 +7,9 @@ const CARD_WIDTH = width * 0.85;
 const CARD_MARGIN = 10;
 
 export default function TestimonialsSection() {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const scrollViewRef = useRef(null);
+
     const testimonials = [
         {
             id: 1,
@@ -57,18 +60,27 @@ export default function TestimonialsSection() {
         return hearts;
     };
 
+    const handleScroll = (event) => {
+        const scrollPosition = event.nativeEvent.contentOffset.x;
+        const index = Math.round(scrollPosition / (CARD_WIDTH + CARD_MARGIN * 2));
+        setActiveIndex(index);
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.sectionTitle}>Lo que nuestros usuarios piensan</Text>
             <Text style={styles.sectionSubtitle}>Experiencias reales de nuestra comunidad</Text>
 
             <ScrollView
+                ref={scrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 decelerationRate="fast"
                 snapToInterval={CARD_WIDTH + CARD_MARGIN * 2}
                 snapToAlignment="center"
                 contentContainerStyle={styles.scrollContent}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
             >
                 {testimonials.map((testimonial) => (
                     <View
@@ -102,6 +114,19 @@ export default function TestimonialsSection() {
                     </View>
                 ))}
             </ScrollView>
+
+            {/* Indicadores de Paginação */}
+            <View style={styles.paginationContainer}>
+                {testimonials.map((_, index) => (
+                    <View
+                        key={index}
+                        style={[
+                            styles.paginationDot,
+                            index === activeIndex && styles.paginationDotActive
+                        ]}
+                    />
+                ))}
+            </View>
         </View>
     );
 }
