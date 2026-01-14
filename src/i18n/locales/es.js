@@ -62,31 +62,28 @@ export default {
   home: {
     title: 'ALUKO',
     subtitle: 'Alquila lo que necesitas.\nRentabiliza lo que ya tienes.',
+    heroSubtitle: '',
+    heroSubtitle2: '',
     welcome: 'Bienvenido',
     marketplace: 'Marketplace',
     myProfile: 'Mi Perfil',
     addItem: 'Anunciar Artículo',
     myItems: 'Mis Artículos',
     recentItems: 'Artículos Recientes',
+    recentlyActive: 'Activos Recientemente',
+    latestItemsAvailable: 'Los últimos artículos disponibles',
     recommendations: 'Recomendaciones',
     categories: 'Categorías',
     seeAll: 'Ver Todas',
     search: 'Buscar...',
     explore: 'Explorar',
     post: 'Anunciar',
-    // heroTitle1: '¿Por qué comprar',
-    // heroTitle2: 'si puedes alquilar?',
-    // heroSubtitle1: 'Posee menos, accede a más.',
-    // heroSubtitle2: 'Obtén lo que necesitas, cuando',
-    // heroSubtitle3: 'lo necesitas, sin gastar de más.',
-    // heroTitle3: '¿Por qué dejar parado',
-    // heroTitle4: 'si puedes ganar dinero?',
-    // heroSubtitle4: 'Tus artículos sin uso pueden generar',
-    // heroSubtitle5: 'ingresos extra.',
+    whyChooseAluko: '¿Por qué elegir ALUKO?',
+    discoverBenefits: 'Descubre todas las ventajas de alquilar',
+    whatUsersSay: 'Lo que nuestros usuarios piensan',
     heroTitle1: '',
     heroTitle2: '',
     heroSubtitle1: '',
-    heroSubtitle2: '',
     heroSubtitle3: '',
     heroTitle3: '',
     heroTitle4: '',
@@ -170,11 +167,35 @@ export default {
     endDate: 'Fecha de Fin',
     totalDays: 'Total de Días',
     dailyPrice: 'Precio Diario',
-    serviceFee: 'Taxa de Servicio',
+    serviceFee: 'Tasa de Servicio',
     total: 'Total',
     confirmRental: 'Confirmar Alquiler',
     rentalConfirmed: 'Alquiler confirmado!',
     myRentals: 'Mis Alquileres',
+    activeRental: 'Locación Activa',
+    pendingDelivery: 'Entrega Pendiente',
+    timeToPickup: 'Tiempo para recogida',
+    pickupAddress: 'Dirección de recogida',
+    rentalCode: 'Código de locación',
+    yourCode: 'Tu código',
+    renterCode: 'Código del arrendatario',
+    confirmPickup: 'Confirmar Recogida',
+    confirmReturn: 'Confirmar Devolución',
+    enterCode: 'Ingresa el código',
+    codeProvided: 'Código proporcionado por',
+    invalidCode: 'Código inválido',
+    pickupConfirmed: '¡Recogida confirmada!',
+    returnConfirmed: '¡Devolución confirmada!',
+    thankYou: 'Gracias por usar ALUKO',
+    cancel: 'Cancelar',
+    cancelRental: 'Cancelar Locación',
+    cancelConfirm: '¿Estás seguro de que deseas cancelar esta locación?',
+    cancelReason: 'Motivo de cancelación',
+    pleaseEnterReason: 'Por favor ingresa el motivo',
+    rentalCancelled: 'Locación cancelada',
+    edit: 'Editar',
+    navigateToLocation: 'Navegar',
+    chat: 'Chat',
   },
 
   // Formulários
@@ -250,9 +271,94 @@ export default {
     marketplace: 'Marketplace',
     addItem: 'Anunciar Artículo',
     myAds: 'Mis Anuncios',
+    chats: 'Chats',
+    myTransactions: 'Mis Transacciones',
     myProfile: 'Mi Perfil',
     admin: 'Admin - Verificaciones',
     logout: 'Salir',
+  },
+
+  // Chats
+  chats: {
+    noConversations: 'No hay conversaciones',
+    noConversationsSubtitle: 'Comienza una conversación con un anunciante',
+    startChat: 'Comenzar Chat',
+  },
+
+  // Marketplace/Filters
+  marketplace: {
+    all: 'Todos',
+    categories: 'Categorías',
+    sortBy: 'Ordenar',
+    sortByDefault: 'Ordenar por...',
+    nearest: 'Más Próximo',
+    mostRecent: 'Más Recientes',
+    lowestPrice: 'Menor Precio',
+    highestPrice: 'Mayor Precio',
+    alphabetical: 'A-Z',
+  },
+
+  // Benefits
+  benefits: {
+    verified: {
+      title: 'Todos están verificados',
+      subtitle: 'ALUKO es seguro.',
+      description: 'Todos los anunciantes y arrendadores tienen su identidad verificada.'
+    },
+    flexible: {
+      title: 'Horarios que te convienen',
+      subtitle: 'Flexible',
+      description: 'Antes y después del trabajo y fines de semana funciona mejor, tal como debería ser.'
+    },
+    cheaper: {
+      title: 'Más barato que comprar',
+      subtitle: 'A menudo 60% más barato',
+      description: 'Es a menudo 60% más barato alquilar a través de ALUKO que a una empresa.'
+    },
+    earn: {
+      title: 'Haz dinero con artículos que no usas',
+      subtitle: 'Genera ingresos',
+      description: 'Convierte tus artículos parados en una fuente de ingresos extra.'
+    },
+    local: {
+      title: 'Alquila en tu zona',
+      subtitle: 'Cerca de ti',
+      description: 'Por lo general, puedes alquilar algo más cerca de ti que en la tienda más cercana.'
+    },
+    environment: {
+      title: 'Bueno para el medio ambiente',
+      subtitle: 'Sostenible',
+      description: 'Cuanto más se usan las cosas, impactamos menos el medio ambiente.'
+    }
+  },
+
+  // Testimonials
+  testimonials: {
+    testimonial1: {
+      name: 'María González',
+      text: 'Una manera excelente de no gastar acumulando artículos y aún hacer una renta extra. ¡100% recomendado!',
+      location: 'Madrid'
+    },
+    testimonial2: {
+      name: 'Carlos Rodríguez',
+      text: 'Fácil y práctico de alquilar. La plataforma es muy intuitiva y segura.',
+      location: 'Barcelona'
+    },
+    testimonial3: {
+      name: 'Ana Martínez',
+      text: 'Perfecto para artículos que solo necesitas ocasionalmente. Ahorro mucho dinero.',
+      location: 'Valencia'
+    },
+    testimonial4: {
+      name: 'Luis Fernández',
+      text: 'Mis artículos que estaban guardados ahora me generan ingresos. ¡Genial!',
+      location: 'Sevilla'
+    },
+    testimonial5: {
+      name: 'Isabel Torres',
+      text: 'Muy confiable. Todos están verificados y el proceso es súper sencillo.',
+      location: 'Bilbao'
+    }
   },
 
   // Footer
@@ -267,6 +373,47 @@ export default {
     cancellation: 'Cancelación y Reembolso',
     privacy: 'Política de Privacidad',
     allRightsReserved: 'Todos los derechos reservados.',
+  },
+
+  // Disputas
+  dispute: {
+    reportProblem: 'Reportar Problema en la Devolución',
+    issueType: 'Tipo de Problema',
+    selectAll: 'Selecciona todos los que apliquen',
+    damaged: 'Dañado',
+    incomplete: 'Incompleto',
+    dirty: 'Sucio',
+    notReturned: 'No Devuelto',
+    renter: 'Locatario',
+    photos: 'Fotos de Evidencia',
+    photosRequired: 'Sube al menos 1 foto del problema (máximo 5)',
+    maxPhotos: 'Máximo 5 fotos permitidas',
+    photoPermission: 'Se requiere permiso para acceder a las fotos',
+    addPhoto: 'Agregar Foto',
+    observation: 'Observaciones',
+    observationLimit: 'Máximo 500 caracteres',
+    observationPlaceholder: 'Describe el problema brevemente...',
+    depositWarning: 'Información sobre la Caución',
+    depositInfo: 'La caución de €{{amount}} será evaluada por nuestro equipo de soporte.',
+    selectIssue: 'Selecciona al menos un tipo de problema',
+    photoRequired: 'Debes subir al menos una foto',
+    observationRequired: 'Las observaciones son obligatorias',
+    observationTooLong: 'Las observaciones no pueden exceder 500 caracteres',
+    submit: 'Enviar Reporte',
+    submitting: 'Enviando...',
+    disputeCreated: 'Disputa Creada',
+    disputeMessage: 'Se ha reportado un problema con la devolución de "{{item}}"',
+    disputeUnderReview: 'Tu reporte sobre "{{item}}" está siendo revisado por nuestro equipo de soporte.',
+    disputeSubmitted: 'El reporte ha sido enviado y procesado automáticamente',
+    disputeSubmittedToSupport: 'Tu reporte ha sido enviado a nuestro equipo de soporte. Recibirás una respuesta en 24-48 horas.',
+    submitError: 'Error al enviar el reporte',
+    disputeResolved: 'Disputa Resuelta',
+    resolutionOk: 'Artículo devuelto en buenas condiciones. Caución devuelta completamente.',
+    resolutionMinor: 'Dano leve detectado. Se retuvo el 30% de la caución.',
+    resolutionSevere: 'Dano grave o artículo no devuelto. Se retuvo el 100% de la caución.',
+    refundAmount: 'Monto a devolver',
+    deductionAmount: 'Monto retenido',
+    itemReturnedWithProblem: 'Artículo Devuelto con Problema',
   },
 };
 

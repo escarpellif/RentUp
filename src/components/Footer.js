@@ -17,7 +17,7 @@ export default function Footer({ navigation }) {
     const openSocialMedia = (platform) => {
         const urls = {
             facebook: 'https://facebook.com/aluko',
-            instagram: 'https://instagram.com/aluko',
+            instagram: 'https://www.instagram.com/aluko.sm?igsh=MTA5bmU2bnc3N29tYg%3D%3D&utm_source=qr',
             tiktok: 'https://tiktok.com/@aluko',
         };
 

@@ -207,7 +207,6 @@ export default function RentalCalendar({
                 <View style={styles.summary}>
                     <Text>Check-in: {moment(selectedStart).format('DD/MM/YYYY')}</Text>
                     <Text>Check-out: {moment(selectedEnd).format('DD/MM/YYYY')}</Text>
-                    <Text>Total: {moment(selectedEnd).diff(moment(selectedStart), 'days') + 1} dias</Text>
                 </View>
             )}
 

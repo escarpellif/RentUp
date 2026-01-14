@@ -15,7 +15,7 @@ export default function RequestRentalScreen({ route, navigation, session }) {
         ? new Date(editingRental.end_date)
         : (bookingDates && bookingDates.endDate ? new Date(bookingDates.endDate) : new Date(Date.now() + 86400000));
     const initialPickupTime = editingRental?.pickup_time || '10:00';
-    const initialReturnTime = editingRental?.return_time || '18:00';
+    const initialReturnTime = editingRental?.return_time || '10:00';
     const initialDeliveryMethod = editingRental?.delivery_method || 'pickup';
 
     const [startDate, setStartDate] = useState(initialStart);
@@ -550,11 +550,6 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                     <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Fecha de término:</Text>
                         <Text style={styles.summaryValue}>{formatDate(endDate)} {returnTime}</Text>
-                    </View>
-
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Período:</Text>
-                        <Text style={styles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}</Text>
                     </View>
 
                     <View style={styles.summaryRow}>

@@ -1,50 +1,52 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, ScrollView, Dimensions } from 'react-native';
 import { testimonialsStyles as styles } from '../styles/testimonialsStyles';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
 const CARD_MARGIN = 10;
 
 export default function TestimonialsSection() {
+    const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef = useRef(null);
 
     const testimonials = [
         {
             id: 1,
-            name: 'María González',
-            text: 'Una manera excelente de no gastar acumulando artículos y aún hacer una renta extra. ¡100% recomendado!',
+            name: t('testimonials.testimonial1.name'),
+            text: t('testimonials.testimonial1.text'),
             rating: 5,
-            location: 'Madrid'
+            location: t('testimonials.testimonial1.location')
         },
         {
             id: 2,
-            name: 'Carlos Rodríguez',
-            text: 'Fácil y práctico de alquilar. La plataforma es muy intuitiva y segura.',
+            name: t('testimonials.testimonial2.name'),
+            text: t('testimonials.testimonial2.text'),
             rating: 5,
-            location: 'Barcelona'
+            location: t('testimonials.testimonial2.location')
         },
         {
             id: 3,
-            name: 'Ana Martínez',
-            text: 'Perfecto para artículos que solo necesitas ocasionalmente. Ahorro mucho dinero.',
+            name: t('testimonials.testimonial3.name'),
+            text: t('testimonials.testimonial3.text'),
             rating: 5,
-            location: 'Valencia'
+            location: t('testimonials.testimonial3.location')
         },
         {
             id: 4,
-            name: 'Luis Fernández',
-            text: 'Mis artículos que estaban guardados ahora me generan ingresos. ¡Genial!',
+            name: t('testimonials.testimonial4.name'),
+            text: t('testimonials.testimonial4.text'),
             rating: 5,
-            location: 'Sevilla'
+            location: t('testimonials.testimonial4.location')
         },
         {
             id: 5,
-            name: 'Isabel Torres',
-            text: 'Muy confiable. Todos están verificados y el proceso es súper sencillo.',
+            name: t('testimonials.testimonial5.name'),
+            text: t('testimonials.testimonial5.text'),
             rating: 5,
-            location: 'Bilbao'
+            location: t('testimonials.testimonial5.location')
         },
     ];
 
@@ -68,7 +70,7 @@ export default function TestimonialsSection() {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Lo que nuestros usuarios piensan</Text>
+            <Text style={styles.sectionTitle}>{t('home.whatUsersSay')}</Text>
             <Text style={styles.sectionSubtitle}>Experiencias reales de nuestra comunidad</Text>
 
             <ScrollView

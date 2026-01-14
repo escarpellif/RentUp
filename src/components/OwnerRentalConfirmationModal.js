@@ -91,8 +91,6 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 .gte('start_date', new Date().toISOString().split('T')[0])
                 .order('start_date', {ascending: true});
 
-            console.log('🔵 OwnerRentalConfirmationModal - Locações encontradas:', data?.length || 0);
-
             if (error && error.code !== 'PGRST116') {
                 console.error('Erro ao buscar locações ativas:', error);
                 return;
@@ -120,7 +118,12 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
 
         if (rental.status === 'approved') {
             // Tempo até a retirada
-            const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
+            const startDate = new Date(rental.start_date);
+            const [pickupHours, pickupMinutes] = (rental.pickup_time || '10:00').split(':');
+
+            // Create pickup datetime
+            const pickupDateTime = new Date(startDate);
+            pickupDateTime.setHours(parseInt(pickupHours, 10), parseInt(pickupMinutes, 10), 0, 0);
 
             // Verificar se a data é válida
             if (isNaN(pickupDateTime.getTime())) {
@@ -149,7 +152,12 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
             }
         } else if (rental.status === 'active') {
             // Tempo até a devolução
-            const returnDateTime = new Date(`${rental.end_date}T${rental.return_time || '18:00'}:00`);
+            const endDate = new Date(rental.end_date);
+            const [returnHours, returnMinutes] = (rental.return_time || '18:00').split(':');
+
+            // Create return datetime
+            const returnDateTime = new Date(endDate);
+            returnDateTime.setHours(parseInt(returnHours, 10), parseInt(returnMinutes, 10), 0, 0);
 
             // Verificar se a data é válida
             if (isNaN(returnDateTime.getTime())) {
@@ -157,23 +165,23 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 return;
             }
 
-            const diff = returnDateTime - now;
+            const diffReturn = returnDateTime - now;
 
-            if (diff <= 0) {
+            if (diffReturn <= 0) {
                 setTimeRemaining('Hora de recibir la devolución');
                 return;
             }
 
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const daysReturn = Math.floor(diffReturn / (1000 * 60 * 60 * 24));
+            const hoursReturn = Math.floor((diffReturn % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutesReturn = Math.floor((diffReturn % (1000 * 60 * 60)) / (1000 * 60));
 
-            if (days > 0) {
-                setTimeRemaining(`${days} días ${hours}h`);
-            } else if (hours > 0) {
-                setTimeRemaining(`${hours}h ${minutes}m`);
+            if (daysReturn > 0) {
+                setTimeRemaining(`${daysReturn} días ${hoursReturn}h`);
+            } else if (hoursReturn > 0) {
+                setTimeRemaining(`${hoursReturn}h ${minutesReturn}m`);
             } else {
-                setTimeRemaining(`${minutes}m`);
+                setTimeRemaining(`${minutesReturn}m`);
             }
         }
     };
@@ -289,6 +297,56 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 conversationId: conversationId,
             });
         }
+    };
+
+    const handleCancelRental = () => {
+        const activeRental = activeRentals[currentIndex];
+
+        Alert.alert(
+            'Cancelar Locación',
+            '¿Estás seguro de que deseas cancelar esta locación? El locatario será notificado.',
+            [
+                {text: 'No', style: 'cancel'},
+                {
+                    text: 'Sí, cancelar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const {error} = await supabase
+                                .from('rentals')
+                                .update({status: 'cancelled'})
+                                .eq('id', activeRental.id);
+
+                            if (error) throw error;
+
+                            // Remover bloqueios de data
+                            await supabase
+                                .from('item_availability')
+                                .delete()
+                                .eq('rental_id', activeRental.id);
+
+                            // Enviar notificação ao locatário
+                            await supabase
+                                .from('user_notifications')
+                                .insert({
+                                    user_id: activeRental.renter_id,
+                                    type: 'rental_cancelled',
+                                    title: 'Locación Cancelada',
+                                    message: `El propietario ha cancelado la locación de "${activeRental.item.title}".`,
+                                    related_id: activeRental.id,
+                                    read: false,
+                                });
+
+                            Alert.alert('Éxito', 'Locación cancelada correctamente');
+                            fetchActiveRentals();
+                        } catch (error) {
+                            console.error('Error al cancelar locación:', error);
+                            Alert.alert('Error', 'No se pudo cancelar la locación');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     if (activeRentals.length === 0 || !visible) {
@@ -519,17 +577,6 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
 
                         {/* Botões */}
                         <View style={styles.buttonsContainer}>
-                            {/* Botão de Chat - Sempre visível */}
-                            <TouchableOpacity
-                                style={styles.chatButton}
-                                onPress={handleOpenChat}
-                            >
-                                <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
-                                <Text style={styles.chatButtonText}>
-                                    Chatear con {activeRental.renter?.full_name || 'Locatario'}
-                                </Text>
-                            </TouchableOpacity>
-
                             {activeRental.status === 'approved' && (
                                 <TouchableOpacity
                                     style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
@@ -542,6 +589,26 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                 </TouchableOpacity>
                             )}
 
+                            {/* Botão de Chat - Sempre visível */}
+                            <TouchableOpacity
+                                style={styles.chatButton}
+                                onPress={handleOpenChat}
+                            >
+                                <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
+                                <Text style={styles.chatButtonText}>
+                                    Chatear con {activeRental.renter?.full_name || 'Locatario'}
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* Botão de Cancelar - Sempre visível */}
+                            <TouchableOpacity
+                                style={styles.cancelButton}
+                                onPress={handleCancelRental}
+                            >
+                                <Ionicons name="close-circle-outline" size={20} color="#fff" style={{marginRight: 8}} />
+                                <Text style={styles.cancelButtonText}>Cancelar Locación</Text>
+                            </TouchableOpacity>
+
                             <TouchableOpacity
                                 style={styles.closeModalButton}
                                 onPress={() => setVisible(false)}
@@ -549,6 +616,9 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                 <Text style={styles.closeModalButtonText}>Cerrar</Text>
                             </TouchableOpacity>
                         </View>
+
+                        {/* Espaço adicional para garantir scroll */}
+                        <View style={{ height: 20 }} />
                     </View>
                 </ScrollView>
             </View>
@@ -858,6 +928,24 @@ const styles = StyleSheet.create({
     },
     confirmButtonText: {
         fontSize: 18,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    cancelButton: {
+        backgroundColor: '#EF4444',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#EF4444',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    cancelButtonText: {
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#fff',
     },

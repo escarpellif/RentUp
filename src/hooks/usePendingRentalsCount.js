@@ -9,13 +9,19 @@ export function usePendingRentalsCount(userId) {
 
         fetchPendingCount();
 
-        // Subscribe to changes in rentals
+        // Subscribe to changes in rentals - escutar todos os eventos
         const subscription = supabase
-            .channel('pending_rentals_channel')
+            .channel('pending_rentals_channel_' + userId)
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'rentals' },
-                () => {
+                {
+                    event: '*', // Escutar INSERT, UPDATE e DELETE
+                    schema: 'public',
+                    table: 'rentals',
+                    filter: `owner_id=eq.${userId}` // Filtrar apenas rentals do owner
+                },
+                (payload) => {
+                    // Recarregar contagem sempre que houver mudança
                     fetchPendingCount();
                 }
             )

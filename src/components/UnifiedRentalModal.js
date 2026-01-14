@@ -13,14 +13,19 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
+import { useTranslation } from 'react-i18next';
+import ReturnDisputeModal from './ReturnDisputeModal';
 
 const UnifiedRentalModal = ({session, navigation}) => {
+    const { t } = useTranslation();
     const [allRentals, setAllRentals] = useState([]);
     const [visible, setVisible] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState('');
     const [codeInput, setCodeInput] = useState('');
     const [confirming, setConfirming] = useState(false);
+    const [disputeModalVisible, setDisputeModalVisible] = useState(false);
+    const [selectedRentalForDispute, setSelectedRentalForDispute] = useState(null);
 
     useEffect(() => {
         if (session?.user?.id) {
@@ -118,34 +123,15 @@ const UnifiedRentalModal = ({session, navigation}) => {
                 ...(ownerRentals || []).map(r => ({...r, userRole: 'owner'}))
             ];
 
-            console.log('🔵 UnifiedRentalModal - Locações encontradas:');
-            console.log('   - Como Renter:', renterRentals?.length || 0);
-            console.log('   - Como Owner:', ownerRentals?.length || 0);
-            console.log('   - Total combinado:', combinedRentals.length);
-            console.log('   - Data atual (filtro):', new Date().toISOString().split('T')[0]);
-
-            if (combinedRentals.length > 0) {
-                console.log('   - Primeira locação:', {
-                    id: combinedRentals[0].id,
-                    status: combinedRentals[0].status,
-                    start_date: combinedRentals[0].start_date,
-                    pickup_time: combinedRentals[0].pickup_time,
-                    userRole: combinedRentals[0].userRole
-                });
-                console.log('   - Dados completos da primeira locação:', combinedRentals[0]);
-            }
-
             // Ordenar por data
             combinedRentals.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
             if (combinedRentals.length > 0) {
                 setAllRentals(combinedRentals);
                 setVisible(true);
-                console.log('✅ Modal setado como VISIBLE com', combinedRentals.length, 'locação(ões)');
                 updateTimeRemaining(combinedRentals[0]);
             } else {
                 setVisible(false);
-                console.log('⚪ Modal setado como HIDDEN (nenhuma locação)');
             }
         } catch (error) {
             console.error('Erro ao buscar locações:', error);
@@ -172,21 +158,9 @@ const UnifiedRentalModal = ({session, navigation}) => {
         // ✅ Verificar se as datas são válidas
         if (isNaN(pickupDateTime.getTime()) || isNaN(returnDateTime.getTime())) {
             setTimeRemaining('Fecha inválida');
-            console.error('❌ Data inválida:', {
-                start_date: rental.start_date,
-                end_date: rental.end_date,
-                pickup_time: rental.pickup_time,
-                return_time: rental.return_time
-            });
             return;
         }
 
-        console.log('✅ Datas criadas:', {
-            pickupDateTime: pickupDateTime.toISOString(),
-            returnDateTime: returnDateTime.toISOString(),
-            now: now.toISOString(),
-            status: rental.status
-        });
 
         // ✅ Se status é 'active' OU já passou horário de retirada, mostrar tempo até DEVOLUÇÃO
         if (rental.status === 'active' || now >= pickupDateTime) {
@@ -329,7 +303,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                 if (codeInput.trim() !== currentRental.owner_code) {
                     Alert.alert(
                         'Código Incorrecto',
-                        'El código ingresado no coincide. Por favor, solicita el código correcto al propietario.',
+                        'El código ingresado no coincide. Por favor, solicita el código correto ao proprietário.',
                         [{text: 'OK'}]
                     );
                     setCodeInput('');
@@ -361,7 +335,6 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                         throw error;
                                     }
 
-                                    console.log('✅ Status atualizado com sucesso:', data);
 
                                     // Notificar owner
                                     await supabase
@@ -413,7 +386,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
         if (rental.status === 'approved') {
             Alert.alert(
                 'Editar Alquiler',
-                'Esta solicitud ya fue aprobada. Los cambios volverán la solicitud a estado PENDIENTE y necesitará nueva aprobación.\n\n¿Deseas continuar?',
+                'Esta solicitud ya fue aprobada. Los cambios volverán la solicitud a estado PENDIENTE e necesitará nova aprovação.\n\n¿Deseas continuar?',
                 [
                     { text: 'Cancelar', style: 'cancel' },
                     {
@@ -513,6 +486,73 @@ const UnifiedRentalModal = ({session, navigation}) => {
         );
     };
 
+    const handleOwnerCancelRental = (rental) => {
+        Alert.prompt(
+            'Cancelar Locación',
+            'Por favor, indica el motivo del cancelamento para informar al locatario:',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                    text: 'Confirmar Cancelamento',
+                    style: 'destructive',
+                    onPress: async (cancellationReason) => {
+                        if (!cancellationReason || cancellationReason.trim() === '') {
+                            Alert.alert('Atención', 'Debes proporcionar un motivo para cancelar la locación.');
+                            return;
+                        }
+
+                        try {
+                            // Marcar como cancelado
+                            const { error } = await supabase
+                                .from('rentals')
+                                .update({
+                                    status: 'cancelled',
+                                    rejection_reason: cancellationReason.trim()
+                                })
+                                .eq('id', rental.id);
+
+                            if (error) throw error;
+
+                            // Remover bloqueios de data
+                            await supabase
+                                .from('item_availability')
+                                .delete()
+                                .eq('rental_id', rental.id);
+
+                            // Notificar locatário com o motivo
+                            await supabase
+                                .from('user_notifications')
+                                .insert({
+                                    user_id: rental.renter_id,
+                                    type: 'rental_cancelled',
+                                    title: 'Locación Cancelada por el Propietario',
+                                    message: `El propietario canceló la locación de "${rental.item?.title}".\n\nMotivo: ${cancellationReason.trim()}`,
+                                    related_id: rental.id,
+                                    read: false,
+                                });
+
+                            Alert.alert('Éxito', 'Locación cancelada correctamente');
+
+                            // Atualizar lista
+                            const updatedRentals = allRentals.filter(r => r.id !== rental.id);
+                            setAllRentals(updatedRentals);
+
+                            if (updatedRentals.length === 0) {
+                                setVisible(false);
+                            } else if (currentIndex >= updatedRentals.length) {
+                                setCurrentIndex(updatedRentals.length - 1);
+                            }
+                        } catch (error) {
+                            console.error('Erro ao cancelar locação:', error);
+                            Alert.alert('Error', 'No se pudo cancelar la locación');
+                        }
+                    }
+                }
+            ],
+            'plain-text'
+        );
+    };
+
     const openMaps = (rental) => {
         if (!rental?.owner) {
             Alert.alert('Error', 'No se pudo obtener la dirección');
@@ -606,7 +646,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                         {/* Header */}
                         <View style={[styles.header, isOwner ? styles.headerOwner : styles.headerRenter]}>
                             <Text style={styles.headerTitle}>
-                                {isOwner ? '📦 Entrega Pendiente' : '🎉 Locación Activa'}
+                                {isOwner ? `📦 ${t('rental.pendingDelivery')}` : `🎉 ${t('rental.activeRental')}`}
                             </Text>
                             <TouchableOpacity
                                 style={styles.closeButton}
@@ -656,7 +696,6 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                     onPress={() => {
                                         if (currentIndex < allRentals.length - 1) {
                                             const newIndex = currentIndex + 1;
-                                            console.log('➡️ Navegando para locação', newIndex + 1);
                                             setCurrentIndex(newIndex);
                                             setCodeInput('');
                                         }
@@ -759,8 +798,8 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                             currentRental.status === 'active' && styles.ownerCodeLabelHighlight
                                         ]}>
                                             {currentRental.status === 'active'
-                                                ? '⏳ Aguardando Devolución - Tu Código:'
-                                                : 'Tu Código de Devolución:'
+                                                ? '⏳ Aguardando Devolução - Tu Código:'
+                                                : 'Tu Código de Devolução:'
                                             }
                                         </Text>
                                         <View style={[
@@ -808,7 +847,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                                 </Text>
                                             </View>
                                             <Text style={styles.renterCodeHint}>
-                                                Entrega este código al propietario del artículo después de confirmar que
+                                                Entrega este código al proprietário del artículo después de confirmar que
                                                 el
                                                 artículo está de acuerdo con lo anunciado.
                                             </Text>
@@ -821,7 +860,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                             <View style={styles.returnWarning}>
                                                 <Text style={styles.returnWarningIcon}>⏰</Text>
                                                 <Text style={styles.returnWarningText}>
-                                                    Artículo en locación. Debes devolverlo hasta
+                                                    Artículo en locação. Debes devolverlo hasta
                                                     el {formatDate(currentRental.end_date)} a
                                                     las {currentRental.return_time || '18:00'}.
                                                 </Text>
@@ -855,25 +894,52 @@ const UnifiedRentalModal = ({session, navigation}) => {
                             {isOwner ? (
                                 <>
                                     {currentRental.status === 'approved' ? (
-                                        <TouchableOpacity
-                                            style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
-                                            onPress={handleConfirmAction}
-                                            disabled={confirming}
-                                        >
-                                            <Text style={styles.confirmButtonText}>
-                                                {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
-                                            </Text>
-                                        </TouchableOpacity>
+                                        <>
+                                            <TouchableOpacity
+                                                style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
+                                                onPress={handleConfirmAction}
+                                                disabled={confirming}
+                                            >
+                                                <Text style={styles.confirmButtonText}>
+                                                    {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
+                                                </Text>
+                                            </TouchableOpacity>
+
+                                            {/* Botão de Cancelar - APENAS quando status = 'approved' */}
+                                            <TouchableOpacity
+                                                style={styles.cancelRentalButton}
+                                                onPress={() => handleOwnerCancelRental(currentRental)}
+                                            >
+                                                <Ionicons name="close-circle" size={18} color="#fff" />
+                                                <Text style={styles.cancelRentalButtonText}>Cancelar Locación</Text>
+                                            </TouchableOpacity>
+                                        </>
                                     ) : (
-                                        <View style={styles.waitingContainer}>
-                                            <Text style={styles.waitingIcon}>⏳</Text>
-                                            <Text style={styles.waitingText}>
-                                                Aguardando devolución del artículo
-                                            </Text>
-                                            <Text style={styles.waitingSubtext}>
-                                                El locatario debe devolver el artículo y confirmar con tu código
-                                            </Text>
-                                        </View>
+                                        <>
+                                            <View style={styles.waitingContainer}>
+                                                <Text style={styles.waitingIcon}>⏳</Text>
+                                                <Text style={styles.waitingText}>
+                                                    Aguardando devolução do artigo
+                                                </Text>
+                                                <Text style={styles.waitingSubtext}>
+                                                    O locatário deve devolver o artigo e confirmar com seu código
+                                                </Text>
+                                            </View>
+
+                                            {/* Botão de Reportar Problema - APENAS quando status = 'active' */}
+                                            <TouchableOpacity
+                                                style={styles.reportProblemButton}
+                                                onPress={() => {
+                                                    setSelectedRentalForDispute(currentRental);
+                                                    setDisputeModalVisible(true);
+                                                }}
+                                            >
+                                                <Text style={styles.reportProblemButtonIcon}>⚠️</Text>
+                                                <Text style={styles.reportProblemButtonText}>
+                                                    {t('dispute.itemReturnedWithProblem')}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </>
                                     )}
                                 </>
                             ) : (
@@ -914,7 +980,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                                             disabled={confirming}
                                         >
                                             <Text style={styles.confirmButtonText}>
-                                                {confirming ? 'Confirmando...' : '✓ Confirmar Devolución'}
+                                                {confirming ? 'Confirmando...' : '✓ Confirmar Devolução'}
                                             </Text>
                                         </TouchableOpacity>
                                 )}
@@ -928,7 +994,7 @@ const UnifiedRentalModal = ({session, navigation}) => {
                             >
                                 <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
                                 <Text style={styles.chatButtonText}>
-                                    Chatear con {isOwner
+                                    Chatear com {isOwner
                                         ? (currentRental.renter?.full_name || 'Locatario')
                                         : (currentRental.owner?.full_name || 'Propietario')
                                     }
@@ -945,6 +1011,21 @@ const UnifiedRentalModal = ({session, navigation}) => {
                     </View>
                 </ScrollView>
             </View>
+
+            {/* Modal de Disputa */}
+            <ReturnDisputeModal
+                visible={disputeModalVisible}
+                rental={selectedRentalForDispute}
+                onClose={() => {
+                    setDisputeModalVisible(false);
+                    setSelectedRentalForDispute(null);
+                }}
+                onDisputeCreated={() => {
+                    // Recarregar locações e fechar modal principal
+                    fetchAllRentals();
+                    setVisible(false);
+                }}
+            />
         </Modal>
     );
 };
@@ -1435,6 +1516,32 @@ const styles = StyleSheet.create({
         elevation: 3,
     },
     cancelRentalButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    reportProblemButton: {
+        backgroundColor: '#DC2626',
+        paddingVertical: 16,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 10,
+        marginTop: 15,
+        marginBottom: 10,
+        shadowColor: '#DC2626',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 6,
+        borderWidth: 2,
+        borderColor: '#B91C1C',
+    },
+    reportProblemButtonIcon: {
+        fontSize: 24,
+    },
+    reportProblemButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#fff',

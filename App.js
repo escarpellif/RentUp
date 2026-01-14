@@ -28,6 +28,12 @@ import ChatsListScreen from './src/screens/ChatsListScreen';
 import ChatConversationScreen from './src/screens/ChatConversationScreen';
 import MyRentalsScreen from './src/screens/MyRentalsScreen';
 import StaticContentScreen from './src/screens/StaticContentScreen';
+import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import AdminDisputesScreen from './src/screens/AdminDisputesScreen';
+import DisputeDetailsScreen from './src/screens/DisputeDetailsScreen';
+import AdminRentalsScreen from './src/screens/AdminRentalsScreen';
+import AdminUsersScreen from './src/screens/AdminUsersScreen';
+import AdminItemsScreen from './src/screens/AdminItemsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -153,6 +159,35 @@ export default function App() {
 
                     <Stack.Screen name="StaticContent">
                         {(props) => <StaticContentScreen {...props} />}
+                    </Stack.Screen>
+
+                    {/* Admin Screens */}
+                    <Stack.Screen name="AdminDashboard">
+                        {(props) => <AdminDashboardScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminDisputes">
+                        {(props) => <AdminDisputesScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="DisputeDetails">
+                        {(props) => <DisputeDetailsScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminRentals">
+                        {(props) => <AdminRentalsScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminUsers">
+                        {(props) => <AdminUsersScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminItems">
+                        {(props) => <AdminItemsScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="VerificationApprovalScreen">
+                        {(props) => <AdminVerificationsScreen {...props} session={session} />}
                     </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>

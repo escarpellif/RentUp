@@ -153,9 +153,16 @@ export default function MyRentalsScreen({ navigation, session }) {
                             Alert.alert(
                                 '✅ Solicitud Aprobada',
                                 `La solicitud fue aprobada.\n\n🔑 Tu código de recogida: ${ownerCode}\n\nComparte este código con el arrendatario al momento de entregar el artículo.\n\n💰 Recibirás: €${ownerAmount.toFixed(2)}`,
-                                [{ text: 'Entendido' }]
+                                [{
+                                    text: 'Entendido',
+                                    onPress: () => {
+                                        // Recarregar a lista imediatamente
+                                        fetchRentals();
+                                    }
+                                }]
                             );
 
+                            // Recarregar também em paralelo
                             fetchRentals();
                         } catch (error) {
                             console.error('Erro ao aprovar:', error);
@@ -343,7 +350,16 @@ export default function MyRentalsScreen({ navigation, session }) {
                                     read: false,
                                 });
 
-                            Alert.alert('Éxito', 'Solicitud rechazada');
+                            Alert.alert('Éxito', 'Solicitud rechazada', [
+                                {
+                                    text: 'OK',
+                                    onPress: () => {
+                                        fetchRentals();
+                                    }
+                                }
+                            ]);
+
+                            // Recarregar também em paralelo
                             fetchRentals();
                         } catch (error) {
                             console.error('Erro ao rejeitar:', error);

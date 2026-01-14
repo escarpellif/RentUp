@@ -470,7 +470,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
                                         }}
                                     >
                                         <Text style={styles.menuItemIcon}>💬</Text>
-                                        <Text style={styles.menuItemText}>Chats</Text>
+                                        <Text style={styles.menuItemText}>{t('menu.chats')}</Text>
                                         {unreadMessages > 0 && (
                                             <View style={styles.menuBadge}>
                                                 <Text style={styles.menuBadgeText}>{unreadMessages}</Text>
@@ -486,7 +486,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
                                         }}
                                     >
                                         <Text style={styles.menuItemIcon}>🔑</Text>
-                                        <Text style={styles.menuItemText}>Mis Transacciones</Text>
+                                        <Text style={styles.menuItemText}>{t('menu.myTransactions')}</Text>
                                         {pendingRentals > 0 && (
                                             <View style={styles.menuBadge}>
                                                 <Text style={styles.menuBadgeText}>{pendingRentals}</Text>
@@ -506,11 +506,16 @@ export default function HomeScreen({navigation, session, isGuest}) {
                                         style={styles.menuItem}
                                         onPress={() => {
                                             setMenuVisible(false);
-                                            navigation.navigate('AdminVerifications');
+                                            navigation.navigate('AdminDashboard');
                                         }}
                                     >
-                                        <Text style={styles.menuItemIcon}>🔐</Text>
-                                        <Text style={styles.menuItemText}>{t('menu.admin')}</Text>
+                                        <Text style={styles.menuItemIcon}>📊</Text>
+                                        <Text style={styles.menuItemText}>Panel de Admin</Text>
+                                        {(unreadCount > 0) && (
+                                            <View style={styles.menuBadge}>
+                                                <Text style={styles.menuBadgeText}>{unreadCount}</Text>
+                                            </View>
+                                        )}
                                     </TouchableOpacity>
                                 </>
                             )}

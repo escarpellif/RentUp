@@ -1,59 +1,62 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { benefitsSectionStyles as styles } from '../styles/benefitsSectionStyles';
+import { useTranslation } from 'react-i18next';
 
 export default function BenefitsSection() {
+    const { t } = useTranslation();
+
     const benefits = [
         {
             id: 1,
             icon: '✅',
-            title: 'Todos están verificados',
-            subtitle: 'ALUKO es seguro.',
-            description: 'Todos los anunciantes y arrendadores tienen su identidad verificada.'
+            title: t('benefits.verified.title'),
+            subtitle: t('benefits.verified.subtitle'),
+            description: t('benefits.verified.description')
         },
         {
             id: 2,
             icon: '⏰',
-            title: 'Horarios que te convienen',
-            subtitle: 'Flexible',
-            description: 'Antes y después del trabajo y fines de semana funciona mejor, tal como debería ser.'
+            title: t('benefits.flexible.title'),
+            subtitle: t('benefits.flexible.subtitle'),
+            description: t('benefits.flexible.description')
         },
         {
             id: 3,
             icon: '💰',
-            title: 'Más barato que comprar',
-            subtitle: 'A menudo 60% más barato',
-            description: 'Es a menudo 60% más barato alquilar a través de ALUKO que a una empresa.'
+            title: t('benefits.cheaper.title'),
+            subtitle: t('benefits.cheaper.subtitle'),
+            description: t('benefits.cheaper.description')
         },
         {
             id: 4,
             icon: '💵',
-            title: 'Haz dinero con artículos que no usas',
-            subtitle: 'Genera ingresos',
-            description: 'Convierte tus artículos parados en una fuente de ingresos extra.'
+            title: t('benefits.earn.title'),
+            subtitle: t('benefits.earn.subtitle'),
+            description: t('benefits.earn.description')
         },
         {
             id: 5,
             icon: '🚴‍♂️',
-            title: 'Alquila en tu zona',
-            subtitle: 'Cerca de ti',
-            description: 'Por lo general, puedes alquilar algo más cerca de ti que en la tienda más cercana.'
+            title: t('benefits.local.title'),
+            subtitle: t('benefits.local.subtitle'),
+            description: t('benefits.local.description')
         },
 
         {
             id: 6,
             icon: '👍',
-            title: 'Bueno para el medio ambiente',
-            subtitle: 'Sostenible',
-            description: 'Cuanto más se usan las cosas, impactamos menos el medio ambiente.'
+            title: t('benefits.environment.title'),
+            subtitle: t('benefits.environment.subtitle'),
+            description: t('benefits.environment.description')
         },
 
     ];
 
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>¿Por qué elegir ALUKO?</Text>
-            <Text style={styles.sectionSubtitle}>Descubre todas las ventajas de alquilar</Text>
+            <Text style={styles.sectionTitle}>{t('home.whyChooseAluko')}</Text>
+            <Text style={styles.sectionSubtitle}>{t('home.discoverBenefits')}</Text>
 
             <View style={styles.benefitsGrid}>
                 {benefits.map((benefit) => (

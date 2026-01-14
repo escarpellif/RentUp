@@ -349,3 +349,14 @@ export const sortOptions = [
     { id: 'price_high', label: 'Mayor Precio', icon: '💎' },
     { id: 'title', label: 'A-Z', icon: '🔤' },
 ];
+
+// Função para obter sortOptions traduzidas
+export const getSortOptions = (t) => [
+    { id: 'default', label: t('marketplace.sortByDefault'), icon: '📋' },
+    { id: 'distance', label: t('marketplace.nearest'), icon: '📍' },
+    { id: 'recent', label: t('marketplace.mostRecent'), icon: '🕐' },
+    { id: 'price_low', label: t('marketplace.lowestPrice'), icon: '💰' },
+    { id: 'price_high', label: t('marketplace.highestPrice'), icon: '💎' },
+    { id: 'title', label: t('marketplace.alphabetical'), icon: '🔤' },
+];
+

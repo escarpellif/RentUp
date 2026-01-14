@@ -4,11 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { supabase } from '../../supabase';
 import ItemCard from '../components/ItemCard';
-import { categories, sortOptions } from '../constants/categoryConfig';
+import { categories, getSortOptions } from '../constants/categoryConfig';
 import { mainMarketplaceStyles as styles } from '../styles/mainMarketplaceStyles';
 import { calculateDistance } from '../utils/locationHelper';
+import { useTranslation } from 'react-i18next';
 
 export default function MainMarketplace({ session, navigation, route }) {
+    const { t } = useTranslation();
+    const sortOptions = getSortOptions(t);
     const [items, setItems] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -235,7 +238,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                         activeOpacity={0.7}
                     >
                         <Text style={styles.filterButtonText}>
-                            {selectedCategory === 'Todos' ? 'Categorías' : selectedCategory}
+                            {selectedCategory === 'Todos' ? t('marketplace.categories') : selectedCategory}
                         </Text>
                     </TouchableOpacity>
 
@@ -279,7 +282,7 @@ export default function MainMarketplace({ session, navigation, route }) {
                         activeOpacity={0.7}
                     >
                         <Text style={styles.filterButtonText}>
-                            {sortOptions.find(o => o.id === sortBy)?.label || 'Ordenar'}
+                            {sortOptions.find(o => o.id === sortBy)?.label || t('marketplace.sortBy')}
                         </Text>
                     </TouchableOpacity>
 

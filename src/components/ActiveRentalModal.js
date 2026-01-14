@@ -66,8 +66,6 @@ const ActiveRentalModal = ({session, navigation}) => {
                 .gte('start_date', new Date().toISOString().split('T')[0])
                 .order('start_date', {ascending: true});
 
-            console.log('🟢 ActiveRentalModal - Locações encontradas:', data?.length || 0);
-
             if (error && error.code !== 'PGRST116') {
                 console.error('Erro ao buscar locações ativas:', error);
                 return;
@@ -92,7 +90,14 @@ const ActiveRentalModal = ({session, navigation}) => {
         }
 
         const now = new Date();
-        const pickupDateTime = new Date(`${rental.start_date}T${rental.pickup_time || '10:00'}:00`);
+
+        // Parse the pickup date correctly
+        const startDate = new Date(rental.start_date);
+        const [pickupHours, pickupMinutes] = (rental.pickup_time || '10:00').split(':');
+
+        // Create pickup datetime
+        const pickupDateTime = new Date(startDate);
+        pickupDateTime.setHours(parseInt(pickupHours, 10), parseInt(pickupMinutes, 10), 0, 0);
 
         // Verificar se a data é válida
         if (isNaN(pickupDateTime.getTime())) {
@@ -190,6 +195,73 @@ const ActiveRentalModal = ({session, navigation}) => {
                 conversationId: conversationId,
             });
         }
+    };
+
+    const handleEditRental = () => {
+        const activeRental = activeRentals[currentIndex];
+
+        Alert.alert(
+            'Editar Locación',
+            'Para editar las fechas, tu solicitud volverá al estado "pendiente" y el propietario deberá aprobarla nuevamente.',
+            [
+                {text: 'Cancelar', style: 'cancel'},
+                {
+                    text: 'Continuar',
+                    onPress: () => {
+                        setVisible(false);
+                        navigation.navigate('RequestRental', {
+                            itemId: activeRental.item_id,
+                            rentalId: activeRental.id,
+                            editMode: true
+                        });
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleCancelRental = () => {
+        const activeRental = activeRentals[currentIndex];
+
+        Alert.alert(
+            'Cancelar Locación',
+            '¿Estás seguro de que deseas cancelar esta locación?',
+            [
+                {text: 'No', style: 'cancel'},
+                {
+                    text: 'Sí, cancelar',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const {error} = await supabase
+                                .from('rentals')
+                                .update({status: 'cancelled'})
+                                .eq('id', activeRental.id);
+
+                            if (error) throw error;
+
+                            // Enviar notificação ao proprietário
+                            await supabase
+                                .from('user_notifications')
+                                .insert({
+                                    user_id: activeRental.owner_id,
+                                    type: 'rental_cancelled',
+                                    title: 'Locación Cancelada',
+                                    message: `${session.user.email} ha cancelado la locación de "${activeRental.item.title}".`,
+                                    related_id: activeRental.id,
+                                    read: false,
+                                });
+
+                            Alert.alert('Éxito', 'Locación cancelada correctamente');
+                            fetchActiveRentals();
+                        } catch (error) {
+                            console.error('Error al cancelar locación:', error);
+                            Alert.alert('Error', 'No se pudo cancelar la locación');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     if (activeRentals.length === 0 || !visible) {
@@ -339,6 +411,24 @@ const ActiveRentalModal = ({session, navigation}) => {
 
                     {/* Botões */}
                     <View style={styles.buttonsContainer}>
+                        {/* Botão de Editar */}
+                        <TouchableOpacity
+                            style={styles.editButton}
+                            onPress={handleEditRental}
+                        >
+                            <Ionicons name="create-outline" size={20} color="#fff" style={{marginRight: 8}} />
+                            <Text style={styles.editButtonText}>Editar Locación</Text>
+                        </TouchableOpacity>
+
+                        {/* Botão de Cancelar */}
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={handleCancelRental}
+                        >
+                            <Ionicons name="close-circle-outline" size={20} color="#fff" style={{marginRight: 8}} />
+                            <Text style={styles.cancelButtonText}>Cancelar Locación</Text>
+                        </TouchableOpacity>
+
                         {/* Botão de Chat */}
                         <TouchableOpacity
                             style={styles.chatButton}
@@ -513,6 +603,42 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         padding: 20,
         gap: 12,
+    },
+    editButton: {
+        backgroundColor: '#F59E0B',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#F59E0B',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    editButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
+    cancelButton: {
+        backgroundColor: '#EF4444',
+        paddingVertical: 14,
+        borderRadius: 12,
+        alignItems: 'center',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        shadowColor: '#EF4444',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+    cancelButtonText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#fff',
     },
     chatButton: {
         backgroundColor: '#2c4455',

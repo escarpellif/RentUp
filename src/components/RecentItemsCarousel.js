@@ -4,6 +4,7 @@ import * as Location from 'expo-location';
 import { supabase } from '../../supabase';
 import { recentItemsCarouselStyles as styles } from '../styles/recentItemsCarouselStyles';
 import { calculateDistance } from '../utils/locationHelper';
+import { useTranslation } from 'react-i18next';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -12,6 +13,7 @@ const CARD_MARGIN = 10;
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function RecentItemsCarousel({ navigation, session }) {
+    const { t } = useTranslation();
     const [recentItems, setRecentItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState(null);
@@ -161,8 +163,8 @@ export default function RecentItemsCarousel({ navigation, session }) {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <Text style={styles.heading}>Activos Recientemente</Text>
-                <Text style={styles.subheading}>Los últimos artículos disponibles</Text>
+                <Text style={styles.heading}>{t('home.recentlyActive')}</Text>
+                <Text style={styles.subheading}>{t('home.latestItemsAvailable')}</Text>
             </View>
 
             <ScrollView
