@@ -22,6 +22,8 @@ import {useUserNotifications} from '../hooks/useUserNotifications';
 import {useUnreadMessagesCount} from '../hooks/useUnreadMessagesCount';
 import {usePendingRentalsCount} from '../hooks/usePendingRentalsCount';
 import {useTranslation} from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
+import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
 import RecentItemsCarousel from '../components/RecentItemsCarousel';
 import BenefitsSection from '../components/BenefitsSection';
 import TestimonialsSection from '../components/TestimonialsSection';
@@ -36,6 +38,8 @@ export default function HomeScreen({navigation, session, isGuest}) {
     const [refreshKey, setRefreshKey] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
     const [heroIndex, setHeroIndex] = useState(0);
+    const [showRentalModal, setShowRentalModal] = useState(false); // Iniciar como false
+    const [modalTriggerKey, setModalTriggerKey] = useState(0); // Para forçar re-render do modal
 
     // Hook de notificações (admin badge)
     const {unreadCount} = useAdminNotifications();
@@ -43,7 +47,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
     const {unreadCount: userUnread, refresh: refreshUserNotifications} = useUserNotifications(session?.user?.id);
     // Hook de mensagens não lidas
     // Hook de solicitações de locação pendentes
-    const {pendingCount: pendingRentals} = usePendingRentalsCount(session?.user?.id);
+    const {pendingCount: pendingRentals, refresh: refreshPendingRentals} = usePendingRentalsCount(session?.user?.id);
     const {unreadCount: unreadMessages} = useUnreadMessagesCount(session?.user?.id);
 
     // Buscar se o usuário é admin
@@ -55,14 +59,24 @@ export default function HomeScreen({navigation, session, isGuest}) {
         }
 
         async function checkAdmin() {
-            const {data, error} = await supabase
-                .from('profiles')
-                .select('is_admin')
-                .eq('id', session.user.id)
-                .single();
+            try {
+                const result = await fetchWithRetry(async () => {
+                    const query = supabase
+                        .from('profiles')
+                        .select('is_admin')
+                        .eq('id', session.user.id)
+                        .single();
 
-            if (!error && data) {
-                setIsAdmin(data.is_admin || false);
+                    return await withTimeout(query, 10000);
+                });
+
+                if (result.data) {
+                    setIsAdmin(result.data.is_admin || false);
+                }
+            } catch (error) {
+                console.error('Erro ao verificar admin:', error);
+                // Não mostrar alert para não interromper a experiência
+                setIsAdmin(false);
             }
         }
 
@@ -92,8 +106,12 @@ export default function HomeScreen({navigation, session, isGuest}) {
             if (refreshUserNotifications) {
                 refreshUserNotifications();
             }
+            // Recarregar pending rentals
+            if (refreshPendingRentals) {
+                refreshPendingRentals();
+            }
         });
-    }, [navigation, refreshUserNotifications]);
+    }, [navigation, refreshUserNotifications, refreshPendingRentals]);
 
     const categories = [
         {id: '1', name: t('items.electronics'), icon: 'camera-outline', color: '#16a085', bgColor: '#e8f8f5'},
@@ -146,7 +164,14 @@ export default function HomeScreen({navigation, session, isGuest}) {
         <View style={styles.container}>
             
             {/* Modal Unificado de Locações (mostra todas: como locatário E como locador) */}
-            {!isGuest && session && <UnifiedRentalModal session={session} navigation={navigation} />}
+            {!isGuest && session && (
+                <UnifiedRentalModal
+                    key={`rental-${modalTriggerKey}`}
+                    session={session}
+                    navigation={navigation}
+                    showOnMount={showRentalModal}
+                />
+            )}
             {/* Modal de Review (aparece após conclusão de locação) */}
             {!isGuest && session && <ReviewModal session={session} />}
 
@@ -360,18 +385,20 @@ export default function HomeScreen({navigation, session, isGuest}) {
 
                 {/* Categories Section */}
                 <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>{t('home.categories')}</Text>
-                        <TouchableOpacity
-                            style={styles.viewAllButton}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Text style={styles.viewAllButtonText}>{t('home.seeAll')}</Text>
-                            <Text style={styles.viewAllButtonIcon}>→</Text>
-                        </TouchableOpacity>
-                    </View>
-
                     <View style={styles.categoriesContainer}>
+                        {/* Header dentro do container */}
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>{t('home.categories')}</Text>
+                            <TouchableOpacity
+                                style={styles.viewAllButton}
+                                onPress={() => navigation.navigate('Home')}
+                            >
+                                <Text style={styles.viewAllButtonText}>{t('home.seeAll')}</Text>
+                                <Text style={styles.viewAllButtonIcon}>→</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Grid de categorias */}
                         <View style={styles.categoriesGrid}>
                             {categories.map((category) => (
                                 <TouchableOpacity
@@ -533,6 +560,76 @@ export default function HomeScreen({navigation, session, isGuest}) {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            {/* Tab Bar Bottom - Estilo Marketplace */}
+            {!isGuest && (
+                <View style={styles.tabBar}>
+                    <TouchableOpacity
+                        style={styles.tabButton}
+                        onPress={() => {
+                            console.log('🔘 Botão Locaciones clicado na HomeScreen');
+
+                            // Garantir que sempre começa em false
+                            setShowRentalModal(false);
+
+                            // Usar setTimeout para garantir que a mudança de estado aconteça
+                            setTimeout(() => {
+                                // Incrementar key para forçar re-render do modal
+                                setModalTriggerKey(prev => prev + 1);
+                                // Ativar flag
+                                setShowRentalModal(true);
+                            }, 50);
+
+                            // Resetar após delay para permitir próximo clique
+                            setTimeout(() => {
+                                setShowRentalModal(false);
+                            }, 1500);
+                        }}
+                    >
+                        <Ionicons name="ticket-outline" size={24} color="#9CA3AF" />
+                        <Text style={styles.tabLabel}>Locaciones</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.tabButton}
+                        onPress={() => navigation.navigate('MyRentals')}
+                    >
+                        <Ionicons name="hourglass-outline" size={24} color="#9CA3AF" />
+                        <Text style={styles.tabLabel}>Pendientes</Text>
+                        {pendingRentals > 0 && (
+                            <View style={styles.tabBadge}>
+                                <Text style={styles.tabBadgeText}>{pendingRentals}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.tabButton}
+                        onPress={() => navigation.navigate('ChatsList')}
+                    >
+                        <Ionicons name="chatbubbles-outline" size={24} color="#9CA3AF" />
+                        <Text style={styles.tabLabel}>Chats</Text>
+                        {unreadMessages > 0 && (
+                            <View style={styles.tabBadge}>
+                                <Text style={styles.tabBadgeText}>{unreadMessages}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.tabButton}
+                        onPress={() => navigation.navigate('Profile')}
+                    >
+                        <Ionicons name="person-outline" size={24} color="#9CA3AF" />
+                        <Text style={styles.tabLabel}>{t('tabBar.myProfile')}</Text>
+                        {userUnread > 0 && (
+                            <View style={styles.tabBadge}>
+                                <Text style={styles.tabBadgeText}>{userUnread}</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }
@@ -630,15 +727,15 @@ const styles = StyleSheet.create({
     },
     heroCarouselContainer: {
         width: '380',
-        height: 630,
+        height: 610,
         overflow: 'hidden',
     },
     heroScrollView: {
         width: '380',
-        height: 700,
+        height: 650,
     },
     heroSection: {
-        padding: 20,
+        padding: 0,
         flex: 1,
     },
     heroSectionBackground: {
@@ -718,7 +815,10 @@ const styles = StyleSheet.create({
     },
     searchContainer: {
         flexDirection: 'row',
-        margin: -3,
+        marginHorizontal: 10,
+        marginVertical: -3,
+        maxWidth: '95%',
+        alignSelf: 'center',
         backgroundColor: '#fff',
         borderRadius: 25,
         paddingHorizontal: 15,
@@ -728,7 +828,6 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.1,
         shadowRadius: 2,
-        // borderWidth: 2,
         borderColor: '#10B981',
 
     },
@@ -745,14 +844,15 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     section: {
-        marginTop: 20,
+        marginTop: 0,
         paddingHorizontal: 20,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 20,
+        paddingHorizontal: 0,
     },
     sectionTitle: {
         fontSize: 20,
@@ -781,9 +881,9 @@ const styles = StyleSheet.create({
     categoriesContainer: {
         backgroundColor: '#fff',
         borderRadius: 16,
-        paddingTop: 25,
+        paddingTop: 20,
+        paddingBottom: 40,
         paddingHorizontal: 15,
-        paddingBottom: 50,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 1},
@@ -973,6 +1073,50 @@ const styles = StyleSheet.create({
     userNotificationDotText: {
         color: '#fff',
         fontSize: 11,
+        fontWeight: 'bold',
+    },
+    // Tab Bar
+    tabBar: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderTopWidth: 1,
+        borderTopColor: '#E5E7EB',
+        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+        paddingTop: 8,
+        elevation: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    tabButton: {
+        flex: 1,
+        alignItems: 'center',
+        paddingVertical: 8,
+        position: 'relative',
+    },
+    tabLabel: {
+        fontSize: 11,
+        color: '#9CA3AF',
+        marginTop: 4,
+        fontWeight: '500',
+    },
+    tabBadge: {
+        position: 'absolute',
+        top: 0,
+        right: '25%',
+        backgroundColor: '#EF4444',
+        borderRadius: 10,
+        minWidth: 18,
+        height: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    tabBadgeText: {
+        color: '#fff',
+        fontSize: 10,
         fontWeight: 'bold',
     },
 });

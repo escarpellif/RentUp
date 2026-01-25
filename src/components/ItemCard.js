@@ -76,6 +76,21 @@ const ItemCard = ({ item, onDetailsPress, onPress, fullWidth = false, userId = n
                 {/* Gradiente Overlay na parte inferior da imagem */}
                 <View style={itemCardStyles.imageOverlay} />
 
+                {/* Badge de Desconto - Mostrar se houver desconto semanal OU mensal */}
+                {(item.discount_week > 0 || item.discount_month > 0) && (
+                    <View style={itemCardStyles.discountBadge}>
+                        <Text style={itemCardStyles.discountBadgeIcon}>🎉</Text>
+                        <Text style={itemCardStyles.discountBadgeText}>
+                            {item.discount_week > 0 && item.discount_month > 0
+                                ? `${Math.max(item.discount_week, item.discount_month)}% OFF`
+                                : item.discount_week > 0
+                                ? `${item.discount_week}% OFF`
+                                : `${item.discount_month}% OFF`
+                            }
+                        </Text>
+                    </View>
+                )}
+
                 {/* Badge de Pausado */}
                 {!(item.is_active ?? true) && (
                     <View style={itemCardStyles.pausedBadge}>

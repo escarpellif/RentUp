@@ -62,7 +62,7 @@ export const itemCardStyles = StyleSheet.create({
     pausedBadge: {
         position: 'absolute',
         top: 10,
-        right: 10,
+        left: 10,
         backgroundColor: '#FF9800',
         paddingHorizontal: 12,
         paddingVertical: 6,
@@ -77,6 +77,33 @@ export const itemCardStyles = StyleSheet.create({
         color: '#fff',
         fontSize: 12,
         fontWeight: 'bold',
+    },
+    // Badge de Desconto
+    discountBadge: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        backgroundColor: '#FF6B00',
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.4,
+        shadowRadius: 5,
+        elevation: 6,
+    },
+    discountBadgeIcon: {
+        fontSize: 11,
+    },
+    discountBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: 'bold',
+        letterSpacing: 0.5,
     },
     cardContent: {
         padding: 14,

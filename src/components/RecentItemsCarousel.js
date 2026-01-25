@@ -5,6 +5,8 @@ import { supabase } from '../../supabase';
 import { recentItemsCarouselStyles as styles } from '../styles/recentItemsCarouselStyles';
 import { calculateDistance } from '../utils/locationHelper';
 import { useTranslation } from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
+import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.7;
@@ -55,26 +57,30 @@ export default function RecentItemsCarousel({ navigation, session }) {
 
     const fetchRecentItems = async () => {
         try {
-            const { data, error } = await supabase
-                .from('items')
-                .select(`
-                    *,
-                    owner:profiles!items_owner_id_fkey(
-                        id,
-                        full_name,
-                        rating_average,
-                        rating_count
-                    )
-                `)
-                .eq('is_available', true)
-                .order('created_at', { ascending: false })
-                .limit(10);
+            const result = await fetchWithRetry(async () => {
+                const query = supabase
+                    .from('items')
+                    .select(`
+                        *,
+                        owner:profiles!items_owner_id_fkey(
+                            id,
+                            full_name,
+                            rating_average,
+                            rating_count
+                        )
+                    `)
+                    .eq('is_available', true)
+                    .order('created_at', { ascending: false })
+                    .limit(10);
 
-            if (error) throw error;
+                return await withTimeout(query, 12000);
+            }, 2);
 
-            setRecentItems(data || []);
+            setRecentItems(result.data || []);
         } catch (error) {
             console.error('Error fetching recent items:', error);
+            // Não mostrar alert para não interromper a experiência
+            setRecentItems([]);
         } finally {
             setLoading(false);
         }
@@ -199,6 +205,21 @@ export default function RecentItemsCarousel({ navigation, session }) {
                                 ) : (
                                     <View style={styles.placeholderImage}>
                                         <Text style={styles.placeholderText}>📦</Text>
+                                    </View>
+                                )}
+
+                                {/* Badge de Desconto */}
+                                {(item.discount_week > 0 || item.discount_month > 0) && (
+                                    <View style={styles.discountBadge}>
+                                        <Text style={styles.discountBadgeIcon}>🎉</Text>
+                                        <Text style={styles.discountBadgeText}>
+                                            {item.discount_week > 0 && item.discount_month > 0
+                                                ? `${Math.max(item.discount_week, item.discount_month)}% OFF`
+                                                : item.discount_week > 0
+                                                ? `${item.discount_week}% OFF`
+                                                : `${item.discount_month}% OFF`
+                                            }
+                                        </Text>
                                     </View>
                                 )}
                             </View>

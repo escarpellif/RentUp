@@ -91,13 +91,23 @@ const ActiveRentalModal = ({session, navigation}) => {
 
         const now = new Date();
 
-        // Parse the pickup date correctly
-        const startDate = new Date(rental.start_date);
-        const [pickupHours, pickupMinutes] = (rental.pickup_time || '10:00').split(':');
+        // ✅ Extrair apenas a data (YYYY-MM-DD)
+        const startDateOnly = rental.start_date.split('T')[0];
 
-        // Create pickup datetime
-        const pickupDateTime = new Date(startDate);
-        pickupDateTime.setHours(parseInt(pickupHours, 10), parseInt(pickupMinutes, 10), 0, 0);
+        // ✅ Dividir o tempo em horas e minutos
+        const [pickupHour, pickupMinute] = (rental.pickup_time || '10:00').split(':');
+
+        // ✅ Criar data usando construtor com parâmetros separados (evita problemas de timezone)
+        const [startYear, startMonth, startDay] = startDateOnly.split('-');
+
+        const pickupDateTime = new Date(
+            parseInt(startYear),
+            parseInt(startMonth) - 1, // Mês é 0-indexed
+            parseInt(startDay),
+            parseInt(pickupHour),
+            parseInt(pickupMinute),
+            0
+        );
 
         // Verificar se a data é válida
         if (isNaN(pickupDateTime.getTime())) {
@@ -112,10 +122,12 @@ const ActiveRentalModal = ({session, navigation}) => {
             return;
         }
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        // ✅ Cálculo mais preciso usando totalSeconds
+        const totalSeconds = Math.floor(diff / 1000);
+        const days = Math.floor(totalSeconds / (60 * 60 * 24));
+        const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+        const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+        const seconds = totalSeconds % 60;
 
         if (days > 0) {
             setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
@@ -165,11 +177,12 @@ const ActiveRentalModal = ({session, navigation}) => {
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+        const day = date.getDate().toString().padStart(2, '0');
+        const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} de ${month} de ${year}`;
     };
 
     const handleOpenChat = () => {

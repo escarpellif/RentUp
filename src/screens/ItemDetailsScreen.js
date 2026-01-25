@@ -6,11 +6,13 @@ import PhotoCarousel from '../components/PhotoCarousel';
 import ExactLocationMap from '../components/ExactLocationMap';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 import { requiereAutenticacion } from '../utils/guestCheck';
+import { useTranslation } from 'react-i18next';
 
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function ItemDetailsScreen({ route, navigation, session, isGuest }) {
+    const { t } = useTranslation();
     const { item, autoOpenChat = false, openChatWith = null } = route.params || {};
     const [ownerProfile, setOwnerProfile] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -75,7 +77,14 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
         const profileToChat = openChatWith || ownerProfile;
 
         if (!profileToChat) {
-            Alert.alert('Error', 'No se pudo cargar la información del vendedor');
+            Alert.alert(
+                '⚠️ Información No Disponible',
+                'No pudimos cargar la información del vendedor. Por favor, intenta nuevamente.',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Reintentar', onPress: () => fetchOwnerProfile() }
+                ]
+            );
             return;
         }
 
@@ -248,6 +257,31 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                             <Text style={styles.description}>{item.description}</Text>
                         </View>
 
+                        {/* Descontos - Mostrar apenas se houver descontos */}
+                        {(item.discount_week > 0 || item.discount_month > 0) && (
+                            <View style={styles.discountContainer}>
+                                <Text style={styles.discountTitle}>🎉 {t('items.discountsAvailable')}</Text>
+                                {item.discount_week > 0 && (
+                                    <View style={styles.discountItem}>
+                                        <Text style={styles.discountIcon}>📅</Text>
+                                        <Text style={styles.discountText}>
+                                            <Text style={styles.discountBold}>{item.discount_week}% OFF</Text>
+                                            {' '}{t('items.weeklyDiscount')}
+                                        </Text>
+                                    </View>
+                                )}
+                                {item.discount_month > 0 && (
+                                    <View style={styles.discountItem}>
+                                        <Text style={styles.discountIcon}>📆</Text>
+                                        <Text style={styles.discountText}>
+                                            <Text style={styles.discountBold}>{item.discount_month}% OFF</Text>
+                                            {' '}{t('items.monthlyDiscount')}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        )}
+
                         {/* Opções de Entrega */}
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>🚚 Opciones de Entrega</Text>
@@ -280,7 +314,7 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                                             <View style={styles.deliveryOption}>
                                                 <Text style={styles.deliveryOptionIcon}>✓</Text>
                                                 <Text style={styles.deliveryOptionText}>
-                                                    Entrega mediante tasa de €{parseFloat(item.delivery_fee || 0).toFixed(2)}
+                                                    Entrega mediante taxa de €{parseFloat(item.delivery_fee || 0).toFixed(2)}
                                                 </Text>
                                             </View>
                                             {item.delivery_distance && (
@@ -694,5 +728,41 @@ const styles = StyleSheet.create({
         color: '#999',
         textAlign: 'center',
         marginVertical: 8,
+    },
+    // Estilos para Descontos
+    discountContainer: {
+        backgroundColor: '#FFF3E0',
+        padding: 16,
+        borderRadius: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#FF9800',
+        marginTop: 20,
+        marginBottom: 10,
+    },
+    discountTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#E65100',
+        marginBottom: 12,
+        textAlign: 'left',
+    },
+    discountItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+        gap: 10,
+    },
+    discountIcon: {
+        fontSize: 20,
+    },
+    discountText: {
+        fontSize: 15,
+        color: '#333',
+        flex: 1,
+    },
+    discountBold: {
+        fontWeight: 'bold',
+        color: '#E65100',
+        fontSize: 16,
     },
 });

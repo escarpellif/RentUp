@@ -7,6 +7,17 @@ import { supabase } from './supabase';
 // Importar i18n
 import './src/i18n';
 
+// Importar Sistema de Logging e Error Handling
+import ErrorBoundary from './src/components/ErrorBoundary';
+import GlobalErrorHandler from './src/utils/GlobalErrorHandler';
+import Logger from './src/services/LoggerService';
+
+// Inicializar Global Error Handler
+GlobalErrorHandler.init();
+
+// Importar Offline Banner
+import OfflineBanner from './src/components/OfflineBanner';
+
 // Importar Splash Screen Animado
 import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 
@@ -34,6 +45,9 @@ import DisputeDetailsScreen from './src/screens/DisputeDetailsScreen';
 import AdminRentalsScreen from './src/screens/AdminRentalsScreen';
 import AdminUsersScreen from './src/screens/AdminUsersScreen';
 import AdminItemsScreen from './src/screens/AdminItemsScreen';
+import AdminReportsScreen from './src/screens/AdminReportsScreen';
+import AdminSettingsScreen from './src/screens/AdminSettingsScreen';
+import AdminBroadcastScreen from './src/screens/AdminBroadcastScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -87,12 +101,14 @@ export default function App() {
     // Se estiver logado OU em modo visitante, exibe o Stack Navigator com as telas do app
     if ((session?.user) || isGuest) {
         return (
-            <NavigationContainer>
-                <Stack.Navigator
-                    screenOptions={{
-                        headerShown: false,
-                    }}
-                >
+            <ErrorBoundary>
+                <OfflineBanner />
+                <NavigationContainer>
+                    <Stack.Navigator
+                        screenOptions={{
+                            headerShown: false,
+                        }}
+                    >
                     <Stack.Screen name="HomeScreen">
                         {(props) => <HomeScreen {...props} session={session} isGuest={isGuest} />}
                     </Stack.Screen>
@@ -186,16 +202,33 @@ export default function App() {
                         {(props) => <AdminItemsScreen {...props} session={session} />}
                     </Stack.Screen>
 
+                    <Stack.Screen name="AdminReports">
+                        {(props) => <AdminReportsScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminSettings">
+                        {(props) => <AdminSettingsScreen {...props} session={session} />}
+                    </Stack.Screen>
+
+                    <Stack.Screen name="AdminBroadcast">
+                        {(props) => <AdminBroadcastScreen {...props} session={session} />}
+                    </Stack.Screen>
+
                     <Stack.Screen name="VerificationApprovalScreen">
                         {(props) => <AdminVerificationsScreen {...props} session={session} />}
                     </Stack.Screen>
                 </Stack.Navigator>
             </NavigationContainer>
+            </ErrorBoundary>
         );
     }
 
     // Se não estiver logado, exibe apenas a tela de autenticação
-    return <AuthScreen onGuestLogin={handleGuestLogin} />;
+    return (
+        <ErrorBoundary>
+            <AuthScreen onGuestLogin={handleGuestLogin} />
+        </ErrorBoundary>
+    );
 }
 
 // Registrar o componente para Expo

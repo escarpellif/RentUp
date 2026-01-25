@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet, Platform, StatusBar, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
+import { handleApiError } from '../utils/errorHandler';
+import { withTimeout } from '../utils/apiHelpers';
 
 export default function ChatConversationScreen({ route, navigation, session }) {
     const { itemId, item, otherUser, conversationId } = route.params;
@@ -47,18 +49,22 @@ export default function ChatConversationScreen({ route, navigation, session }) {
     const fetchMessages = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
+            const query = supabase
                 .from('messages')
                 .select('*')
                 .eq('conversation_id', conversationId)
                 .order('created_at', { ascending: true });
 
-            if (error) throw error;
-            setMessages(data || []);
+            const result = await withTimeout(query, 10000);
+
+            if (result.error) throw result.error;
+            setMessages(result.data || []);
         } catch (error) {
             console.error('Erro ao buscar mensagens:', error);
+            handleApiError(error, () => fetchMessages());
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const markMessagesAsRead = async () => {

@@ -117,13 +117,20 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
         const now = new Date();
 
         if (rental.status === 'approved') {
-            // Tempo até a retirada
-            const startDate = new Date(rental.start_date);
-            const [pickupHours, pickupMinutes] = (rental.pickup_time || '10:00').split(':');
+            // ✅ Tempo até a retirada
+            const startDateOnly = rental.start_date.split('T')[0];
+            const [pickupHour, pickupMinute] = (rental.pickup_time || '10:00').split(':');
 
-            // Create pickup datetime
-            const pickupDateTime = new Date(startDate);
-            pickupDateTime.setHours(parseInt(pickupHours, 10), parseInt(pickupMinutes, 10), 0, 0);
+            const [startYear, startMonth, startDay] = startDateOnly.split('-');
+
+            const pickupDateTime = new Date(
+                parseInt(startYear),
+                parseInt(startMonth) - 1,
+                parseInt(startDay),
+                parseInt(pickupHour),
+                parseInt(pickupMinute),
+                0
+            );
 
             // Verificar se a data é válida
             if (isNaN(pickupDateTime.getTime())) {
@@ -138,10 +145,12 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 return;
             }
 
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            // ✅ Cálculo mais preciso
+            const totalSeconds = Math.floor(diff / 1000);
+            const days = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
+            const seconds = totalSeconds % 60;
 
             if (days > 0) {
                 setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
@@ -151,13 +160,20 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 setTimeRemaining(`${minutes}m ${seconds}s`);
             }
         } else if (rental.status === 'active') {
-            // Tempo até a devolução
-            const endDate = new Date(rental.end_date);
-            const [returnHours, returnMinutes] = (rental.return_time || '18:00').split(':');
+            // ✅ Tempo até a devolução
+            const endDateOnly = rental.end_date.split('T')[0];
+            const [returnHour, returnMinute] = (rental.return_time || '18:00').split(':');
 
-            // Create return datetime
-            const returnDateTime = new Date(endDate);
-            returnDateTime.setHours(parseInt(returnHours, 10), parseInt(returnMinutes, 10), 0, 0);
+            const [endYear, endMonth, endDay] = endDateOnly.split('-');
+
+            const returnDateTime = new Date(
+                parseInt(endYear),
+                parseInt(endMonth) - 1,
+                parseInt(endDay),
+                parseInt(returnHour),
+                parseInt(returnMinute),
+                0
+            );
 
             // Verificar se a data é válida
             if (isNaN(returnDateTime.getTime())) {
@@ -172,9 +188,11 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                 return;
             }
 
-            const daysReturn = Math.floor(diffReturn / (1000 * 60 * 60 * 24));
-            const hoursReturn = Math.floor((diffReturn % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutesReturn = Math.floor((diffReturn % (1000 * 60 * 60)) / (1000 * 60));
+            // ✅ Cálculo mais preciso
+            const totalSeconds = Math.floor(diffReturn / 1000);
+            const daysReturn = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hoursReturn = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutesReturn = Math.floor((totalSeconds % (60 * 60)) / 60);
 
             if (daysReturn > 0) {
                 setTimeRemaining(`${daysReturn} días ${hoursReturn}h`);
@@ -267,11 +285,12 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+        const day = date.getDate().toString().padStart(2, '0');
+        const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} de ${month} de ${year}`;
     };
 
     const handleOpenChat = () => {

@@ -13,8 +13,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
+import { handleApiError } from '../utils/errorHandler';
+import { withTimeout } from '../utils/apiHelpers';
+import Logger from '../services/LoggerService';
 
-export default function EditProfileScreen({ session, navigation }) {
+export default function EditProfileScreen({ navigation, session }) {
     const [loading, setLoading] = useState(false);
     const [loadingProfile, setLoadingProfile] = useState(true);
     
@@ -40,8 +43,15 @@ export default function EditProfileScreen({ session, navigation }) {
                 .single();
 
             if (error) {
-                Alert.alert('Error', 'No se pudo cargar el perfil');
-                console.error(error);
+                Logger.error('Erro ao carregar perfil', { screen: 'EditProfile' }, error);
+                Alert.alert(
+                    '⚠️ Error al Cargar',
+                    'No pudimos cargar tu perfil. Por favor, verifica tu conexión e intenta nuevamente.',
+                    [
+                        { text: 'Cancelar', onPress: () => navigation.goBack(), style: 'cancel' },
+                        { text: 'Reintentar', onPress: () => fetchProfile() }
+                    ]
+                );
             } else if (data) {
                 setUsername(data.username || '');
                 setFullName(data.full_name || '');
@@ -51,7 +61,7 @@ export default function EditProfileScreen({ session, navigation }) {
                 setCity(data.city || '');
             }
         } catch (error) {
-            console.error('Error al buscar perfil:', error);
+            Logger.error('Erro inesperado ao buscar perfil', { screen: 'EditProfile' }, error);
         } finally {
             setLoadingProfile(false);
         }
@@ -86,7 +96,15 @@ export default function EditProfileScreen({ session, navigation }) {
                 .eq('id', session.user.id);
 
             if (error) {
-                Alert.alert('Error', 'No se pudo actualizar el perfil: ' + error.message);
+                Logger.error('Erro ao atualizar perfil', { screen: 'EditProfile' }, error);
+                Alert.alert(
+                    '👤 Error al Guardar',
+                    'No se pudieron guardar los cambios en tu perfil. Tus datos anteriores están seguros.\n\n¿Deseas intentar nuevamente?',
+                    [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Guardar Nuevamente', onPress: () => handleSave() }
+                    ]
+                );
             } else {
                 Alert.alert(
                     '¡Éxito!', 
@@ -95,7 +113,8 @@ export default function EditProfileScreen({ session, navigation }) {
                 );
             }
         } catch (error) {
-            Alert.alert('Error', 'Error inesperado: ' + error.message);
+            Logger.error('Erro inesperado ao salvar perfil', { screen: 'EditProfile' }, error);
+            handleApiError(error, () => handleSave());
         } finally {
             setLoading(false);
         }

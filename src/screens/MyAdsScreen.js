@@ -18,6 +18,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
+import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
 import ItemCard from '../components/ItemCard';
 import { myAdsScreenStyles as styles } from '../styles/screens/myAdsScreenStyles';
 
@@ -44,18 +46,21 @@ export default function MyAdsScreen({ navigation, session }) {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('items')
-        .select('*')
-        .eq('owner_id', userId)
-        .order('created_at', { ascending: false });
+      const result = await fetchWithRetry(async () => {
+        const query = supabase
+          .from('items')
+          .select('*')
+          .eq('owner_id', userId)
+          .order('created_at', { ascending: false });
 
-      if (error) throw error;
+        return await withTimeout(query, 12000);
+      }, 2);
 
-      setItems(data || []);
+      if (result.error) throw result.error;
+      setItems(result.data || []);
     } catch (error) {
       console.error('Error fetching my items:', error);
-      Alert.alert(t('common.error'), t('items.loadError'));
+      handleApiError(error, () => fetchMyItems());
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -88,18 +93,19 @@ export default function MyAdsScreen({ navigation, session }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              const { error } = await supabase
+              const query = supabase
                 .from('items')
                 .delete()
                 .eq('id', item.id);
 
-              if (error) throw error;
+              const result = await withTimeout(query, 10000);
+              if (result.error) throw result.error;
 
               Alert.alert(t('common.success'), t('items.deleteSuccess'));
               fetchMyItems();
             } catch (error) {
               console.error('Error deleting item:', error);
-              Alert.alert(t('common.error'), t('items.deleteError'));
+              handleApiError(error, () => handleDeleteItem(item));
             }
           },
         },
@@ -120,12 +126,13 @@ export default function MyAdsScreen({ navigation, session }) {
           text: t('common.ok'),
           onPress: async () => {
             try {
-              const { error } = await supabase
+              const query = supabase
                 .from('items')
                 .update({ is_active: newStatus })
                 .eq('id', item.id);
 
-              if (error) throw error;
+              const result = await withTimeout(query, 10000);
+              if (result.error) throw result.error;
 
               Alert.alert(
                 t('common.success'),
@@ -134,7 +141,7 @@ export default function MyAdsScreen({ navigation, session }) {
               fetchMyItems();
             } catch (error) {
               console.error('Error toggling item status:', error);
-              Alert.alert(t('common.error'), 'No se pudo cambiar el estado del anuncio');
+              handleApiError(error, () => handleToggleActive(item));
             }
           },
         },

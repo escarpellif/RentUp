@@ -1,16 +1,47 @@
 import 'react-native-url-polyfill/auto'; // Garante compatibilidade de URL para RN
 import {createClient} from '@supabase/supabase-js';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 
-// 🚨 SUBSTITUA PELAS SUAS CHAVES DO SUPABASE 🚨
-const supabaseUrl = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2aG5rd3h2eG5zYXRxbWxqbnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTgwNzksImV4cCI6MjA3NzgzNDA3OX0.TmV3OI1OitcdLvFcGYTm2hclZ8aI-2zwtsI8Ar6GQaU';
+// 🔒 CHAVES PROTEGIDAS - Carregadas de variáveis de ambiente
+const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-// Configuração do cliente Supabase para React Native
-// Usamos o AsyncStorage para persistir a sessão do usuário
+// Validação de segurança
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('❌ ERRO DE CONFIGURAÇÃO: Chaves do Supabase não encontradas! Verifique o arquivo .env');
+}
+
+// Storage adapter para diferentes plataformas
+const createStorageAdapter = () => {
+    if (Platform.OS === 'web') {
+        // Web: usar localStorage
+        return {
+            getItem: async (key) => {
+                if (typeof window === 'undefined') return null;
+                return window.localStorage.getItem(key);
+            },
+            setItem: async (key, value) => {
+                if (typeof window === 'undefined') return;
+                window.localStorage.setItem(key, value);
+            },
+            removeItem: async (key) => {
+                if (typeof window === 'undefined') return;
+                window.localStorage.removeItem(key);
+            },
+        };
+    } else {
+        // Native: usar AsyncStorage
+        const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+        return AsyncStorage;
+    }
+};
+
+// Configuração do cliente Supabase
+// Usa AsyncStorage no mobile e localStorage na web
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
-        storage: AsyncStorage,
+        storage: createStorageAdapter(),
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,

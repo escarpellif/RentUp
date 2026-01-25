@@ -2,12 +2,12 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: "ALUKO",
-    slug: "ALUKO",
+    name: "ALUKO - Alquila y Renta",
+    slug: "aluko",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/logo.png",
-    scheme: "ALUKO",
+    scheme: "aluko",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     splash: {
@@ -66,7 +66,7 @@ export default {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       eas: {
-        projectId: "your-project-id"
+        projectId: "9e985202-96a5-4a85-856e-754b15dc7881"
       }
     }
   }

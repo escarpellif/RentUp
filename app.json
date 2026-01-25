@@ -1,22 +1,35 @@
 {
   "expo": {
-    "name": "",
-    "slug": "ALUKO",
+    "name": "ALUKO - Alquila y Renta",
+    "slug": "aluko",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo.png",
-    "scheme": "ALUKO",
+    "scheme": "aluko",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "privacy": "public",
+    "description": "Plataforma de aluguel colaborativo. Alquila lo que necesitas. Rentabiliza lo que ya tienes.",
+    "primaryColor": "#2563EB",
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
+      "bundleIdentifier": "com.aluko.app",
+      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Necesitamos acceder a la cámara para tomar selfies para la verificación.",
         "NSPhotoLibraryUsageDescription": "Necesitamos acessar suas fotos para que você possa enviar documentos.",
-        "NSPhotoLibraryAddUsageDescription": "Precisamos de permissão para salvar imagens, se necessário."
+        "NSPhotoLibraryAddUsageDescription": "Precisamos de permissão para salvar imagens, se necessário.",
+        "NSLocationWhenInUseUsageDescription": "Usamos tu ubicación para mostrarte productos cerca de ti."
       }
     },
     "android": {
+      "package": "com.aluko.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -29,7 +42,9 @@
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES"
+        "READ_MEDIA_IMAGES",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
@@ -37,7 +52,6 @@
       "favicon": "./assets/images/app-icon.png"
     },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -51,10 +65,6 @@
         }
       ],
       "expo-asset"
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
-    }
+    ]
   }
 }

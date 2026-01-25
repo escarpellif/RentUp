@@ -157,6 +157,11 @@ export default {
     deleteSuccess: 'Anuncio eliminado correctamente',
     deleteError: 'No se pudo eliminar el anuncio',
     loadError: 'No se pudieron cargar tus anuncios',
+
+    // Descontos
+    discountsAvailable: '¡Descuentos Disponibles!',
+    weeklyDiscount: 'en alquileres de 7 días o más',
+    monthlyDiscount: 'en alquileres de 30 días o más',
   },
 
   // Aluguel
@@ -414,6 +419,19 @@ export default {
     refundAmount: 'Monto a devolver',
     deductionAmount: 'Monto retenido',
     itemReturnedWithProblem: 'Artículo Devuelto con Problema',
+    noActiveRentals: 'Sin Locaciones Activas',
+    noActiveRentalsMessage: 'No tienes locaciones activas en este momento.',
+    expired: 'Expirado',
+    rentalExpired: 'Solicitud Expirada',
+    rentalExpiredMessage: 'La solicitud no fue aprobada a tiempo y expiró automáticamente.',
+  },
+
+  // Tab Bar
+  tabBar: {
+    search: 'Buscar',
+    createListing: 'Anunciar',
+    bookings: 'Reservas',
+    myProfile: 'Mi Perfil',
   },
 };
 

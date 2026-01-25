@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {
     View,
     Text,
@@ -16,7 +16,7 @@ import {supabase} from '../../supabase';
 import { useTranslation } from 'react-i18next';
 import ReturnDisputeModal from './ReturnDisputeModal';
 
-const UnifiedRentalModal = ({session, navigation}) => {
+const UnifiedRentalModal = ({session, navigation, showOnMount = false}) => {
     const { t } = useTranslation();
     const [allRentals, setAllRentals] = useState([]);
     const [visible, setVisible] = useState(false);
@@ -26,6 +26,8 @@ const UnifiedRentalModal = ({session, navigation}) => {
     const [confirming, setConfirming] = useState(false);
     const [disputeModalVisible, setDisputeModalVisible] = useState(false);
     const [selectedRentalForDispute, setSelectedRentalForDispute] = useState(null);
+    const [hasShownOnMount, setHasShownOnMount] = useState(false);
+    const previousShowOnMount = useRef(showOnMount);
 
     useEffect(() => {
         if (session?.user?.id) {
@@ -47,6 +49,45 @@ const UnifiedRentalModal = ({session, navigation}) => {
             return () => clearInterval(interval);
         }
     }, [allRentals, visible, currentIndex]);
+
+    // Detectar quando showOnMount muda (quando clica no botão Locaciones)
+    useEffect(() => {
+        console.log('🔄 useEffect executado - showOnMount:', showOnMount, 'previous:', previousShowOnMount.current);
+
+        // IMPORTANTE: Atualizar ref ANTES de verificar
+        const previous = previousShowOnMount.current;
+        previousShowOnMount.current = showOnMount;
+
+        // Detectar mudança de false -> true (clique no botão)
+        const wasClicked = !previous && showOnMount;
+
+        console.log('❓ wasClicked:', wasClicked, 'session:', !!session?.user?.id);
+
+        if (wasClicked && session?.user?.id) {
+            console.log('🔘 Botão clicado - buscando rentals...');
+            fetchAllRentals().then((rentals) => {
+                console.log('📊 Rentals retornados:', rentals?.length || 0);
+                if (rentals && rentals.length > 0) {
+                    console.log('✅ Abrindo modal');
+                    setVisible(true);
+                } else {
+                    console.log('⚠️ Mostrando alert - sem rentals');
+                    Alert.alert(
+                        t('dispute.noActiveRentals') || 'Sin Locaciones Activas',
+                        t('dispute.noActiveRentalsMessage') || 'No tienes locaciones activas en este momento.',
+                        [{text: 'OK'}]
+                    );
+                }
+            }).catch(error => {
+                console.error('❌ Erro ao buscar rentals:', error);
+                Alert.alert(
+                    'Error',
+                    'No se pudo cargar las locaciones. Por favor, intenta de nuevo.',
+                    [{text: 'OK'}]
+                );
+            });
+        }
+    }, [showOnMount]);
 
     // Função para calcular o valor que o proprietário receberá
     const calculateOwnerAmount = (rental) => {
@@ -126,20 +167,30 @@ const UnifiedRentalModal = ({session, navigation}) => {
             // Ordenar por data
             combinedRentals.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
 
-            if (combinedRentals.length > 0) {
-                setAllRentals(combinedRentals);
+            setAllRentals(combinedRentals);
+
+            // Só mostrar automaticamente se:
+            // 1. showOnMount é true (primeira vez que loga)
+            // 2. Ainda não mostrou neste mount
+            // 3. Tem locações ativas
+            if (combinedRentals.length > 0 && showOnMount && !hasShownOnMount) {
                 setVisible(true);
+                setHasShownOnMount(true);
                 updateTimeRemaining(combinedRentals[0]);
-            } else {
-                setVisible(false);
+            } else if (combinedRentals.length === 0 && showOnMount && !hasShownOnMount) {
+                // Se não tem locações mas clicou no botão, mostrar mensagem
+                setHasShownOnMount(true);
             }
+
+            // Retornar os rentals para uso em callbacks
+            return combinedRentals;
         } catch (error) {
             console.error('Erro ao buscar locações:', error);
+            return [];
         }
     };
 
     const updateTimeRemaining = (rental = allRentals[currentIndex]) => {
-        // ✅ Validação completa
         if (!rental || !rental.start_date || !rental.pickup_time) {
             setTimeRemaining('Calculando...');
             return;
@@ -147,22 +198,44 @@ const UnifiedRentalModal = ({session, navigation}) => {
 
         const now = new Date();
 
-        // ✅ Extrair apenas a data (YYYY-MM-DD) do start_date e end_date
-        const startDateOnly = rental.start_date.split('T')[0];
-        const endDateOnly = rental.end_date.split('T')[0];
+        // Extrair data e horário de retirada
+        const startDateMatch = rental.start_date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        const endDateMatch = rental.end_date.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-        // Criar datetime de retirada e devolução
-        const pickupDateTime = new Date(`${startDateOnly}T${rental.pickup_time}:00`);
-        const returnDateTime = new Date(`${endDateOnly}T${rental.return_time || '18:00'}:00`);
+        if (!startDateMatch || !endDateMatch) {
+            setTimeRemaining('Fecha inválida');
+            return;
+        }
 
-        // ✅ Verificar se as datas são válidas
+        const startYear = parseInt(startDateMatch[1], 10);
+        const startMonth = parseInt(startDateMatch[2], 10);
+        const startDay = parseInt(startDateMatch[3], 10);
+
+        const endYear = parseInt(endDateMatch[1], 10);
+        const endMonth = parseInt(endDateMatch[2], 10);
+        const endDay = parseInt(endDateMatch[3], 10);
+
+        // Extrair horários - pode vir como HH:MM ou HH:MM:SS
+        const pickupTimeParts = rental.pickup_time.split(':');
+        const pickupHour = parseInt(pickupTimeParts[0], 10);
+        const pickupMinute = parseInt(pickupTimeParts[1], 10);
+
+        const returnTimeParts = (rental.return_time || '18:00').split(':');
+        const returnHour = parseInt(returnTimeParts[0], 10);
+        const returnMinute = parseInt(returnTimeParts[1], 10);
+
+        // Criar Date objects no timezone local
+        // Mês é 0-indexed (Janeiro = 0, Dezembro = 11)
+        const pickupDateTime = new Date(startYear, startMonth - 1, startDay, pickupHour, pickupMinute, 0);
+        const returnDateTime = new Date(endYear, endMonth - 1, endDay, returnHour, returnMinute, 0);
+
+        // Validar datas
         if (isNaN(pickupDateTime.getTime()) || isNaN(returnDateTime.getTime())) {
             setTimeRemaining('Fecha inválida');
             return;
         }
 
-
-        // ✅ Se status é 'active' OU já passou horário de retirada, mostrar tempo até DEVOLUÇÃO
+        // Se status é 'active' OU já passou horário de retirada, mostrar tempo até DEVOLUÇÃO
         if (rental.status === 'active' || now >= pickupDateTime) {
             const diffReturn = returnDateTime - now;
 
@@ -175,22 +248,22 @@ const UnifiedRentalModal = ({session, navigation}) => {
                 return;
             }
 
-            const days = Math.floor(diffReturn / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diffReturn % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diffReturn % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diffReturn % (1000 * 60)) / 1000);
+            const totalSeconds = Math.floor(diffReturn / 1000);
+            const days = Math.floor(totalSeconds / (60 * 60 * 24));
+            const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+            const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
 
             if (days > 0) {
                 setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
             } else if (hours > 0) {
-                setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+                setTimeRemaining(`${hours}h ${minutes}m`);
             } else {
-                setTimeRemaining(`${minutes}m ${seconds}s`);
+                setTimeRemaining(`${minutes}m`);
             }
             return;
         }
 
-        // ✅ Caso contrário, mostrar tempo até RETIRADA (status approved)
+        // Caso contrário, mostrar tempo até RETIRADA (status approved)
         const diffPickup = pickupDateTime - now;
 
         if (diffPickup <= 0) {
@@ -202,17 +275,17 @@ const UnifiedRentalModal = ({session, navigation}) => {
             return;
         }
 
-        const days = Math.floor(diffPickup / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diffPickup % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((diffPickup % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffPickup % (1000 * 60)) / 1000);
+        const totalSeconds = Math.floor(diffPickup / 1000);
+        const days = Math.floor(totalSeconds / (60 * 60 * 24));
+        const hours = Math.floor((totalSeconds % (60 * 60 * 24)) / (60 * 60));
+        const minutes = Math.floor((totalSeconds % (60 * 60)) / 60);
 
         if (days > 0) {
             setTimeRemaining(`${days}d ${hours}h ${minutes}m`);
         } else if (hours > 0) {
-            setTimeRemaining(`${hours}h ${minutes}m ${seconds}s`);
+            setTimeRemaining(`${hours}h ${minutes}m`);
         } else {
-            setTimeRemaining(`${minutes}m ${seconds}s`);
+            setTimeRemaining(`${minutes}m`);
         }
     };
 
@@ -587,11 +660,12 @@ const UnifiedRentalModal = ({session, navigation}) => {
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+        const day = date.getDate().toString().padStart(2, '0');
+        const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+            'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear();
+        return `${day} de ${month} de ${year}`;
     };
 
     const handleOpenChat = () => {

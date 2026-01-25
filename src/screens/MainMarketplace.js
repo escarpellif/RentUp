@@ -8,9 +8,14 @@ import { categories, getSortOptions } from '../constants/categoryConfig';
 import { mainMarketplaceStyles as styles } from '../styles/mainMarketplaceStyles';
 import { calculateDistance } from '../utils/locationHelper';
 import { useTranslation } from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
+import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import PermissionManager from '../utils/PermissionManager';
 
 export default function MainMarketplace({ session, navigation, route }) {
     const { t } = useTranslation();
+    const { isConnected } = useNetworkStatus();
     const sortOptions = getSortOptions(t);
     const [items, setItems] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
@@ -26,9 +31,14 @@ export default function MainMarketplace({ session, navigation, route }) {
     // Função para obter localização do usuário
     async function getUserLocation() {
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            // Usar PermissionManager para pedir permissão com explicação
+            const hasPermission = await PermissionManager.requestLocation({
+                screen: 'MainMarketplace',
+                action: 'getUserLocation'
+            });
 
-            if (status !== 'granted') {
+            if (!hasPermission) {
+                // Usuário optou por não permitir - continua sem filtro de distância
                 return;
             }
 
@@ -52,21 +62,26 @@ export default function MainMarketplace({ session, navigation, route }) {
     async function fetchItems() {
         setLoading(true);
 
-        const { data, error } = await supabase
-            .from('items')
-            .select('*')
-            .eq('is_paused', false) // Filtrar apenas itens não pausados
-            .order('created_at', { ascending: false });
+        try {
+            // Retry com timeout
+            const result = await fetchWithRetry(async () => {
+                const query = supabase
+                    .from('items')
+                    .select('*')
+                    .eq('is_paused', false)
+                    .order('created_at', { ascending: false });
 
-        if (error) {
+                return await withTimeout(query, 15000); // 15s timeout
+            }, 2); // 2 tentativas
+
+            setItems(result.data || []);
+            setFilteredItems(result.data || []);
+        } catch (error) {
             console.error("Erro ao buscar itens:", error.message);
+            handleApiError(error, () => fetchItems());
+        } finally {
             setLoading(false);
-            return;
         }
-
-        setItems(data || []);
-        setFilteredItems(data || []);
-        setLoading(false);
     }
 
     useEffect(() => {

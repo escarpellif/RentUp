@@ -149,6 +149,11 @@ export default {
     deleteSuccess: 'Ad deleted successfully',
     deleteError: 'Could not delete the ad',
     loadError: 'Could not load your ads',
+
+    // Discounts
+    discountsAvailable: 'Discounts Available!',
+    weeklyDiscount: 'on rentals of 7 days or more',
+    monthlyDiscount: 'on rentals of 30 days or more',
   },
 
   // Rental
@@ -406,6 +411,19 @@ export default {
     refundAmount: 'Refund amount',
     deductionAmount: 'Amount withheld',
     itemReturnedWithProblem: 'Item Returned with Problem',
+    noActiveRentals: 'No Active Rentals',
+    noActiveRentalsMessage: 'You don\'t have any active rentals at the moment.',
+    expired: 'Expired',
+    rentalExpired: 'Request Expired',
+    rentalExpiredMessage: 'The request was not approved in time and expired automatically.',
+  },
+
+  // Tab Bar
+  tabBar: {
+    search: 'Search',
+    createListing: 'Post',
+    bookings: 'Bookings',
+    myProfile: 'My Profile',
   },
 };
 

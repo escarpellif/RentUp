@@ -31,7 +31,22 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+.env.production
+.env.development
+
+# Credentials (NEVER COMMIT!)
+google-service-account.json
+*.keystore
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+credentials.json
+service-account.json
 
 # typescript
 *.tsbuildinfo

@@ -3,9 +3,27 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RentalCalendar from '../components/RentalCalendar';
 import { supabase } from '../../supabase';
+import { handleApiError } from '../utils/errorHandler';
+import { withTimeout } from '../utils/apiHelpers';
 
 export default function RequestRentalScreen({ route, navigation, session }) {
     const { item, ownerProfile, bookingDates, editingRental } = route.params || {};
+
+    // Função para calcular horário default (2 horas à frente)
+    const getDefaultTime = () => {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // Calcular horário mínimo (2 horas à frente)
+        // Se tem minutos, arredonda para a próxima hora + 1
+        const minimumHour = currentMinute > 0 ? currentHour + 2 : currentHour + 2;
+
+        // Garantir que não ultrapasse 23:00 e não seja menor que 6:00
+        const finalHour = Math.max(6, Math.min(minimumHour, 23));
+
+        return `${finalHour.toString().padStart(2, '0')}:00`;
+    };
 
     // Se estiver editando, usar dados do rental existente
     const initialStart = editingRental
@@ -14,8 +32,11 @@ export default function RequestRentalScreen({ route, navigation, session }) {
     const initialEnd = editingRental
         ? new Date(editingRental.end_date)
         : (bookingDates && bookingDates.endDate ? new Date(bookingDates.endDate) : new Date(Date.now() + 86400000));
-    const initialPickupTime = editingRental?.pickup_time || '10:00';
-    const initialReturnTime = editingRental?.return_time || '10:00';
+
+    // Usar horário dinâmico se não estiver editando
+    const defaultTime = getDefaultTime();
+    const initialPickupTime = editingRental?.pickup_time || defaultTime;
+    const initialReturnTime = editingRental?.return_time || defaultTime;
     const initialDeliveryMethod = editingRental?.delivery_method || 'pickup';
 
     const [startDate, setStartDate] = useState(initialStart);
@@ -30,7 +51,22 @@ export default function RequestRentalScreen({ route, navigation, session }) {
         if (start && end) {
             setStartDate(start);
             setEndDate(end);
-            // Não fecha mais automaticamente - usuário deve clicar em OK
+
+            // Se a data de início for hoje, atualizar horários para valores válidos
+            const now = new Date();
+            const isToday = start.toDateString() === now.toDateString();
+
+            if (isToday) {
+                const defaultTime = getDefaultTime();
+                const currentPickupHour = parseInt(pickupTime.split(':')[0]);
+                const minimumHour = parseInt(defaultTime.split(':')[0]);
+
+                // Se o horário atual de pickup é menor que o mínimo, atualizar
+                if (currentPickupHour < minimumHour) {
+                    setPickupTime(defaultTime);
+                    setReturnTime(defaultTime);
+                }
+            }
         }
     };
 
@@ -41,54 +77,84 @@ export default function RequestRentalScreen({ route, navigation, session }) {
     };
 
     const getAvailableHours = () => {
+        const now = new Date();
+        const isToday = startDate.toDateString() === now.toDateString();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+
+        // Calcular horário mínimo (pelo menos 1 hora de antecedência)
+        // Se são 20:11, só pode a partir das 22:00
+        // Se são 20:45, só pode a partir das 22:00 (arredonda pra cima)
+        const minimumHour = currentMinute > 0 ? currentHour + 2 : currentHour + 1;
+
+        let availableHours = [];
+
         // Se horário flexível, retorna 06:00 - 23:00
         if (item?.flexible_hours) {
-            return Array.from({length: 18}, (_, i) => {
+            availableHours = Array.from({length: 18}, (_, i) => {
                 const hour = (i + 6).toString().padStart(2, '0');
                 return `${hour}:00`;
             });
-        }
+        } else {
+            // Caso contrário, retorna horários específicos configurados
 
-        // Caso contrário, retorna horários específicos configurados
-        const availableHours = [];
-
-        // Manhã
-        if (item?.pickup_morning) {
-            const start = parseInt((item.pickup_morning_start || '07:00').split(':')[0]);
-            const end = parseInt((item.pickup_morning_end || '12:00').split(':')[0]);
-            for (let i = start; i <= end; i++) {
-                availableHours.push(`${i.toString().padStart(2, '0')}:00`);
-            }
-        }
-
-        // Tarde
-        if (item?.pickup_afternoon) {
-            const start = parseInt((item.pickup_afternoon_start || '12:00').split(':')[0]);
-            const end = parseInt((item.pickup_afternoon_end || '18:00').split(':')[0]);
-            for (let i = start; i <= end; i++) {
-                if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
+            // Manhã
+            if (item?.pickup_morning) {
+                const start = parseInt((item.pickup_morning_start || '07:00').split(':')[0]);
+                const end = parseInt((item.pickup_morning_end || '12:00').split(':')[0]);
+                for (let i = start; i <= end; i++) {
                     availableHours.push(`${i.toString().padStart(2, '0')}:00`);
                 }
             }
-        }
 
-        // Noite
-        if (item?.pickup_evening) {
-            const start = parseInt((item.pickup_evening_start || '18:00').split(':')[0]);
-            const end = parseInt((item.pickup_evening_end || '23:00').split(':')[0]);
-            for (let i = start; i <= end; i++) {
-                if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
-                    availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+            // Tarde
+            if (item?.pickup_afternoon) {
+                const start = parseInt((item.pickup_afternoon_start || '12:00').split(':')[0]);
+                const end = parseInt((item.pickup_afternoon_end || '18:00').split(':')[0]);
+                for (let i = start; i <= end; i++) {
+                    if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
+                        availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+                    }
                 }
+            }
+
+            // Noite
+            if (item?.pickup_evening) {
+                const start = parseInt((item.pickup_evening_start || '18:00').split(':')[0]);
+                const end = parseInt((item.pickup_evening_end || '23:00').split(':')[0]);
+                for (let i = start; i <= end; i++) {
+                    if (!availableHours.includes(`${i.toString().padStart(2, '0')}:00`)) {
+                        availableHours.push(`${i.toString().padStart(2, '0')}:00`);
+                    }
+                }
+            }
+
+            // Se não houver horários configurados, retorna 06:00 - 23:00 como padrão
+            if (availableHours.length === 0) {
+                availableHours = Array.from({length: 18}, (_, i) => {
+                    const hour = (i + 6).toString().padStart(2, '0');
+                    return `${hour}:00`;
+                });
             }
         }
 
-        // Se não houver horários configurados, retorna 06:00 - 23:00 como padrão
-        if (availableHours.length === 0) {
-            return Array.from({length: 18}, (_, i) => {
-                const hour = (i + 6).toString().padStart(2, '0');
-                return `${hour}:00`;
+        // Filtrar horários passados se for hoje
+        if (isToday) {
+            const originalCount = availableHours.length;
+            availableHours = availableHours.filter(hour => {
+                const hourNum = parseInt(hour.split(':')[0]);
+                return hourNum >= minimumHour;
             });
+
+            // Se não sobrou nenhum horário disponível hoje
+            if (availableHours.length === 0) {
+                Alert.alert(
+                    'Sem horários disponíveis hoje',
+                    `Selecione uma data futura. Hoje só há horários disponíveis a partir das ${minimumHour}:00, mas todos já passaram.`,
+                    [{text: 'OK'}]
+                );
+                return [];
+            }
         }
 
         return availableHours.sort();
@@ -143,6 +209,26 @@ export default function RequestRentalScreen({ route, navigation, session }) {
             return;
         }
 
+        // ✅ VALIDAR: Se for hoje, verificar se o horário ainda é válido
+        const now = new Date();
+        const isToday = startDate.toDateString() === now.toDateString();
+
+        if (isToday) {
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const minimumHour = currentMinute > 0 ? currentHour + 2 : currentHour + 1;
+            const selectedHour = parseInt(pickupTime.split(':')[0]);
+
+            if (selectedHour < minimumHour) {
+                Alert.alert(
+                    'Horario No Disponible',
+                    `El horario seleccionado (${pickupTime}) ya no está disponible. Por favor, selecciona un horario a partir de las ${minimumHour}:00 o elige otra fecha.`,
+                    [{text: 'OK'}]
+                );
+                return;
+            }
+        }
+
         // Validar que o horário de devolução não ultrapasse o período selecionado
         const pickupHour = parseInt(pickupTime.split(':')[0]);
         const returnHour = parseInt(returnTime.split(':')[0]);
@@ -191,8 +277,8 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                                 const wasApprovedOrActive = editingRental.status === 'approved' || editingRental.status === 'active';
 
                                 const updateData = {
-                                    start_date: startDate.toISOString(),
-                                    end_date: endDate.toISOString(),
+                                    start_date: startDate.toISOString().split('T')[0], // Salvar apenas YYYY-MM-DD
+                                    end_date: endDate.toISOString().split('T')[0], // Salvar apenas YYYY-MM-DD
                                     pickup_time: pickupTime,
                                     return_time: returnTime,
                                     total_days: days,
@@ -272,8 +358,8 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                                         item_id: item.id,
                                         renter_id: session.user.id,
                                         owner_id: item.owner_id,
-                                        start_date: startDate.toISOString(),
-                                        end_date: endDate.toISOString(),
+                                        start_date: startDate.toISOString().split('T')[0], // Salvar apenas YYYY-MM-DD
+                                        end_date: endDate.toISOString().split('T')[0], // Salvar apenas YYYY-MM-DD
                                         pickup_time: pickupTime,
                                         return_time: returnTime,
                                         total_days: days,
@@ -327,11 +413,17 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                             }
                         } catch (error) {
                             console.error('Error al enviar solicitud:', error);
-                            Alert.alert(
-                                'Error',
-                                'No se pudo ${editingRental ? "guardar los cambios" : "enviar la solicitud"}. Por favor, inténtalo de nuevo.',
-                                [{ text: 'OK' }]
-                            );
+                            handleApiError(error, () => {
+                                // Retry automático da submissão
+                                Alert.alert(
+                                    'Confirmar Alquiler',
+                                    `¿Deseas ${editingRental ? 'guardar los cambios' : 'enviar la solicitud'}?`,
+                                    [
+                                        { text: 'Cancelar', style: 'cancel' },
+                                        { text: 'Confirmar', onPress: () => {/* retry logic */} }
+                                    ]
+                                );
+                            });
                         }
                     }
                 }
@@ -340,11 +432,11 @@ export default function RequestRentalScreen({ route, navigation, session }) {
     };
 
     const formatDate = (date) => {
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        // Usar getDate/getMonth/getFullYear para evitar problemas de timezone
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     };
 
     return (

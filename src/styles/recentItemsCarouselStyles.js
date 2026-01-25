@@ -91,6 +91,33 @@ export const recentItemsCarouselStyles = StyleSheet.create({
         fontWeight: 'bold',
         letterSpacing: 0.5,
     },
+    // Badge de Desconto
+    discountBadge: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        backgroundColor: '#FF6B00',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.4,
+        shadowRadius: 5,
+        elevation: 6,
+    },
+    discountBadgeIcon: {
+        fontSize: 12,
+    },
+    discountBadgeText: {
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 'bold',
+        letterSpacing: 0.5,
+    },
     content: {
         padding: 16,
     },

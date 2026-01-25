@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { useTranslation } from 'react-i18next';
 
 export default function MyRentalsScreen({ navigation, session }) {
-    const [activeTab, setActiveTab] = useState('my_rentals'); // my_rentals (cosas que alquilo), my_products (mis productos que otros alquilan)
+    const { t } = useTranslation();
+    const [activeTab, setActiveTab] = useState('hosting'); // hosting (mis productos), renting (alquilo), tickets
     const [subTab, setSubTab] = useState('pending'); // pending, approved, active, history
     const [rentals, setRentals] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchRentals();
     }, [activeTab, subTab]);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchRentals();
+        setRefreshing(false);
+    };
 
     const fetchRentals = async () => {
         setLoading(true);
@@ -26,23 +36,31 @@ export default function MyRentalsScreen({ navigation, session }) {
                 `)
                 .order('created_at', { ascending: false });
 
-            // Filtrar por tipo (coisas que eu alugo vs meus produtos que outros alugam)
-            if (activeTab === 'my_rentals') {
+            if (activeTab === 'tickets') {
+                // Tickets = todas as locações ativas (approved ou active)
+                query = query.in('status', ['approved', 'active']);
+                // Pode ser tanto renter quanto owner
+                const userId = session.user.id;
+                query = query.or(`renter_id.eq.${userId},owner_id.eq.${userId}`);
+            } else if (activeTab === 'renting') {
+                // Alquilo = coisas que EU alugo de outros
                 query = query.eq('renter_id', session.user.id);
-            } else {
+            } else if (activeTab === 'hosting') {
+                // Mis Productos = meus produtos que OUTROS alugam
                 query = query.eq('owner_id', session.user.id);
             }
 
-            // Filtrar por status
-            if (subTab === 'pending') {
-                query = query.eq('status', 'pending');
-            } else if (subTab === 'approved') {
-                query = query.in('status', ['approved']);
-            } else if (subTab === 'active') {
-                // Activas deve mostrar tanto approved quanto active
-                query = query.in('status', ['approved', 'active']);
-            } else if (subTab === 'history') {
-                query = query.in('status', ['completed', 'cancelled', 'rejected']);
+            // Filtrar por status (exceto em tickets)
+            if (activeTab !== 'tickets') {
+                if (subTab === 'pending') {
+                    query = query.eq('status', 'pending');
+                } else if (subTab === 'approved') {
+                    query = query.eq('status', 'approved');
+                } else if (subTab === 'active') {
+                    query = query.in('status', ['approved', 'active']);
+                } else if (subTab === 'history') {
+                    query = query.in('status', ['completed', 'cancelled', 'rejected']);
+                }
             }
 
             const { data, error } = await query;
@@ -158,6 +176,8 @@ export default function MyRentalsScreen({ navigation, session }) {
                                     onPress: () => {
                                         // Recarregar a lista imediatamente
                                         fetchRentals();
+                                        // Navegar de volta para forçar refresh dos hooks
+                                        navigation.navigate('Home');
                                     }
                                 }]
                             );
@@ -207,8 +227,23 @@ export default function MyRentalsScreen({ navigation, session }) {
                     read: false,
                 });
 
-            Alert.alert('Éxito', 'Solicitud rechazada');
-            fetchRentals();
+            // Marcar notificação original como lida
+            await supabase
+                .from('user_notifications')
+                .update({ read: true })
+                .eq('related_id', rentalId)
+                .eq('user_id', rental.owner_id)
+                .eq('type', 'rental_request');
+
+            Alert.alert('Éxito', 'Solicitud rechazada', [
+                {
+                    text: 'OK',
+                    onPress: () => {
+                        fetchRentals();
+                        navigation.navigate('Home');
+                    }
+                }
+            ]);
         } catch (error) {
             console.error('Erro ao rejeitar:', error);
             Alert.alert('Error', 'No se pudo rechazar la solicitud');
@@ -379,8 +414,17 @@ export default function MyRentalsScreen({ navigation, session }) {
         const otherUser = isOwner ? rental.renter : rental.owner;
         const itemTitle = rental.item?.title || 'Item';
 
-        const startDate = new Date(rental.start_date).toLocaleDateString('es-ES');
-        const endDate = new Date(rental.end_date).toLocaleDateString('es-ES');
+        // Formatar datas sem problemas de timezone
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        };
+
+        const startDate = formatDate(rental.start_date);
+        const endDate = formatDate(rental.end_date);
         const pickupTime = rental.pickup_time || '10:00';
         const returnTime = rental.return_time || '18:00';
 
@@ -534,31 +578,31 @@ export default function MyRentalsScreen({ navigation, session }) {
                     <Text style={styles.backArrow}>←</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>
-                    {activeTab === 'my_rentals' ? 'Mis Alquileres' : 'Mis Productos'}
+                    {activeTab === 'hosting' ? 'Mis Productos' : activeTab === 'renting' ? 'Mis Alquileres' : 'Mis Transacciones'}
                 </Text>
                 <View style={styles.headerSpacer} />
             </View>
 
-            {/* Main Tabs (Mis Alquileres vs Mis Productos) */}
+            {/* Main Tabs (Mis Productos vs Mis Alquileres) */}
             <View style={styles.mainTabsContainer}>
                 <TouchableOpacity
-                    style={[styles.mainTab, activeTab === 'my_rentals' && styles.mainTabActive]}
-                    onPress={() => setActiveTab('my_rentals')}
+                    style={[styles.mainTab, activeTab === 'hosting' && styles.mainTabActive]}
+                    onPress={() => setActiveTab('hosting')}
                 >
-                    <Text style={[styles.mainTabText, activeTab === 'my_rentals' && styles.mainTabTextActive]}>
-                        🛒 Mis Alquileres
-                    </Text>
-                    <Text style={styles.mainTabSubtext}>Cosas que alquilo</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.mainTab, activeTab === 'my_products' && styles.mainTabActive]}
-                    onPress={() => setActiveTab('my_products')}
-                >
-                    <Text style={[styles.mainTabText, activeTab === 'my_products' && styles.mainTabTextActive]}>
+                    <Text style={[styles.mainTabText, activeTab === 'hosting' && styles.mainTabTextActive]}>
                         📦 Mis Productos
                     </Text>
                     <Text style={styles.mainTabSubtext}>Que otros alquilan</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.mainTab, activeTab === 'renting' && styles.mainTabActive]}
+                    onPress={() => setActiveTab('renting')}
+                >
+                    <Text style={[styles.mainTabText, activeTab === 'renting' && styles.mainTabTextActive]}>
+                        🛒 Mis Alquileres
+                    </Text>
+                    <Text style={styles.mainTabSubtext}>Cosas que alquilo</Text>
                 </TouchableOpacity>
             </View>
 
@@ -806,6 +850,9 @@ const styles = StyleSheet.create({
     },
     statusCancelled: {
         backgroundColor: '#F3F4F6',
+    },
+    statusExpired: {
+        backgroundColor: '#FED7AA',
     },
     statusText: {
         fontSize: 10,

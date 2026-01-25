@@ -5,7 +5,13 @@
 
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
+
+// Importar AsyncStorage apenas em plataformas nativas
+let AsyncStorage;
+if (Platform.OS !== 'web') {
+  AsyncStorage = require('@react-native-async-storage/async-storage').default;
+}
 
 // Importar traduções
 import es from './locales/es';
@@ -22,8 +28,17 @@ const resources = {
 // Função para carregar idioma salvo
 const loadSavedLanguage = async () => {
   try {
-    const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
-    return savedLanguage || 'es'; // Padrão: Espanhol
+    if (Platform.OS === 'web') {
+      // Web: usar localStorage
+      const savedLanguage = typeof window !== 'undefined'
+        ? window.localStorage.getItem(LANGUAGE_KEY)
+        : null;
+      return savedLanguage || 'es';
+    } else {
+      // Native: usar AsyncStorage
+      const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
+      return savedLanguage || 'es';
+    }
   } catch (error) {
     console.error('Error loading language:', error);
     return 'es';
@@ -33,7 +48,15 @@ const loadSavedLanguage = async () => {
 // Função para salvar idioma
 export const saveLanguage = async (language) => {
   try {
-    await AsyncStorage.setItem(LANGUAGE_KEY, language);
+    if (Platform.OS === 'web') {
+      // Web: usar localStorage
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(LANGUAGE_KEY, language);
+      }
+    } else {
+      // Native: usar AsyncStorage
+      await AsyncStorage.setItem(LANGUAGE_KEY, language);
+    }
   } catch (error) {
     console.error('Error saving language:', error);
   }

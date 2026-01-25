@@ -18,8 +18,14 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
+import PermissionManager from '../utils/PermissionManager';
 
-const ReturnDisputeModal = ({ visible, rental, onClose, onDisputeCreated }) => {
+export default function ReturnDisputeModal({
+    visible,
+    onClose,
+    rental,
+    onDisputeCreated,
+}) {
     const { t } = useTranslation();
     const [issueType, setIssueType] = useState([]);
     const [observation, setObservation] = useState('');
@@ -47,10 +53,14 @@ const ReturnDisputeModal = ({ visible, rental, onClose, onDisputeCreated }) => {
             return;
         }
 
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert(t('common.error'), t('dispute.photoPermission'));
-            return;
+        // Usar PermissionManager para pedir permissão com explicação
+        const hasPermission = await PermissionManager.requestPhotoLibrary('dispute', {
+            component: 'ReturnDisputeModal',
+            action: 'pickImage'
+        });
+
+        if (!hasPermission) {
+            return; // Usuário negou ou cancelou
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
@@ -380,125 +390,123 @@ Para processar esta disputa, acesse o painel administrativo.
                                 </Text>
                             </View>
 
-                            {/* ...existing code... */}
+                            {/* Tipo de Problema */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>{t('dispute.issueType')}</Text>
+                                <Text style={styles.sectionSubtitle}>{t('dispute.selectAll')}</Text>
 
-                        {/* Tipo de Problema */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>{t('dispute.issueType')}</Text>
-                            <Text style={styles.sectionSubtitle}>{t('dispute.selectAll')}</Text>
-
-                            <View style={styles.issueTypesContainer}>
-                                {issueTypes.map((type) => (
-                                    <TouchableOpacity
-                                        key={type.id}
-                                        style={[
-                                            styles.issueTypeButton,
-                                            issueType.includes(type.id) && styles.issueTypeButtonActive
-                                        ]}
-                                        onPress={() => toggleIssueType(type.id)}
-                                    >
-                                        <Text style={styles.issueTypeEmoji}>{type.emoji}</Text>
-                                        <Text style={[
-                                            styles.issueTypeText,
-                                            issueType.includes(type.id) && styles.issueTypeTextActive
-                                        ]}>
-                                            {type.label}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        {/* Fotos */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>{t('dispute.photos')} *</Text>
-                            <Text style={styles.sectionSubtitle}>{t('dispute.photosRequired')}</Text>
-
-                            <View style={styles.photosContainer}>
-                                {photos.map((photo, index) => (
-                                    <View key={index} style={styles.photoWrapper}>
-                                        <Image source={{ uri: photo.uri }} style={styles.photo} />
+                                <View style={styles.issueTypesContainer}>
+                                    {issueTypes.map((type) => (
                                         <TouchableOpacity
-                                            style={styles.removePhotoButton}
-                                            onPress={() => removePhoto(index)}
+                                            key={type.id}
+                                            style={[
+                                                styles.issueTypeButton,
+                                                issueType.includes(type.id) && styles.issueTypeButtonActive
+                                            ]}
+                                            onPress={() => toggleIssueType(type.id)}
                                         >
-                                            <Text style={styles.removePhotoText}>✕</Text>
+                                            <Text style={styles.issueTypeEmoji}>{type.emoji}</Text>
+                                            <Text style={[
+                                                styles.issueTypeText,
+                                                issueType.includes(type.id) && styles.issueTypeTextActive
+                                            ]}>
+                                                {type.label}
+                                            </Text>
                                         </TouchableOpacity>
-                                    </View>
-                                ))}
-
-                                {photos.length < 5 && (
-                                    <TouchableOpacity
-                                        style={styles.addPhotoButton}
-                                        onPress={pickImage}
-                                    >
-                                        <Text style={styles.addPhotoIcon}>📷</Text>
-                                        <Text style={styles.addPhotoText}>{t('dispute.addPhoto')}</Text>
-                                    </TouchableOpacity>
-                                )}
+                                    ))}
+                                </View>
                             </View>
-                        </View>
 
-                        {/* Observação */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>{t('dispute.observation')} *</Text>
-                            <Text style={styles.sectionSubtitle}>
-                                {t('dispute.observationLimit')} ({observation.length}/500)
-                            </Text>
+                            {/* Fotos */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>{t('dispute.photos')} *</Text>
+                                <Text style={styles.sectionSubtitle}>{t('dispute.photosRequired')}</Text>
 
-                            <TextInput
-                                style={styles.observationInput}
-                                value={observation}
-                                onChangeText={setObservation}
-                                placeholder={t('dispute.observationPlaceholder')}
-                                placeholderTextColor="#999"
-                                multiline
-                                maxLength={500}
-                                textAlignVertical="top"
-                            />
-                        </View>
+                                <View style={styles.photosContainer}>
+                                    {photos.map((photo, index) => (
+                                        <View key={index} style={styles.photoWrapper}>
+                                            <Image source={{ uri: photo.uri }} style={styles.photo} />
+                                            <TouchableOpacity
+                                                style={styles.removePhotoButton}
+                                                onPress={() => removePhoto(index)}
+                                            >
+                                                <Text style={styles.removePhotoText}>✕</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    ))}
 
-                        {/* Aviso sobre caução */}
-                        <View style={styles.warningBox}>
-                            <Text style={styles.warningIcon}>⚠️</Text>
-                            <View style={styles.warningContent}>
-                                <Text style={styles.warningTitle}>{t('dispute.depositWarning')}</Text>
-                                <Text style={styles.warningText}>
-                                    {t('dispute.depositInfo', { amount: rental.deposit_amount?.toFixed(2) || '0.00' })}
-                                </Text>
+                                    {photos.length < 5 && (
+                                        <TouchableOpacity
+                                            style={styles.addPhotoButton}
+                                            onPress={pickImage}
+                                        >
+                                            <Text style={styles.addPhotoIcon}>📷</Text>
+                                            <Text style={styles.addPhotoText}>{t('dispute.addPhoto')}</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                </View>
                             </View>
-                        </View>
 
-                        {/* Botões */}
-                        <View style={styles.buttonsContainer}>
-                            <TouchableOpacity
-                                style={styles.cancelButton}
-                                onPress={onClose}
-                                disabled={uploading}
-                            >
-                                <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.submitButton,
-                                    uploading && styles.submitButtonDisabled
-                                ]}
-                                onPress={handleSubmitDispute}
-                                disabled={uploading}
-                            >
-                                <Text style={styles.submitButtonText}>
-                                    {uploading ? t('dispute.submitting') : t('dispute.submit')}
+                            {/* Observação */}
+                            <View style={styles.section}>
+                                <Text style={styles.sectionTitle}>{t('dispute.observation')} *</Text>
+                                <Text style={styles.sectionSubtitle}>
+                                    {t('dispute.observationLimit')} ({observation.length}/500)
                                 </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
-                </View>
+
+                                <TextInput
+                                    style={styles.observationInput}
+                                    value={observation}
+                                    onChangeText={setObservation}
+                                    placeholder={t('dispute.observationPlaceholder')}
+                                    placeholderTextColor="#999"
+                                    multiline
+                                    maxLength={500}
+                                    textAlignVertical="top"
+                                />
+                            </View>
+
+                            {/* Aviso sobre caução */}
+                            <View style={styles.warningBox}>
+                                <Text style={styles.warningIcon}>⚠️</Text>
+                                <View style={styles.warningContent}>
+                                    <Text style={styles.warningTitle}>{t('dispute.depositWarning')}</Text>
+                                    <Text style={styles.warningText}>
+                                        {t('dispute.depositInfo', { amount: rental.deposit_amount?.toFixed(2) || '0.00' })}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            {/* Botões */}
+                            <View style={styles.buttonsContainer}>
+                                <TouchableOpacity
+                                    style={styles.cancelButton}
+                                    onPress={onClose}
+                                    disabled={uploading}
+                                >
+                                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[
+                                        styles.submitButton,
+                                        uploading && styles.submitButtonDisabled
+                                    ]}
+                                    onPress={handleSubmitDispute}
+                                    disabled={uploading}
+                                >
+                                    <Text style={styles.submitButtonText}>
+                                        {uploading ? t('dispute.submitting') : t('dispute.submit')}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+                    </View>
                 </KeyboardAvoidingView>
             </SafeAreaView>
         </Modal>
     );
-};
+}
 
 const styles = StyleSheet.create({
     modalOverlay: {
@@ -752,5 +760,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ReturnDisputeModal;
 

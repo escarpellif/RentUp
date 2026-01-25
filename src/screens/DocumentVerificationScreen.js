@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
+import PermissionManager from '../utils/PermissionManager';
 
 // Components
 import VerificationHeader from '../components/VerificationHeader';
@@ -26,22 +27,14 @@ export default function DocumentVerificationScreen({ navigation, session }) {
 
     const pickDocumentPhoto = async () => {
         try {
-            console.log('pickDocumentPhoto called');
-            // Pedir permissão ao usuário para acessar a galeria
-            let status = 'granted';
-            if (typeof ImagePicker.requestMediaLibraryPermissionsAsync === 'function') {
-                try {
-                    const resp = await ImagePicker.requestMediaLibraryPermissionsAsync();
-                    status = resp?.status;
-                } catch (permErr) {
-                    console.warn('Could not request media library permissions (non-fatal):', permErr);
-                    // keep status as 'granted' to try to open picker anyway
-                }
-            }
-            if (status !== 'granted') {
-                console.log('Media library permission not granted:', status);
-                Alert.alert('Permiso necesario', 'Necesitamos acceso a tus fotos para seleccionar una imagen. Por favor habilita el permiso en la configuración.');
-                return;
+            // Usar PermissionManager para pedir permissão com explicação
+            const hasPermission = await PermissionManager.requestPhotoLibrary('verification', {
+                screen: 'DocumentVerification',
+                action: 'pickDocument'
+            });
+
+            if (!hasPermission) {
+                return; // Usuário negou ou cancelou
             }
 
             const result = await ImagePicker.launchImageLibraryAsync({
@@ -74,16 +67,26 @@ export default function DocumentVerificationScreen({ navigation, session }) {
             }
         } catch (err) {
             console.error('Error picking document photo:', err);
-            Alert.alert('Error', 'No se pudo seleccionar la foto. Intenta de nuevo.');
+            Alert.alert(
+                '📷 Error con la Foto',
+                'No se pudo acceder a la galería. Por favor:\n\n• Verifica los permisos de ALUKO\n• Intenta tomar una foto con la cámara\n• Asegúrate de tener espacio disponible',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Intentar Nuevamente', onPress: () => pickDocument() }
+                ]
+            );
         }
     };
 
     const takeSelfie = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        // Usar PermissionManager para pedir permissão com explicação
+        const hasPermission = await PermissionManager.requestCamera('verification', {
+            screen: 'DocumentVerification',
+            action: 'takeSelfie'
+        });
 
-        if (status !== 'granted') {
-            Alert.alert('Permiso necesario', 'Necesitamos acceso a la cámara para tomar tu selfie.');
-            return;
+        if (!hasPermission) {
+            return; // Usuário negou ou cancelou
         }
 
         const result = await ImagePicker.launchCameraAsync({
@@ -174,7 +177,14 @@ export default function DocumentVerificationScreen({ navigation, session }) {
             );
         } catch (error) {
             console.error('Error al enviar verificación:', error);
-            Alert.alert('Error', 'Hubo un problema al enviar tu verificación. Por favor intenta de nuevo.');
+            Alert.alert(
+                '🔐 Error de Verificación',
+                'No pudimos enviar tu verificación en este momento. Tus fotos están seguras.\n\nPor favor:\n• Verifica tu conexión\n• Asegúrate de que las fotos sean claras\n• Intenta nuevamente en unos minutos',
+                [
+                    { text: 'Cancelar', style: 'cancel' },
+                    { text: 'Intentar Nuevamente', onPress: () => submitVerification() }
+                ]
+            );
         } finally {
             setLoading(false);
         }

@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
+import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
 
 export default function AdminDashboardScreen({ navigation, session }) {
     const { t } = useTranslation();
@@ -37,68 +39,81 @@ export default function AdminDashboardScreen({ navigation, session }) {
         try {
             setLoading(true);
 
-            // Total de usuários
-            const { count: usersCount } = await supabase
-                .from('profiles')
-                .select('*', { count: 'exact', head: true });
+            // Usar fetchWithRetry para todas as queries
+            const result = await fetchWithRetry(async () => {
+                // Total de usuários
+                const usersQuery = supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true });
+                const usersResult = await withTimeout(usersQuery, 10000);
 
-            // Total de itens
-            const { count: itemsCount } = await supabase
-                .from('items')
-                .select('*', { count: 'exact', head: true });
+                // Total de itens
+                const itemsQuery = supabase
+                    .from('items')
+                    .select('*', { count: 'exact', head: true });
+                const itemsResult = await withTimeout(itemsQuery, 10000);
 
-            // Locações ativas
-            const { count: activeCount } = await supabase
-                .from('rentals')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'active');
+                // Locações ativas
+                const activeQuery = supabase
+                    .from('rentals')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'active');
+                const activeResult = await withTimeout(activeQuery, 10000);
 
-            // Locações pendentes de aprovação
-            const { count: pendingCount } = await supabase
-                .from('rentals')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'pending');
+                // Locações pendentes
+                const pendingQuery = supabase
+                    .from('rentals')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'pending');
+                const pendingResult = await withTimeout(pendingQuery, 10000);
 
-            // Locações completadas
-            const { count: completedCount } = await supabase
-                .from('rentals')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'completed');
+                // Locações completadas
+                const completedQuery = supabase
+                    .from('rentals')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'completed');
+                const completedResult = await withTimeout(completedQuery, 10000);
 
-            // Disputas abertas
-            const { count: disputesCount } = await supabase
-                .from('rental_disputes')
-                .select('*', { count: 'exact', head: true })
-                .eq('status', 'open');
+                // Disputas abertas
+                const disputesQuery = supabase
+                    .from('rental_disputes')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('status', 'open');
+                const disputesResult = await withTimeout(disputesQuery, 10000);
 
-            // Verificações pendentes
-            const { count: verificationsCount } = await supabase
-                .from('user_verifications')
-                .select('*', { count: 'exact', head: true })
-                .eq('verification_status', 'pending');
+                // Verificações pendentes
+                const verificationsQuery = supabase
+                    .from('user_verifications')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('verification_status', 'pending');
+                const verificationsResult = await withTimeout(verificationsQuery, 10000);
 
-            // Receita total (soma das taxas de serviço)
-            const { data: rentalsData } = await supabase
-                .from('rentals')
-                .select('service_fee')
-                .eq('status', 'completed');
+                // Receita total
+                const revenueQuery = supabase
+                    .from('rentals')
+                    .select('service_fee')
+                    .eq('status', 'completed');
+                const revenueResult = await withTimeout(revenueQuery, 10000);
 
-            const totalRevenue = rentalsData?.reduce((sum, r) => sum + (r.service_fee || 0), 0) || 0;
+                const totalRevenue = revenueResult.data?.reduce((sum, r) => sum + (r.service_fee || 0), 0) || 0;
 
-            setStats({
-                totalUsers: usersCount || 0,
-                totalItems: itemsCount || 0,
-                activeRentals: activeCount || 0,
-                pendingRentals: pendingCount || 0,
-                completedRentals: completedCount || 0,
-                openDisputes: disputesCount || 0,
-                pendingVerifications: verificationsCount || 0,
-                totalRevenue: totalRevenue,
-            });
+                return {
+                    totalUsers: usersResult.count || 0,
+                    totalItems: itemsResult.count || 0,
+                    activeRentals: activeResult.count || 0,
+                    pendingRentals: pendingResult.count || 0,
+                    completedRentals: completedResult.count || 0,
+                    openDisputes: disputesResult.count || 0,
+                    pendingVerifications: verificationsResult.count || 0,
+                    totalRevenue: totalRevenue,
+                };
+            }, 2);
+
+            setStats(result);
 
         } catch (error) {
             console.error('Erro ao carregar dados do dashboard:', error);
-            Alert.alert('Error', 'Não foi possível carregar os dados');
+            handleApiError(error, () => loadDashboardData());
         } finally {
             setLoading(false);
             setRefreshing(false);

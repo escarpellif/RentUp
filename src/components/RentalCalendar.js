@@ -157,8 +157,15 @@ export default function RentalCalendar({
 
         // Callback para inline - SEMPRE chama quando confirma
         if (onDateRangeChange) {
-            const startDate = new Date(selectedStart);
-            const endDate = new Date(selectedEnd);
+            // Criar Date objects sem problemas de timezone
+            // selectedStart e selectedEnd estão no formato 'YYYY-MM-DD'
+            const [startYear, startMonth, startDay] = selectedStart.split('-').map(Number);
+            const [endYear, endMonth, endDay] = selectedEnd.split('-').map(Number);
+
+            // Criar Date objects usando valores locais (sem UTC)
+            const startDate = new Date(startYear, startMonth - 1, startDay, 12, 0, 0);
+            const endDate = new Date(endYear, endMonth - 1, endDay, 12, 0, 0);
+
             onDateRangeChange(startDate, endDate);
         }
 

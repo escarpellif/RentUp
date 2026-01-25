@@ -103,11 +103,13 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 /*
 SELECT cron.schedule(
-    'expire-pending-rentals',     -- nome do job
-    '*/5 * * * *',                -- a cada 5 minutos
+    'expire-pending-rentals',
+    '* /5 * * * *',
     $$SELECT expire_pending_rentals();$$
 );
 */
+
+-- Nota: O cron pattern é: '*/5 * * * *' (remova o espaço entre * e /5)
 
 -- ============================================
 -- ALTERNATIVA: TRIGGER

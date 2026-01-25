@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+
+// Importação condicional para evitar erro no web
+let MapView, Marker;
+if (Platform.OS !== 'web') {
+    const maps = require('react-native-maps');
+    MapView = maps.default;
+    Marker = maps.Marker;
+}
 
 export default function ExactLocationMap({ coordinates, location }) {
     const [currentRegion, setCurrentRegion] = useState(null);
@@ -23,6 +30,29 @@ export default function ExactLocationMap({ coordinates, location }) {
                 <View style={styles.noLocationContainer}>
                     <Text style={styles.noLocationText}>
                         Ubicación no disponible en el mapa
+                    </Text>
+                </View>
+            </View>
+        );
+    }
+
+    // Fallback para web (MapView não disponível)
+    if (Platform.OS === 'web') {
+        return (
+            <View style={styles.container}>
+                <View style={styles.webMapPlaceholder}>
+                    <Text style={styles.webMapTitle}>📍 Ubicación del Artículo</Text>
+                    <Text style={styles.webMapCoords}>
+                        Lat: {coordinates.latitude.toFixed(6)}
+                    </Text>
+                    <Text style={styles.webMapCoords}>
+                        Lng: {coordinates.longitude.toFixed(6)}
+                    </Text>
+                    <Text style={styles.webMapNote}>
+                        {location || 'Ubicación exacta'}
+                    </Text>
+                    <Text style={styles.webMapInfo}>
+                        💡 Los mapas solo están disponibles en la app móvil
                     </Text>
                 </View>
             </View>
@@ -100,6 +130,43 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#666',
         textAlign: 'center',
+    },
+    // Estilos para web placeholder
+    webMapPlaceholder: {
+        padding: 24,
+        backgroundColor: '#f8f9fa',
+        minHeight: 250,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 2,
+        borderColor: '#e9ecef',
+        borderStyle: 'dashed',
+    },
+    webMapTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 16,
+    },
+    webMapCoords: {
+        fontSize: 14,
+        color: '#666',
+        fontFamily: 'monospace',
+        marginBottom: 4,
+    },
+    webMapNote: {
+        fontSize: 16,
+        color: '#495057',
+        marginTop: 12,
+        marginBottom: 16,
+        textAlign: 'center',
+    },
+    webMapInfo: {
+        fontSize: 13,
+        color: '#6c757d',
+        fontStyle: 'italic',
+        textAlign: 'center',
+        marginTop: 8,
     },
 });
 

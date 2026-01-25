@@ -64,6 +64,7 @@ export default function AdminRentalsScreen({ route, navigation }) {
             completed: { label: 'Completado', color: '#06B6D4', icon: 'checkmark-done' },
             cancelled: { label: 'Cancelado', color: '#6B7280', icon: 'close-circle' },
             rejected: { label: 'Rechazado', color: '#EF4444', icon: 'ban' },
+            expired: { label: 'Expirado', color: '#F97316', icon: 'time-outline' },
             dispute_open: { label: 'Disputa', color: '#DC2626', icon: 'alert-circle' },
         };
         return statusMap[status] || { label: status, color: '#9CA3AF', icon: 'help-circle' };
