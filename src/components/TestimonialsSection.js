@@ -1,16 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, ScrollView, Dimensions } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { testimonialsStyles as styles } from '../styles/testimonialsStyles';
 import { useTranslation } from 'react-i18next';
-
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.85;
-const CARD_MARGIN = 10;
 
 export default function TestimonialsSection() {
     const { t } = useTranslation();
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef = useRef(null);
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const width = 375;
+    const CARD_WIDTH = width * 0.85;
+    const CARD_MARGIN = 10;
 
     const testimonials = [
         {

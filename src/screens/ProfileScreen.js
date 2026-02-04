@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Platform, StatusBar, StyleSheet, TextInput, Alert, ActivityIndicator } from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Platform, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
 import { useUserNotifications } from '../hooks/useUserNotifications';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import { profileStyles } from '../styles/screens/profileStyles';
 
 export default function ProfileScreen({ session, navigation }) {
     const { t, i18n } = useTranslation();
@@ -164,27 +165,27 @@ export default function ProfileScreen({ session, navigation }) {
             <TouchableOpacity
                 key={notification.id}
                 style={[
-                    styles.notificationCard,
-                    !notification.read && styles.notificationUnread
+                    profileStyles.notificationCard,
+                    !notification.read && profileStyles.notificationUnread
                 ]}
                 onPress={() => handleNotificationPress(notification)}
                 activeOpacity={0.7}
             >
-                <View style={styles.notificationIcon}>
-                    <Text style={styles.notificationIconText}>
+                <View style={profileStyles.notificationIcon}>
+                    <Text style={profileStyles.notificationIconText}>
                         {getNotificationIcon(notification.type)}
                     </Text>
                 </View>
                 
-                <View style={styles.notificationContent}>
-                    <Text style={styles.notificationTitle}>{notification.title}</Text>
+                <View style={profileStyles.notificationContent}>
+                    <Text style={profileStyles.notificationTitle}>{notification.title}</Text>
                     <Text style={[
-                        styles.notificationMessage,
-                        isRejection && styles.notificationMessageRejection
+                        profileStyles.notificationMessage,
+                        isRejection && profileStyles.notificationMessageRejection
                     ]}>
                         {notification.message}
                     </Text>
-                    <Text style={styles.notificationTime}>
+                    <Text style={profileStyles.notificationTime}>
                         {new Date(notification.created_at).toLocaleDateString('es-ES', {
                             day: '2-digit',
                             month: 'short',
@@ -196,8 +197,8 @@ export default function ProfileScreen({ session, navigation }) {
                 </View>
 
                 {!notification.read && (
-                    <View style={styles.unreadBadge}>
-                        <View style={styles.unreadDot} />
+                    <View style={profileStyles.unreadBadge}>
+                        <View style={profileStyles.unreadDot} />
                     </View>
                 )}
             </TouchableOpacity>
@@ -205,73 +206,73 @@ export default function ProfileScreen({ session, navigation }) {
     };
 
     const renderEditProfileTab = () => (
-        <View style={styles.tabContent}>
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>👤 Información Personal</Text>
+        <View style={profileStyles.tabContent}>
+            <View style={profileStyles.card}>
+                <Text style={profileStyles.cardTitle}>👤 Información Personal</Text>
 
-                <Text style={styles.label}>Nombre Completo</Text>
+                <Text style={profileStyles.label}>Nombre Completo</Text>
                 <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={fullName}
                     onChangeText={setFullName}
                     placeholder="Tu nombre completo"
                 />
 
-                <Text style={styles.label}>Teléfono</Text>
+                <Text style={profileStyles.label}>Teléfono</Text>
                 <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={phone}
                     onChangeText={setPhone}
                     placeholder="+34 600 123 456"
                     keyboardType="phone-pad"
                 />
 
-                <Text style={styles.label}>Dirección</Text>
+                <Text style={profileStyles.label}>Dirección</Text>
                 <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={address}
                     onChangeText={setAddress}
                     placeholder="Calle, número, piso..."
                 />
 
-                <Text style={styles.label}>Código Postal</Text>
+                <Text style={profileStyles.label}>Código Postal</Text>
                 <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={postalCode}
                     onChangeText={setPostalCode}
                     placeholder="28001"
                     keyboardType="numeric"
                 />
 
-                <Text style={styles.label}>Ciudad</Text>
+                <Text style={profileStyles.label}>Ciudad</Text>
                 <TextInput
-                    style={styles.input}
+                    style={profileStyles.input}
                     value={city}
                     onChangeText={setCity}
                     placeholder="Madrid"
                 />
 
                 <TouchableOpacity
-                    style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                    style={[profileStyles.saveButton, saving && profileStyles.saveButtonDisabled]}
                     onPress={handleSaveProfile}
                     disabled={saving}
                 >
-                    <Text style={styles.saveButtonText}>
+                    <Text style={profileStyles.saveButtonText}>
                         {saving ? 'Guardando...' : '💾 Guardar Cambios'}
                     </Text>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>📧 Información de Cuenta</Text>
-                <Text style={styles.infoLabel}>Usuario:</Text>
-                <Text style={styles.infoValue}>{profile?.username || 'N/A'}</Text>
+            <View style={profileStyles.card}>
+                <Text style={profileStyles.cardTitle}>📧 Información de Cuenta</Text>
+                <Text style={profileStyles.infoLabel}>Usuario:</Text>
+                <Text style={profileStyles.infoValue}>{profile?.username || 'N/A'}</Text>
                 
-                <Text style={styles.infoLabel}>Email:</Text>
-                <Text style={styles.infoValue}>{session.user.email}</Text>
+                <Text style={profileStyles.infoLabel}>Email:</Text>
+                <Text style={profileStyles.infoValue}>{session.user.email}</Text>
                 
-                <Text style={styles.infoLabel}>Miembro desde:</Text>
-                <Text style={styles.infoValue}>
+                <Text style={profileStyles.infoLabel}>Miembro desde:</Text>
+                <Text style={profileStyles.infoValue}>
                     {new Date(profile?.created_at).toLocaleDateString('es-ES', {
                         day: '2-digit',
                         month: 'long',
@@ -288,43 +289,43 @@ export default function ProfileScreen({ session, navigation }) {
             : notifications.filter(n => n.read);
 
         return (
-            <View style={styles.tabContent}>
+            <View style={profileStyles.tabContent}>
                 {/* Sub-tabs */}
-                <View style={styles.subTabsContainer}>
+                <View style={profileStyles.subTabsContainer}>
                     <TouchableOpacity
-                        style={[styles.subTab, notificationsSubTab === 'unread' && styles.subTabActive]}
+                        style={[profileStyles.subTab, notificationsSubTab === 'unread' && profileStyles.subTabActive]}
                         onPress={() => setNotificationsSubTab('unread')}
                     >
-                        <Text style={[styles.subTabText, notificationsSubTab === 'unread' && styles.subTabTextActive]}>
+                        <Text style={[profileStyles.subTabText, notificationsSubTab === 'unread' && profileStyles.subTabTextActive]}>
                             No Leídas ({notifications.filter(n => !n.read).length})
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.subTab, notificationsSubTab === 'read' && styles.subTabActive]}
+                        style={[profileStyles.subTab, notificationsSubTab === 'read' && profileStyles.subTabActive]}
                         onPress={() => setNotificationsSubTab('read')}
                     >
-                        <Text style={[styles.subTabText, notificationsSubTab === 'read' && styles.subTabTextActive]}>
+                        <Text style={[profileStyles.subTabText, notificationsSubTab === 'read' && profileStyles.subTabTextActive]}>
                             Leídas ({notifications.filter(n => n.read).length})
                         </Text>
                     </TouchableOpacity>
                 </View>
 
                 {notifLoading ? (
-                    <View style={styles.emptyContainer}>
+                    <View style={profileStyles.emptyContainer}>
                         <ActivityIndicator size="large" color="#2c4455" />
                     </View>
                 ) : filteredNotifications.length === 0 ? (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyIcon}>🔔</Text>
-                        <Text style={styles.emptyTitle}>Sin notificaciones</Text>
-                        <Text style={styles.emptyText}>
+                    <View style={profileStyles.emptyContainer}>
+                        <Text style={profileStyles.emptyIcon}>🔔</Text>
+                        <Text style={profileStyles.emptyTitle}>Sin notificaciones</Text>
+                        <Text style={profileStyles.emptyText}>
                             {notificationsSubTab === 'unread' 
                                 ? 'No tienes notificaciones sin leer'
                                 : 'No tienes notificaciones leídas'}
                         </Text>
                     </View>
                 ) : (
-                    <View style={styles.notificationsList}>
+                    <View style={profileStyles.notificationsList}>
                         {filteredNotifications.map(renderNotification)}
                     </View>
                 )}
@@ -333,11 +334,11 @@ export default function ProfileScreen({ session, navigation }) {
     };
 
     const renderReviewsTab = () => (
-        <View style={styles.tabContent}>
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyIcon}>⭐</Text>
-                <Text style={styles.emptyTitle}>Mis Reviews</Text>
-                <Text style={styles.emptyText}>
+        <View style={profileStyles.tabContent}>
+            <View style={profileStyles.emptyContainer}>
+                <Text style={profileStyles.emptyIcon}>⭐</Text>
+                <Text style={profileStyles.emptyTitle}>Mis Reviews</Text>
+                <Text style={profileStyles.emptyText}>
                     Esta funcionalidad estará disponible próximamente
                 </Text>
             </View>
@@ -345,15 +346,15 @@ export default function ProfileScreen({ session, navigation }) {
     );
 
     const renderLanguageTab = () => (
-        <View style={styles.tabContent}>
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>🌐 Seleccionar Idioma</Text>
-                <Text style={styles.cardSubtitle}>Elige tu idioma preferido para la aplicación</Text>
+        <View style={profileStyles.tabContent}>
+            <View style={profileStyles.card}>
+                <Text style={profileStyles.cardTitle}>🌐 Seleccionar Idioma</Text>
+                <Text style={profileStyles.cardSubtitle}>Elige tu idioma preferido para la aplicación</Text>
                 
                 <LanguageSwitcher />
                 
-                <View style={styles.languageInfo}>
-                    <Text style={styles.languageInfoText}>
+                <View style={profileStyles.languageInfo}>
+                    <Text style={profileStyles.languageInfoText}>
                         Idioma actual: {i18n.language === 'es' ? 'Español 🇪🇸' : 'English 🇬🇧'}
                     </Text>
                 </View>
@@ -363,8 +364,8 @@ export default function ProfileScreen({ session, navigation }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.loadingContainer}>
+            <SafeAreaView style={profileStyles.container}>
+                <View style={profileStyles.loadingContainer}>
                     <ActivityIndicator size="large" color="#2c4455" />
                 </View>
             </SafeAreaView>
@@ -372,70 +373,70 @@ export default function ProfileScreen({ session, navigation }) {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={profileStyles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.headerContainer}>
+            <View style={profileStyles.headerContainer}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={profileStyles.backButton}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={profileStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Mi Perfil</Text>
+                <View style={profileStyles.headerTitleContainer}>
+                    <Text style={profileStyles.headerTitle}>Mi Perfil</Text>
                 </View>
-                <View style={styles.headerSpacer} />
+                <View style={profileStyles.headerSpacer} />
             </View>
 
             {/* Tabs */}
-            <View style={styles.tabsContainer}>
+            <View style={profileStyles.tabsContainer}>
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'edit' && styles.tabActive]}
+                    style={[profileStyles.tab, activeTab === 'edit' && profileStyles.tabActive]}
                     onPress={() => setActiveTab('edit')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'edit' && styles.tabTextActive]}>
+                    <Text style={[profileStyles.tabText, activeTab === 'edit' && profileStyles.tabTextActive]}>
                         ✏️ Editar
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'notifications' && styles.tabActive]}
+                    style={[profileStyles.tab, activeTab === 'notifications' && profileStyles.tabActive]}
                     onPress={() => setActiveTab('notifications')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'notifications' && styles.tabTextActive]}>
+                    <Text style={[profileStyles.tabText, activeTab === 'notifications' && profileStyles.tabTextActive]}>
                         🔔 Notif.
                     </Text>
                     {unreadCount > 0 && (
-                        <View style={styles.tabBadge}>
-                            <Text style={styles.tabBadgeText}>{unreadCount}</Text>
+                        <View style={profileStyles.tabBadge}>
+                            <Text style={profileStyles.tabBadgeText}>{unreadCount}</Text>
                         </View>
                     )}
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'reviews' && styles.tabActive]}
+                    style={[profileStyles.tab, activeTab === 'reviews' && profileStyles.tabActive]}
                     onPress={() => setActiveTab('reviews')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'reviews' && styles.tabTextActive]}>
+                    <Text style={[profileStyles.tabText, activeTab === 'reviews' && profileStyles.tabTextActive]}>
                         ⭐ Reviews
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, activeTab === 'language' && styles.tabActive]}
+                    style={[profileStyles.tab, activeTab === 'language' && profileStyles.tabActive]}
                     onPress={() => setActiveTab('language')}
                 >
-                    <Text style={[styles.tabText, activeTab === 'language' && styles.tabTextActive]}>
+                    <Text style={[profileStyles.tabText, activeTab === 'language' && profileStyles.tabTextActive]}>
                         🌐 Idioma
                     </Text>
                 </TouchableOpacity>
             </View>
 
             {/* Tab Content */}
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView style={profileStyles.scrollContent} showsVerticalScrollIndicator={false}>
                 {activeTab === 'edit' && renderEditProfileTab()}
                 {activeTab === 'notifications' && renderNotificationsTab()}
                 {activeTab === 'reviews' && renderReviewsTab()}
@@ -447,289 +448,5 @@ export default function ProfileScreen({ session, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    tabsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    tab: {
-        flex: 1,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        position: 'relative',
-    },
-    tabActive: {
-        borderBottomWidth: 3,
-        borderBottomColor: '#2c4455',
-    },
-    tabText: {
-        fontSize: 12,
-        color: '#666',
-        fontWeight: '600',
-    },
-    tabTextActive: {
-        color: '#2c4455',
-        fontWeight: 'bold',
-    },
-    tabBadge: {
-        position: 'absolute',
-        top: 8,
-        right: '25%',
-        backgroundColor: '#dc3545',
-        borderRadius: 10,
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        minWidth: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    tabBadgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-    scrollContent: {
-        flex: 1,
-    },
-    tabContent: {
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    cardSubtitle: {
-        fontSize: 13,
-        color: '#666',
-        marginBottom: 16,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginTop: 12,
-        marginBottom: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        backgroundColor: '#F8F9FA',
-        padding: 14,
-        borderRadius: 12,
-        fontSize: 15,
-        color: '#333',
-    },
-    saveButton: {
-        backgroundColor: '#10B981',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 20,
-    },
-    saveButtonDisabled: {
-        opacity: 0.6,
-    },
-    saveButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    infoLabel: {
-        fontSize: 13,
-        color: '#666',
-        marginTop: 12,
-    },
-    infoValue: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '600',
-        marginTop: 4,
-    },
-    subTabsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 4,
-        marginBottom: 16,
-    },
-    subTab: {
-        flex: 1,
-        paddingVertical: 12,
-        alignItems: 'center',
-        borderRadius: 8,
-    },
-    subTabActive: {
-        backgroundColor: '#2c4455',
-    },
-    subTabText: {
-        fontSize: 13,
-        color: '#666',
-        fontWeight: '600',
-    },
-    subTabTextActive: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    notificationsList: {
-        gap: 12,
-    },
-    notificationCard: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    notificationUnread: {
-        backgroundColor: '#F0F8FF',
-        borderLeftWidth: 4,
-        borderLeftColor: '#2c4455',
-    },
-    notificationIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#E3F2FD',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    notificationIconText: {
-        fontSize: 24,
-    },
-    notificationContent: {
-        flex: 1,
-    },
-    notificationTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    notificationMessage: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 20,
-        marginBottom: 8,
-    },
-    notificationMessageRejection: {
-        color: '#dc3545',
-        fontWeight: '500',
-    },
-    notificationTime: {
-        fontSize: 12,
-        color: '#999',
-    },
-    unreadBadge: {
-        justifyContent: 'flex-start',
-        alignItems: 'flex-end',
-        paddingTop: 4,
-    },
-    unreadDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#dc3545',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-        paddingHorizontal: 40,
-    },
-    emptyIcon: {
-        fontSize: 64,
-        marginBottom: 16,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    emptyText: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-    },
-    loadingContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    languageInfo: {
-        marginTop: 20,
-        padding: 16,
-        backgroundColor: '#E3F2FD',
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    languageInfoText: {
-        fontSize: 15,
-        color: '#2c4455',
-        fontWeight: '600',
-    },
-});
+
 

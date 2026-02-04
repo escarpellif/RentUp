@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, Linking, Modal , StatusBar } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform, Linking, Modal, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { useAdminNotifications } from '../hooks/useAdminNotifications';
+import { adminVerificationsStyles } from '../styles/screens/adminVerificationsStyles';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -257,32 +258,32 @@ export default function AdminVerificationsScreen({ navigation, session }) {
         };
 
         return (
-            <View key={item.id} style={styles.card}>
+            <View key={item.id} style={adminVerificationsStyles.card}>
                 {/* Status Badge */}
-                <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
-                    <Text style={styles.statusText}>{statusLabels[item.status]}</Text>
+                <View style={[adminVerificationsStyles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
+                    <Text style={adminVerificationsStyles.statusText}>{statusLabels[item.status]}</Text>
                 </View>
 
                 {/* User Info */}
-                <View style={styles.userInfo}>
-                    <Text style={styles.userName}>{item.profiles?.full_name || 'Sin nombre'}</Text>
-                    <Text style={styles.userEmail}>{item.profiles?.email || 'Sin email'}</Text>
+                <View style={adminVerificationsStyles.userInfo}>
+                    <Text style={adminVerificationsStyles.userName}>{item.profiles?.full_name || 'Sin nombre'}</Text>
+                    <Text style={adminVerificationsStyles.userEmail}>{item.profiles?.email || 'Sin email'}</Text>
                 </View>
 
                 {/* Document Info */}
-                <View style={styles.infoRow}>
-                    <Text style={styles.label}>Tipo:</Text>
-                    <Text style={styles.value}>{docTypeLabels[item.document_type]}</Text>
+                <View style={adminVerificationsStyles.infoRow}>
+                    <Text style={adminVerificationsStyles.label}>Tipo:</Text>
+                    <Text style={adminVerificationsStyles.value}>{docTypeLabels[item.document_type]}</Text>
                 </View>
 
-                <View style={styles.infoRow}>
-                    <Text style={styles.label}>Número:</Text>
-                    <Text style={styles.value}>{item.document_number}</Text>
+                <View style={adminVerificationsStyles.infoRow}>
+                    <Text style={adminVerificationsStyles.label}>Número:</Text>
+                    <Text style={adminVerificationsStyles.value}>{item.document_number}</Text>
                 </View>
 
-                <View style={styles.infoRow}>
-                    <Text style={styles.label}>Enviado:</Text>
-                    <Text style={styles.value}>
+                <View style={adminVerificationsStyles.infoRow}>
+                    <Text style={adminVerificationsStyles.label}>Enviado:</Text>
+                    <Text style={adminVerificationsStyles.value}>
                         {new Date(item.submitted_at).toLocaleDateString('es-ES', {
                             day: '2-digit',
                             month: '2-digit',
@@ -294,9 +295,9 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                 </View>
 
                 {item.reviewed_at && (
-                    <View style={styles.infoRow}>
-                        <Text style={styles.label}>Revisado:</Text>
-                        <Text style={styles.value}>
+                    <View style={adminVerificationsStyles.infoRow}>
+                        <Text style={adminVerificationsStyles.label}>Revisado:</Text>
+                        <Text style={adminVerificationsStyles.value}>
                             {new Date(item.reviewed_at).toLocaleDateString('es-ES', {
                                 day: '2-digit',
                                 month: '2-digit',
@@ -307,46 +308,46 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                 )}
 
                 {item.rejection_reason && (
-                    <View style={styles.rejectionReasonBox}>
-                        <Text style={styles.rejectionReasonLabel}>Motivo de rechazo:</Text>
-                        <Text style={styles.rejectionReasonText}>{item.rejection_reason}</Text>
+                    <View style={adminVerificationsStyles.rejectionReasonBox}>
+                        <Text style={adminVerificationsStyles.rejectionReasonLabel}>Motivo de rechazo:</Text>
+                        <Text style={adminVerificationsStyles.rejectionReasonText}>{item.rejection_reason}</Text>
                     </View>
                 )}
 
                 {/* View Documents */}
-                <View style={styles.documentsRow}>
+                <View style={adminVerificationsStyles.documentsRow}>
                     <TouchableOpacity
-                        style={styles.documentButton}
+                        style={adminVerificationsStyles.documentButton}
                         onPress={() => viewDocument(item.document_photo)}
                     >
-                        <Text style={styles.documentButtonIcon}>📄</Text>
-                        <Text style={styles.documentButtonText}>Ver Documento</Text>
+                        <Text style={adminVerificationsStyles.documentButtonIcon}>📄</Text>
+                        <Text style={adminVerificationsStyles.documentButtonText}>Ver Documento</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.documentButton}
+                        style={adminVerificationsStyles.documentButton}
                         onPress={() => viewDocument(item.selfie_photo)}
                     >
-                        <Text style={styles.documentButtonIcon}>🤳</Text>
-                        <Text style={styles.documentButtonText}>Ver Selfie</Text>
+                        <Text style={adminVerificationsStyles.documentButtonIcon}>🤳</Text>
+                        <Text style={adminVerificationsStyles.documentButtonText}>Ver Selfie</Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Action Buttons (only for pending) */}
                 {item.status === 'pending' && (
-                    <View style={styles.actionButtons}>
+                    <View style={adminVerificationsStyles.actionButtons}>
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.approveButton]}
+                            style={[adminVerificationsStyles.actionButton, adminVerificationsStyles.approveButton]}
                             onPress={() => handleApprove(item)}
                         >
-                            <Text style={styles.actionButtonText}>✅ Aprobar</Text>
+                            <Text style={adminVerificationsStyles.actionButtonText}>✅ Aprobar</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.rejectButton]}
+                            style={[adminVerificationsStyles.actionButton, adminVerificationsStyles.rejectButton]}
                             onPress={() => handleReject(item)}
                         >
-                            <Text style={styles.actionButtonText}>❌ Rechazar</Text>
+                            <Text style={adminVerificationsStyles.actionButtonText}>❌ Rechazar</Text>
                         </TouchableOpacity>
                     </View>
                 )}
@@ -355,31 +356,31 @@ export default function AdminVerificationsScreen({ navigation, session }) {
     };
 
     return (
-        <SafeAreaView style={styles.safeContainer}>
+        <SafeAreaView style={adminVerificationsStyles.safeContainer}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.headerContainer}>
+            <View style={adminVerificationsStyles.headerContainer}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={adminVerificationsStyles.backButton}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={adminVerificationsStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Verificaciones</Text>
+                <View style={adminVerificationsStyles.headerTitleContainer}>
+                    <Text style={adminVerificationsStyles.headerTitle}>Verificaciones</Text>
                     {unreadCount > 0 && (
-                        <View style={styles.notificationBadge}>
-                            <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+                        <View style={adminVerificationsStyles.notificationBadge}>
+                            <Text style={adminVerificationsStyles.notificationBadgeText}>{unreadCount}</Text>
                         </View>
                     )}
                 </View>
                 <TouchableOpacity
-                    style={styles.filterButton}
+                    style={adminVerificationsStyles.filterButton}
                     onPress={() => setFilterMenuVisible(true)}
                 >
-                    <Text style={styles.filterIcon}>🔽</Text>
+                    <Text style={adminVerificationsStyles.filterIcon}>🔽</Text>
                 </TouchableOpacity>
             </View>
 
@@ -391,12 +392,12 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                 onRequestClose={() => setFilterMenuVisible(false)}
             >
                 <TouchableOpacity
-                    style={styles.modalOverlay}
+                    style={adminVerificationsStyles.modalOverlay}
                     activeOpacity={1}
                     onPress={() => setFilterMenuVisible(false)}
                 >
-                    <View style={styles.filterDropdown}>
-                        <Text style={styles.filterDropdownTitle}>Filtrar por:</Text>
+                    <View style={adminVerificationsStyles.filterDropdown}>
+                        <Text style={adminVerificationsStyles.filterDropdownTitle}>Filtrar por:</Text>
 
                         {[
                             { key: 'pending', label: '⏳ Pendientes', count: statusCounts.pending },
@@ -407,8 +408,8 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                             <TouchableOpacity
                                 key={option.key}
                                 style={[
-                                    styles.filterOption,
-                                    filter === option.key && styles.filterOptionActive
+                                    adminVerificationsStyles.filterOption,
+                                    filter === option.key && adminVerificationsStyles.filterOptionActive
                                 ]}
                                 onPress={() => {
                                     setFilter(option.key);
@@ -419,13 +420,13 @@ export default function AdminVerificationsScreen({ navigation, session }) {
                                 }}
                             >
                                 <Text style={[
-                                    styles.filterOptionText,
-                                    filter === option.key && styles.filterOptionTextActive
+                                    adminVerificationsStyles.filterOptionText,
+                                    filter === option.key && adminVerificationsStyles.filterOptionTextActive
                                 ]}>
                                     {option.label}
                                 </Text>
-                                <View style={styles.filterCount}>
-                                    <Text style={styles.filterCountText}>{option.count}</Text>
+                                <View style={adminVerificationsStyles.filterCount}>
+                                    <Text style={adminVerificationsStyles.filterCountText}>{option.count}</Text>
                                 </View>
                             </TouchableOpacity>
                         ))}
@@ -434,15 +435,15 @@ export default function AdminVerificationsScreen({ navigation, session }) {
             </Modal>
 
             {/* List */}
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView style={adminVerificationsStyles.scrollContent} showsVerticalScrollIndicator={false}>
                 {loading ? (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>Cargando...</Text>
+                    <View style={adminVerificationsStyles.emptyContainer}>
+                        <Text style={adminVerificationsStyles.emptyText}>Cargando...</Text>
                     </View>
                 ) : verifications.length === 0 ? (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyIcon}>📭</Text>
-                        <Text style={styles.emptyText}>No hay verificaciones {filter !== 'all' ? statusLabels[filter].toLowerCase() : ''}</Text>
+                    <View style={adminVerificationsStyles.emptyContainer}>
+                        <Text style={adminVerificationsStyles.emptyIcon}>📭</Text>
+                        <Text style={adminVerificationsStyles.emptyText}>No hay verificaciones {filter !== 'all' ? statusLabels[filter].toLowerCase() : ''}</Text>
                     </View>
                 ) : (
                     verifications.map(renderVerification)
@@ -460,266 +461,4 @@ const statusLabels = {
     rejected: 'rechazadas'
 };
 
-const styles = StyleSheet.create({
-    safeContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 8,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    notificationBadge: {
-        backgroundColor: '#dc3545',
-        borderRadius: 12,
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        minWidth: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    notificationBadgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    filterButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#007bff',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    filterIcon: {
-        fontSize: 16,
-        color: '#fff',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    filterDropdown: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        width: '100%',
-        maxWidth: 300,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
-    },
-    filterDropdownTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 16,
-        textAlign: 'center',
-    },
-    filterOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 8,
-        backgroundColor: '#F8F9FA',
-    },
-    filterOptionActive: {
-        backgroundColor: '#007bff',
-    },
-    filterOptionText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-    },
-    filterOptionTextActive: {
-        color: '#fff',
-    },
-    filterCount: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        minWidth: 32,
-        alignItems: 'center',
-    },
-    filterCountText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-    scrollContent: {
-        flex: 1,
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    statusBadge: {
-        alignSelf: 'flex-start',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    statusText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    userInfo: {
-        marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    userName: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    userEmail: {
-        fontSize: 14,
-        color: '#666',
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-    },
-    label: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
-    },
-    value: {
-        fontSize: 14,
-        color: '#333',
-    },
-    rejectionReasonBox: {
-        backgroundColor: '#fff3cd',
-        padding: 12,
-        borderRadius: 8,
-        marginTop: 8,
-        borderLeftWidth: 4,
-        borderLeftColor: '#ffc107',
-    },
-    rejectionReasonLabel: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#856404',
-        marginBottom: 4,
-    },
-    rejectionReasonText: {
-        fontSize: 14,
-        color: '#856404',
-    },
-    documentsRow: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 12,
-    },
-    documentButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#E3F2FD',
-        padding: 12,
-        borderRadius: 8,
-        gap: 6,
-    },
-    documentButtonIcon: {
-        fontSize: 18,
-    },
-    documentButtonText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#1976D2',
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 12,
-    },
-    actionButton: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    approveButton: {
-        backgroundColor: '#28a745',
-    },
-    rejectButton: {
-        backgroundColor: '#dc3545',
-    },
-    actionButtonText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: 'bold',
-    },
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-    },
-    emptyIcon: {
-        fontSize: 60,
-        marginBottom: 16,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-    },
-});
+

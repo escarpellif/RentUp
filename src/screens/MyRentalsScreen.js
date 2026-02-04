@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Platform, StatusBar, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Platform, StatusBar, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
+import { myRentalsStyles } from '../styles/screens/myRentalsStyles';
 
 export default function MyRentalsScreen({ navigation, session }) {
     const { t } = useTranslation();
@@ -429,36 +430,36 @@ export default function MyRentalsScreen({ navigation, session }) {
         const returnTime = rental.return_time || '18:00';
 
         return (
-            <View key={rental.id} style={styles.rentalCard}>
-                <View style={styles.rentalHeader}>
-                    <Text style={styles.rentalTitle}>{itemTitle}</Text>
-                    <View style={[styles.statusBadge, styles[`status${rental.status.charAt(0).toUpperCase() + rental.status.slice(1)}`]]}>
-                        <Text style={styles.statusText}>{rental.status.toUpperCase()}</Text>
+            <View key={rental.id} style={myRentalsStyles.rentalCard}>
+                <View style={myRentalsStyles.rentalHeader}>
+                    <Text style={myRentalsStyles.rentalTitle}>{itemTitle}</Text>
+                    <View style={[myRentalsStyles.statusBadge, styles[`status${rental.status.charAt(0).toUpperCase() + rental.status.slice(1)}`]]}>
+                        <Text style={myRentalsStyles.statusText}>{rental.status.toUpperCase()}</Text>
                     </View>
                 </View>
 
-                <View style={styles.rentalInfo}>
-                    <Text style={styles.rentalLabel}>
+                <View style={myRentalsStyles.rentalInfo}>
+                    <Text style={myRentalsStyles.rentalLabel}>
                         {isOwner ? '🔵 Solicitante:' : '🟢 Propietario:'}
                     </Text>
-                    <Text style={styles.rentalValue}>{otherUser?.full_name || otherUser?.username}</Text>
+                    <Text style={myRentalsStyles.rentalValue}>{otherUser?.full_name || otherUser?.username}</Text>
                 </View>
 
-                <View style={styles.rentalInfo}>
-                    <Text style={styles.rentalLabel}>📅 Recogida:</Text>
-                    <Text style={styles.rentalValue}>{startDate} a las {pickupTime}</Text>
+                <View style={myRentalsStyles.rentalInfo}>
+                    <Text style={myRentalsStyles.rentalLabel}>📅 Recogida:</Text>
+                    <Text style={myRentalsStyles.rentalValue}>{startDate} a las {pickupTime}</Text>
                 </View>
 
-                <View style={styles.rentalInfo}>
-                    <Text style={styles.rentalLabel}>📅 Devolución:</Text>
-                    <Text style={styles.rentalValue}>{endDate} a las {returnTime} ({rental.total_days} días)</Text>
+                <View style={myRentalsStyles.rentalInfo}>
+                    <Text style={myRentalsStyles.rentalLabel}>📅 Devolución:</Text>
+                    <Text style={myRentalsStyles.rentalValue}>{endDate} a las {returnTime} ({rental.total_days} días)</Text>
                 </View>
 
                 {/* Mostrar endereço completo do item */}
                 {rental.item?.street && (
-                    <View style={styles.rentalInfo}>
-                        <Text style={styles.rentalLabel}>📍 Dirección:</Text>
-                        <Text style={styles.rentalValue}>
+                    <View style={myRentalsStyles.rentalInfo}>
+                        <Text style={myRentalsStyles.rentalLabel}>📍 Dirección:</Text>
+                        <Text style={myRentalsStyles.rentalValue}>
                             {rental.item.street}
                             {rental.item.number ? `, ${rental.item.number}` : ''}
                             {rental.item.complement ? `, ${rental.item.complement}` : ''}
@@ -470,43 +471,43 @@ export default function MyRentalsScreen({ navigation, session }) {
                 )}
 
                 {isOwner ? (
-                    <View style={styles.rentalInfo}>
-                        <Text style={styles.rentalLabel}>💰 Recibirás:</Text>
-                        <Text style={[styles.rentalValue, styles.ownerAmount]}>
+                    <View style={myRentalsStyles.rentalInfo}>
+                        <Text style={myRentalsStyles.rentalLabel}>💰 Recibirás:</Text>
+                        <Text style={[myRentalsStyles.rentalValue, myRentalsStyles.ownerAmount]}>
                             €{calculateOwnerAmount(rental).toFixed(2)}
                         </Text>
                     </View>
                 ) : (
-                    <View style={styles.rentalInfo}>
-                        <Text style={styles.rentalLabel}>💰 Total a pagar:</Text>
-                        <Text style={styles.rentalValue}>€{parseFloat(rental.total_amount).toFixed(2)}</Text>
+                    <View style={myRentalsStyles.rentalInfo}>
+                        <Text style={myRentalsStyles.rentalLabel}>💰 Total a pagar:</Text>
+                        <Text style={myRentalsStyles.rentalValue}>€{parseFloat(rental.total_amount).toFixed(2)}</Text>
                     </View>
                 )}
 
                 {rental.deposit_amount > 0 && (
-                    <View style={styles.rentalInfo}>
-                        <Text style={styles.rentalLabel}>🔒 Depósito:</Text>
-                        <Text style={styles.rentalValue}>€{parseFloat(rental.deposit_amount).toFixed(2)}</Text>
+                    <View style={myRentalsStyles.rentalInfo}>
+                        <Text style={myRentalsStyles.rentalLabel}>🔒 Depósito:</Text>
+                        <Text style={myRentalsStyles.rentalValue}>€{parseFloat(rental.deposit_amount).toFixed(2)}</Text>
                     </View>
                 )}
 
                 {/* Mostrar códigos se status = approved ou active */}
                 {rental.status === 'approved' || rental.status === 'active' ? (
-                    <View style={styles.codesContainer}>
+                    <View style={myRentalsStyles.codesContainer}>
                         {isOwner && rental.owner_code && (
-                            <View style={styles.codeBox}>
-                                <Text style={styles.codeLabel}>🔑 Tu código de recogida:</Text>
-                                <Text style={styles.codeValue}>{rental.owner_code}</Text>
-                                <Text style={styles.codeHint}>
+                            <View style={myRentalsStyles.codeBox}>
+                                <Text style={myRentalsStyles.codeLabel}>🔑 Tu código de recogida:</Text>
+                                <Text style={myRentalsStyles.codeValue}>{rental.owner_code}</Text>
+                                <Text style={myRentalsStyles.codeHint}>
                                     {rental.owner_code_used ? '✅ Código usado' : 'Comparte con el arrendatario al entregar'}
                                 </Text>
                             </View>
                         )}
                         {!isOwner && rental.renter_code && (
-                            <View style={styles.codeBox}>
-                                <Text style={styles.codeLabel}>🔑 Tu código de devolución:</Text>
-                                <Text style={styles.codeValue}>{rental.renter_code}</Text>
-                                <Text style={styles.codeHint}>
+                            <View style={myRentalsStyles.codeBox}>
+                                <Text style={myRentalsStyles.codeLabel}>🔑 Tu código de devolución:</Text>
+                                <Text style={myRentalsStyles.codeValue}>{rental.renter_code}</Text>
+                                <Text style={myRentalsStyles.codeHint}>
                                     {rental.renter_code_used ? '✅ Código usado' : 'Comparte con el propietario al devolver'}
                                 </Text>
                             </View>
@@ -516,46 +517,46 @@ export default function MyRentalsScreen({ navigation, session }) {
 
                 {/* Botões de ação apenas para o dono e se status = pending */}
                 {isOwner && rental.status === 'pending' && (
-                    <View style={styles.actionButtons}>
+                    <View style={myRentalsStyles.actionButtons}>
                         <TouchableOpacity
-                            style={styles.approveButton}
+                            style={myRentalsStyles.approveButton}
                             onPress={() => handleApprove(rental.id)}
                         >
-                            <Text style={styles.approveButtonText}>✓ Aprobar</Text>
+                            <Text style={myRentalsStyles.approveButtonText}>✓ Aprobar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={styles.rejectButton}
+                            style={myRentalsStyles.rejectButton}
                             onPress={() => handleRejectWithReason(rental.id)}
                         >
-                            <Text style={styles.rejectButtonText}>✗ Rechazar</Text>
+                            <Text style={myRentalsStyles.rejectButtonText}>✗ Rechazar</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
                 {/* Botões de ação para o renter (locatário) */}
                 {!isOwner && (rental.status === 'pending' || rental.status === 'approved' || rental.status === 'active') && (
-                    <View style={styles.actionButtons}>
+                    <View style={myRentalsStyles.actionButtons}>
                         {rental.status === 'pending' && (
                             <TouchableOpacity
-                                style={styles.editButton}
+                                style={myRentalsStyles.editButton}
                                 onPress={() => handleEditRental(rental)}
                             >
-                                <Text style={styles.editButtonText}>✏️ Editar</Text>
+                                <Text style={myRentalsStyles.editButtonText}>✏️ Editar</Text>
                             </TouchableOpacity>
                         )}
                         {(rental.status === 'approved' || rental.status === 'active') && (
                             <TouchableOpacity
-                                style={styles.editButton}
+                                style={myRentalsStyles.editButton}
                                 onPress={() => handleEditRental(rental)}
                             >
-                                <Text style={styles.editButtonText}>✏ Editar</Text>
+                                <Text style={myRentalsStyles.editButtonText}>✏ Editar</Text>
                             </TouchableOpacity>
                         )}
                         <TouchableOpacity
-                            style={styles.cancelButton}
+                            style={myRentalsStyles.cancelButton}
                             onPress={() => handleCancelRental(rental.id)}
                         >
-                            <Text style={styles.cancelButtonText}>
+                            <Text style={myRentalsStyles.cancelButtonText}>
                                 {rental.status === 'pending' ? '🗑️ Eliminar' : '✗ Cancelar'}
                             </Text>
                         </TouchableOpacity>
@@ -566,80 +567,80 @@ export default function MyRentalsScreen({ navigation, session }) {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={myRentalsStyles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={myRentalsStyles.header}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={myRentalsStyles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={myRentalsStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>
+                <Text style={myRentalsStyles.headerTitle}>
                     {activeTab === 'hosting' ? 'Mis Productos' : activeTab === 'renting' ? 'Mis Alquileres' : 'Mis Transacciones'}
                 </Text>
-                <View style={styles.headerSpacer} />
+                <View style={myRentalsStyles.headerSpacer} />
             </View>
 
             {/* Main Tabs (Mis Productos vs Mis Alquileres) */}
-            <View style={styles.mainTabsContainer}>
+            <View style={myRentalsStyles.mainTabsContainer}>
                 <TouchableOpacity
-                    style={[styles.mainTab, activeTab === 'hosting' && styles.mainTabActive]}
+                    style={[myRentalsStyles.mainTab, activeTab === 'hosting' && myRentalsStyles.mainTabActive]}
                     onPress={() => setActiveTab('hosting')}
                 >
-                    <Text style={[styles.mainTabText, activeTab === 'hosting' && styles.mainTabTextActive]}>
+                    <Text style={[myRentalsStyles.mainTabText, activeTab === 'hosting' && myRentalsStyles.mainTabTextActive]}>
                         📦 Mis Productos
                     </Text>
-                    <Text style={styles.mainTabSubtext}>Que otros alquilan</Text>
+                    <Text style={myRentalsStyles.mainTabSubtext}>Que otros alquilan</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.mainTab, activeTab === 'renting' && styles.mainTabActive]}
+                    style={[myRentalsStyles.mainTab, activeTab === 'renting' && myRentalsStyles.mainTabActive]}
                     onPress={() => setActiveTab('renting')}
                 >
-                    <Text style={[styles.mainTabText, activeTab === 'renting' && styles.mainTabTextActive]}>
+                    <Text style={[myRentalsStyles.mainTabText, activeTab === 'renting' && myRentalsStyles.mainTabTextActive]}>
                         🛒 Mis Alquileres
                     </Text>
-                    <Text style={styles.mainTabSubtext}>Cosas que alquilo</Text>
+                    <Text style={myRentalsStyles.mainTabSubtext}>Cosas que alquilo</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Sub Tabs (Status) */}
-            <View style={styles.tabsContainer}>
+            <View style={myRentalsStyles.tabsContainer}>
                 <TouchableOpacity
-                    style={[styles.tab, subTab === 'pending' && styles.tabActive]}
+                    style={[myRentalsStyles.tab, subTab === 'pending' && myRentalsStyles.tabActive]}
                     onPress={() => setSubTab('pending')}
                 >
-                    <Text style={[styles.tabText, subTab === 'pending' && styles.tabTextActive]}>
+                    <Text style={[myRentalsStyles.tabText, subTab === 'pending' && myRentalsStyles.tabTextActive]}>
                         Pendientes
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, subTab === 'approved' && styles.tabActive]}
+                    style={[myRentalsStyles.tab, subTab === 'approved' && myRentalsStyles.tabActive]}
                     onPress={() => setSubTab('approved')}
                 >
-                    <Text style={[styles.tabText, subTab === 'approved' && styles.tabTextActive]}>
+                    <Text style={[myRentalsStyles.tabText, subTab === 'approved' && myRentalsStyles.tabTextActive]}>
                         Aprobadas
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, subTab === 'active' && styles.tabActive]}
+                    style={[myRentalsStyles.tab, subTab === 'active' && myRentalsStyles.tabActive]}
                     onPress={() => setSubTab('active')}
                 >
-                    <Text style={[styles.tabText, subTab === 'active' && styles.tabTextActive]}>
+                    <Text style={[myRentalsStyles.tabText, subTab === 'active' && myRentalsStyles.tabTextActive]}>
                         Activas
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[styles.tab, subTab === 'history' && styles.tabActive]}
+                    style={[myRentalsStyles.tab, subTab === 'history' && myRentalsStyles.tabActive]}
                     onPress={() => setSubTab('history')}
                 >
-                    <Text style={[styles.tabText, subTab === 'history' && styles.tabTextActive]}>
+                    <Text style={[myRentalsStyles.tabText, subTab === 'history' && myRentalsStyles.tabTextActive]}>
                         Historial
                     </Text>
                 </TouchableOpacity>
@@ -647,14 +648,14 @@ export default function MyRentalsScreen({ navigation, session }) {
 
             {/* Lista */}
             {loading ? (
-                <View style={styles.loadingContainer}>
+                <View style={myRentalsStyles.loadingContainer}>
                     <ActivityIndicator size="large" color="#2c4455" />
                 </View>
             ) : rentals.length === 0 ? (
-                <View style={styles.emptyContainer}>
-                    <Text style={styles.emptyIcon}>📋</Text>
-                    <Text style={styles.emptyTitle}>No hay solicitudes</Text>
-                    <Text style={styles.emptyText}>
+                <View style={myRentalsStyles.emptyContainer}>
+                    <Text style={myRentalsStyles.emptyIcon}>📋</Text>
+                    <Text style={myRentalsStyles.emptyTitle}>No hay solicitudes</Text>
+                    <Text style={myRentalsStyles.emptyText}>
                         {activeTab === 'pending' && 'No tienes solicitudes pendientes'}
                         {activeTab === 'approved' && 'No hay solicitudes aprobadas'}
                         {activeTab === 'renting' && 'No tienes alquileres activos'}
@@ -662,7 +663,7 @@ export default function MyRentalsScreen({ navigation, session }) {
                     </Text>
                 </View>
             ) : (
-                <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+                <ScrollView style={myRentalsStyles.list} contentContainerStyle={myRentalsStyles.listContent}>
                     {rentals.map(renderRental)}
                 </ScrollView>
             )}
@@ -670,305 +671,4 @@ export default function MyRentalsScreen({ navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    mainTabsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        paddingHorizontal: 8,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-        gap: 8,
-    },
-    mainTab: {
-        flex: 1,
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        alignItems: 'center',
-        borderRadius: 8,
-        backgroundColor: '#F8F9FA',
-        borderWidth: 2,
-        borderColor: 'transparent',
-    },
-    mainTabActive: {
-        backgroundColor: '#E8F5E9',
-        borderColor: '#10B981',
-    },
-    mainTabText: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
-        marginBottom: 2,
-    },
-    mainTabTextActive: {
-        color: '#10B981',
-        fontWeight: 'bold',
-    },
-    mainTabSubtext: {
-        fontSize: 10,
-        color: '#999',
-        fontStyle: 'italic',
-    },
-    tabsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    tab: {
-        flex: 1,
-        paddingVertical: 10,
-        alignItems: 'center',
-        borderBottomWidth: 2,
-        borderBottomColor: 'transparent',
-    },
-    tabActive: {
-        borderBottomColor: '#2c4455',
-    },
-    tabText: {
-        fontSize: 13,
-        color: '#666',
-        fontWeight: '500',
-    },
-    tabTextActive: {
-        color: '#2c4455',
-        fontWeight: 'bold',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 40,
-    },
-    emptyIcon: {
-        fontSize: 64,
-        marginBottom: 16,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-    },
-    list: {
-        flex: 1,
-    },
-    listContent: {
-        padding: 16,
-        gap: 16,
-    },
-    rentalCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    rentalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    rentalTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        flex: 1,
-    },
-    statusBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusPending: {
-        backgroundColor: '#FEF3C7',
-    },
-    statusApproved: {
-        backgroundColor: '#D1FAE5',
-    },
-    statusActive: {
-        backgroundColor: '#DBEAFE',
-    },
-    statusCompleted: {
-        backgroundColor: '#E0E7FF',
-    },
-    statusRejected: {
-        backgroundColor: '#FEE2E2',
-    },
-    statusCancelled: {
-        backgroundColor: '#F3F4F6',
-    },
-    statusExpired: {
-        backgroundColor: '#FED7AA',
-    },
-    statusText: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    rentalInfo: {
-        flexDirection: 'row',
-        marginBottom: 8,
-    },
-    rentalLabel: {
-        fontSize: 14,
-        color: '#666',
-        width: 120,
-    },
-    rentalValue: {
-        fontSize: 14,
-        color: '#333',
-        fontWeight: '500',
-        flex: 1,
-    },
-    actionButtons: {
-        flexDirection: 'row',
-        marginTop: 12,
-        gap: 12,
-    },
-    approveButton: {
-        flex: 1,
-        backgroundColor: '#10B981',
-        borderRadius: 8,
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    approveButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    rejectButton: {
-        flex: 1,
-        backgroundColor: '#EF4444',
-        borderRadius: 8,
-        paddingVertical: 12,
-        alignItems: 'center',
-    },
-    rejectButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    ownerAmount: {
-        color: '#10B981',
-        fontWeight: 'bold',
-        fontSize: 15,
-    },
-    codesContainer: {
-        marginTop: 12,
-        padding: 12,
-        backgroundColor: '#F0F9FF',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#BFDBFE',
-    },
-    codeBox: {
-        marginBottom: 8,
-    },
-    codeLabel: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
-    },
-    codeValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        letterSpacing: 4,
-        textAlign: 'center',
-        paddingVertical: 8,
-        backgroundColor: '#fff',
-        borderRadius: 6,
-        borderWidth: 2,
-        borderColor: '#10B981',
-        borderStyle: 'dashed',
-    },
-    codeHint: {
-        fontSize: 11,
-        color: '#666',
-        marginTop: 4,
-        fontStyle: 'italic',
-        textAlign: 'center',
-    },
-    editButton: {
-        flex: 1,
-        backgroundColor: '#3B82F6',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-        marginRight: 8,
-    },
-    editButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    cancelButton: {
-        flex: 1,
-        backgroundColor: '#EF4444',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: 8,
-    },
-    cancelButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-});
+

@@ -1,26 +1,25 @@
 import React, {useState, useEffect} from 'react';
-import {
-    View,
+import {View,
     Text,
     Modal,
     TouchableOpacity,
-    StyleSheet,
     Linking,
     Platform,
     Alert,
-    ScrollView,
-    Dimensions
+    ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { activeRentalStyles } from '../styles/components/activeRentalStyles';
 
 const ActiveRentalModal = ({session, navigation}) => {
     const [activeRentals, setActiveRentals] = useState([]);
     const [visible, setVisible] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [timeRemaining, setTimeRemaining] = useState('');
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const SCREEN_WIDTH = 375;
 
     useEffect(() => {
         if (session?.user?.id) {
@@ -295,28 +294,28 @@ const ActiveRentalModal = ({session, navigation}) => {
             animationType="slide"
             onRequestClose={() => setVisible(false)}
         >
-            <View style={styles.modalOverlay}>
+            <View style={activeRentalStyles.modalOverlay}>
                 <ScrollView
-                    contentContainerStyle={styles.scrollContainer}
+                    contentContainerStyle={activeRentalStyles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={styles.modalContent}>
+                    <View style={activeRentalStyles.modalContent}>
                         {/* Header */}
-                        <View style={styles.header}>
-                            <Text style={styles.headerTitle}>🎉 Locación Activa</Text>
+                        <View style={activeRentalStyles.header}>
+                            <Text style={activeRentalStyles.headerTitle}>🎉 Locación Activa</Text>
                             <TouchableOpacity
-                                style={styles.closeButton}
+                                style={activeRentalStyles.closeButton}
                                 onPress={() => setVisible(false)}
                             >
-                                <Text style={styles.closeButtonText}>✕</Text>
+                                <Text style={activeRentalStyles.closeButtonText}>✕</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Indicadores de Página */}
                         {activeRentals.length > 1 && (
-                            <View style={styles.paginationContainer}>
+                            <View style={activeRentalStyles.paginationContainer}>
                                 <TouchableOpacity
-                                    style={styles.arrowButton}
+                                    style={activeRentalStyles.arrowButton}
                                     onPress={() => {
                                         if (currentIndex > 0) {
                                             const newIndex = currentIndex - 1;
@@ -326,27 +325,27 @@ const ActiveRentalModal = ({session, navigation}) => {
                                     }}
                                     disabled={currentIndex === 0}
                                 >
-                                    <Text style={[styles.arrowText, currentIndex === 0 && styles.arrowDisabled]}>←</Text>
+                                    <Text style={[activeRentalStyles.arrowText, currentIndex === 0 && activeRentalStyles.arrowDisabled]}>←</Text>
                                 </TouchableOpacity>
 
-                                <View style={styles.dotsContainer}>
+                                <View style={activeRentalStyles.dotsContainer}>
                                     {activeRentals.map((_, index) => (
                                         <View
                                             key={index}
                                             style={[
-                                                styles.dot,
-                                                index === currentIndex && styles.dotActive
+                                                activeRentalStyles.dot,
+                                                index === currentIndex && activeRentalStyles.dotActive
                                             ]}
                                         />
                                     ))}
                                 </View>
 
-                                <Text style={styles.pageIndicator}>
+                                <Text style={activeRentalStyles.pageIndicator}>
                                     {currentIndex + 1} / {activeRentals.length}
                                 </Text>
 
                                 <TouchableOpacity
-                                    style={styles.arrowButton}
+                                    style={activeRentalStyles.arrowButton}
                                     onPress={() => {
                                         if (currentIndex < activeRentals.length - 1) {
                                             const newIndex = currentIndex + 1;
@@ -356,16 +355,16 @@ const ActiveRentalModal = ({session, navigation}) => {
                                     }}
                                     disabled={currentIndex === activeRentals.length - 1}
                                 >
-                                    <Text style={[styles.arrowText, currentIndex === activeRentals.length - 1 && styles.arrowDisabled]}>→</Text>
+                                    <Text style={[activeRentalStyles.arrowText, currentIndex === activeRentals.length - 1 && activeRentalStyles.arrowDisabled]}>→</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
 
                         {/* Cronômetro */}
-                        <View style={styles.timerContainer}>
-                        <Text style={styles.timerLabel}>Tiempo para recogida:</Text>
+                        <View style={activeRentalStyles.timerContainer}>
+                        <Text style={activeRentalStyles.timerLabel}>Tiempo para recogida:</Text>
                         <Text
-                            style={styles.timerValue}
+                            style={activeRentalStyles.timerValue}
                             numberOfLines={2}
                             adjustsFontSizeToFit
                         >
@@ -374,33 +373,33 @@ const ActiveRentalModal = ({session, navigation}) => {
                     </View>
 
                     {/* Dados da Locação */}
-                    <View style={styles.detailsContainer}>
-                        <Text style={styles.itemTitle}>{activeRental.item?.title || 'Item'}</Text>
+                    <View style={activeRentalStyles.detailsContainer}>
+                        <Text style={activeRentalStyles.itemTitle}>{activeRental.item?.title || 'Item'}</Text>
 
-                        <View style={styles.detailRow}>
-                            <Text style={styles.detailLabel}>📅 Recogida:</Text>
-                            <Text style={styles.detailValue}>
+                        <View style={activeRentalStyles.detailRow}>
+                            <Text style={activeRentalStyles.detailLabel}>📅 Recogida:</Text>
+                            <Text style={activeRentalStyles.detailValue}>
                                 {formatDate(activeRental.start_date)} - {activeRental.pickup_time || '10:00'}
                             </Text>
                         </View>
 
-                        <View style={styles.detailRow}>
-                            <Text style={styles.detailLabel}>📅 Devolución:</Text>
-                            <Text style={styles.detailValue}>
+                        <View style={activeRentalStyles.detailRow}>
+                            <Text style={activeRentalStyles.detailLabel}>📅 Devolución:</Text>
+                            <Text style={activeRentalStyles.detailValue}>
                                 {formatDate(activeRental.end_date)} - {activeRental.return_time || '18:00'}
                             </Text>
                         </View>
 
-                        <View style={styles.detailRow}>
-                            <Text style={styles.detailLabel}>👤 Propietario:</Text>
-                            <Text style={styles.detailValue}>
+                        <View style={activeRentalStyles.detailRow}>
+                            <Text style={activeRentalStyles.detailLabel}>👤 Propietario:</Text>
+                            <Text style={activeRentalStyles.detailValue}>
                                 {activeRental.owner?.full_name || 'Usuario'}
                             </Text>
                         </View>
 
-                        <View style={styles.detailRow}>
-                            <Text style={styles.detailLabel}>📍 Dirección:</Text>
-                            <Text style={styles.detailValue}>
+                        <View style={activeRentalStyles.detailRow}>
+                            <Text style={activeRentalStyles.detailLabel}>📍 Dirección:</Text>
+                            <Text style={activeRentalStyles.detailValue}>
                                 {activeRental.item?.street ? (
                                     `${activeRental.item.street}${activeRental.item.number ? `, ${activeRental.item.number}` : ''}${activeRental.item.complement ? `, ${activeRental.item.complement}` : ''}\n${activeRental.item.postal_code} ${activeRental.item.city}${activeRental.item.province ? `, ${activeRental.item.province}` : ''}`
                                 ) : (
@@ -410,12 +409,12 @@ const ActiveRentalModal = ({session, navigation}) => {
                         </View>
 
                         {/* Código de Recogida */}
-                        <View style={styles.codeContainer}>
-                            <Text style={styles.codeLabel}>Código de Recogida:</Text>
-                            <View style={styles.codeBadge}>
-                                <Text style={styles.codeValue}>{activeRental.renter_code || '------'}</Text>
+                        <View style={activeRentalStyles.codeContainer}>
+                            <Text style={activeRentalStyles.codeLabel}>Código de Recogida:</Text>
+                            <View style={activeRentalStyles.codeBadge}>
+                                <Text style={activeRentalStyles.codeValue}>{activeRental.renter_code || '------'}</Text>
                             </View>
-                            <Text style={styles.codeHint}>
+                            <Text style={activeRentalStyles.codeHint}>
                                 Entrega este código al propietario del artículo después de confirmar que el artículo
                                 está de acuerdo con lo anunciado.
                             </Text>
@@ -423,49 +422,49 @@ const ActiveRentalModal = ({session, navigation}) => {
                     </View>
 
                     {/* Botões */}
-                    <View style={styles.buttonsContainer}>
+                    <View style={activeRentalStyles.buttonsContainer}>
                         {/* Botão de Editar */}
                         <TouchableOpacity
-                            style={styles.editButton}
+                            style={activeRentalStyles.editButton}
                             onPress={handleEditRental}
                         >
                             <Ionicons name="create-outline" size={20} color="#fff" style={{marginRight: 8}} />
-                            <Text style={styles.editButtonText}>Editar Locación</Text>
+                            <Text style={activeRentalStyles.editButtonText}>Editar Locación</Text>
                         </TouchableOpacity>
 
                         {/* Botão de Cancelar */}
                         <TouchableOpacity
-                            style={styles.cancelButton}
+                            style={activeRentalStyles.cancelButton}
                             onPress={handleCancelRental}
                         >
                             <Ionicons name="close-circle-outline" size={20} color="#fff" style={{marginRight: 8}} />
-                            <Text style={styles.cancelButtonText}>Cancelar Locación</Text>
+                            <Text style={activeRentalStyles.cancelButtonText}>Cancelar Locación</Text>
                         </TouchableOpacity>
 
                         {/* Botão de Chat */}
                         <TouchableOpacity
-                            style={styles.chatButton}
+                            style={activeRentalStyles.chatButton}
                             onPress={handleOpenChat}
                         >
                             <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
-                            <Text style={styles.chatButtonText}>
+                            <Text style={activeRentalStyles.chatButtonText}>
                                 Chatear con {activeRental.owner?.full_name || 'Propietario'}
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.mapsButton}
+                            style={activeRentalStyles.mapsButton}
                             onPress={openMaps}
                         >
-                            <Text style={styles.mapsButtonIcon}>📍</Text>
-                            <Text style={styles.mapsButtonText}>Iniciar Pick Up</Text>
+                            <Text style={activeRentalStyles.mapsButtonIcon}>📍</Text>
+                            <Text style={activeRentalStyles.mapsButtonText}>Iniciar Pick Up</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.closeModalButton}
+                            style={activeRentalStyles.closeModalButton}
                             onPress={() => setVisible(false)}
                         >
-                            <Text style={styles.closeModalButtonText}>Cerrar</Text>
+                            <Text style={activeRentalStyles.closeModalButtonText}>Cerrar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -475,279 +474,7 @@ const ActiveRentalModal = ({session, navigation}) => {
     );
 };
 
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        width: '100%',
-        maxWidth: 500,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 10,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#10B981',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    closeButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    closeButtonText: {
-        fontSize: 18,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    timerContainer: {
-        backgroundColor: '#F0FDF4',
-        padding: 20,
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    timerLabel: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
-    },
-    timerValue: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#10B981',
-        fontVariant: ['tabular-nums'],
-        textAlign: 'center',
-        flexWrap: 'wrap',
-        paddingHorizontal: 10,
-    },
-    detailsContainer: {
-        padding: 20,
-    },
-    itemTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#1a3a52',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    detailLabel: {
-        fontSize: 15,
-        color: '#666',
-        fontWeight: '600',
-    },
-    detailValue: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '500',
-        flex: 1,
-        textAlign: 'right',
-        marginLeft: 10,
-    },
-    codeContainer: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: '#FEF3C7',
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#F59E0B',
-        borderStyle: 'dashed',
-    },
-    codeLabel: {
-        fontSize: 14,
-        color: '#92400E',
-        fontWeight: '600',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    codeBadge: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    codeValue: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#F59E0B',
-        letterSpacing: 4,
-        fontVariant: ['tabular-nums'],
-    },
-    codeHint: {
-        fontSize: 12,
-        color: '#92400E',
-        textAlign: 'center',
-        fontStyle: 'italic',
-    },
-    buttonsContainer: {
-        padding: 20,
-        gap: 12,
-    },
-    editButton: {
-        backgroundColor: '#F59E0B',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        shadowColor: '#F59E0B',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    editButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    cancelButton: {
-        backgroundColor: '#EF4444',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        shadowColor: '#EF4444',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    cancelButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    chatButton: {
-        backgroundColor: '#2c4455',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        shadowColor: '#2c4455',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    chatButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    mapsButton: {
-        flexDirection: 'row',
-        backgroundColor: '#10B981',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#10B981',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    mapsButtonIcon: {
-        fontSize: 20,
-        marginRight: 8,
-    },
-    mapsButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    closeModalButton: {
-        backgroundColor: '#E5E7EB',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    closeModalButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#666',
-    },
-    paginationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 15,
-        backgroundColor: '#F0FDF4',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-        gap: 15,
-    },
-    arrowButton: {
-        padding: 8,
-    },
-    arrowText: {
-        fontSize: 24,
-        color: '#10B981',
-        fontWeight: 'bold',
-    },
-    arrowDisabled: {
-        color: '#D1D5DB',
-    },
-    dotsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#D1D5DB',
-    },
-    dotActive: {
-        backgroundColor: '#10B981',
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    pageIndicator: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
-    },
-});
+
 
 export default ActiveRentalModal;
 

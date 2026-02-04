@@ -4,10 +4,11 @@
 // ============================================
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {View, Text, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { saveLanguage } from '../i18n';
 import { Colors, Spacing, FontSizes, BorderRadius, Shadows } from '../constants/theme';
+import { languageSwitcherStyles } from '../styles/components/languageSwitcherStyles';
 
 export default function LanguageSwitcher({ style }) {
   const { i18n } = useTranslation();
@@ -19,21 +20,21 @@ export default function LanguageSwitcher({ style }) {
   };
 
   return (
-    <View style={[styles.container, style]}>
+    <View style={[languageSwitcherStyles.container, style]}>
       {/* Botão Espanhol */}
       <TouchableOpacity
         style={[
-          styles.languageButton,
-          currentLanguage === 'es' && styles.languageButtonActive,
+          languageSwitcherStyles.languageButton,
+          currentLanguage === 'es' && languageSwitcherStyles.languageButtonActive,
         ]}
         onPress={() => changeLanguage('es')}
         activeOpacity={0.7}
       >
-        <Text style={styles.flag}>🇪🇸</Text>
+        <Text style={languageSwitcherStyles.flag}>🇪🇸</Text>
         <Text
           style={[
-            styles.languageText,
-            currentLanguage === 'es' && styles.languageTextActive,
+            languageSwitcherStyles.languageText,
+            currentLanguage === 'es' && languageSwitcherStyles.languageTextActive,
           ]}
         >
           ES
@@ -43,17 +44,17 @@ export default function LanguageSwitcher({ style }) {
       {/* Botão Inglês */}
       <TouchableOpacity
         style={[
-          styles.languageButton,
-          currentLanguage === 'en' && styles.languageButtonActive,
+          languageSwitcherStyles.languageButton,
+          currentLanguage === 'en' && languageSwitcherStyles.languageButtonActive,
         ]}
         onPress={() => changeLanguage('en')}
         activeOpacity={0.7}
       >
-        <Text style={styles.flag}>🇬🇧</Text>
+        <Text style={languageSwitcherStyles.flag}>🇬🇧</Text>
         <Text
           style={[
-            styles.languageText,
-            currentLanguage === 'en' && styles.languageTextActive,
+            languageSwitcherStyles.languageText,
+            currentLanguage === 'en' && languageSwitcherStyles.languageTextActive,
           ]}
         >
           EN
@@ -63,44 +64,5 @@ export default function LanguageSwitcher({ style }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  
-  languageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.neutral.white,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: Colors.border.light,
-    gap: Spacing.xs,
-    ...Shadows.sm,
-  },
-  
-  languageButtonActive: {
-    backgroundColor: Colors.primary.background,
-    borderColor: Colors.primary.main,
-    ...Shadows.base,
-  },
-  
-  flag: {
-    fontSize: 20,
-  },
-  
-  languageText: {
-    fontSize: FontSizes.sm,
-    fontWeight: '600',
-    color: Colors.text.secondary,
-  },
-  
-  languageTextActive: {
-    color: Colors.primary.dark,
-    fontWeight: '700',
-  },
-});
+
 

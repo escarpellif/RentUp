@@ -4,12 +4,10 @@
 // ============================================
 
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
     ScrollView,
     TouchableOpacity,
-    StyleSheet,
     Alert,
     Share,
     Platform,
@@ -18,6 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Logger from '../services/LoggerService';
+import { debugLogsStyles } from '../styles/screens/debugLogsStyles';
 
 export default function DebugLogsScreen({ navigation }) {
     const [logs, setLogs] = useState([]);
@@ -107,111 +106,111 @@ export default function DebugLogsScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
+            <View style={debugLogsStyles.loadingContainer}>
                 <ActivityIndicator size="large" color="#10B981" />
-                <Text style={styles.loadingText}>Cargando logs...</Text>
+                <Text style={debugLogsStyles.loadingText}>Cargando logs...</Text>
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={debugLogsStyles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={debugLogsStyles.header}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={debugLogsStyles.backButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={debugLogsStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Debug Logs</Text>
-                <View style={styles.headerSpacer} />
+                <Text style={debugLogsStyles.headerTitle}>Debug Logs</Text>
+                <View style={debugLogsStyles.headerSpacer} />
             </View>
 
             {/* Stats Card */}
             {stats && (
-                <View style={styles.statsCard}>
-                    <Text style={styles.statsTitle}>📊 Estatísticas</Text>
-                    <View style={styles.statsRow}>
-                        <View style={styles.statItem}>
-                            <Text style={styles.statNumber}>{stats.total}</Text>
-                            <Text style={styles.statLabel}>Total</Text>
+                <View style={debugLogsStyles.statsCard}>
+                    <Text style={debugLogsStyles.statsTitle}>📊 Estatísticas</Text>
+                    <View style={debugLogsStyles.statsRow}>
+                        <View style={debugLogsStyles.statItem}>
+                            <Text style={debugLogsStyles.statNumber}>{stats.total}</Text>
+                            <Text style={debugLogsStyles.statLabel}>Total</Text>
                         </View>
-                        <View style={styles.statItem}>
-                            <Text style={[styles.statNumber, { color: '#EF4444' }]}>
+                        <View style={debugLogsStyles.statItem}>
+                            <Text style={[debugLogsStyles.statNumber, { color: '#EF4444' }]}>
                                 {stats.errors}
                             </Text>
-                            <Text style={styles.statLabel}>Erros</Text>
+                            <Text style={debugLogsStyles.statLabel}>Erros</Text>
                         </View>
-                        <View style={styles.statItem}>
-                            <Text style={[styles.statNumber, { color: '#F59E0B' }]}>
+                        <View style={debugLogsStyles.statItem}>
+                            <Text style={[debugLogsStyles.statNumber, { color: '#F59E0B' }]}>
                                 {stats.warns}
                             </Text>
-                            <Text style={styles.statLabel}>Avisos</Text>
+                            <Text style={debugLogsStyles.statLabel}>Avisos</Text>
                         </View>
                     </View>
                 </View>
             )}
 
             {/* Action Buttons */}
-            <View style={styles.actionsContainer}>
+            <View style={debugLogsStyles.actionsContainer}>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.exportButton]}
+                    style={[debugLogsStyles.actionButton, debugLogsStyles.exportButton]}
                     onPress={handleExportLogs}
                 >
-                    <Text style={styles.actionButtonText}>📤 Exportar</Text>
+                    <Text style={debugLogsStyles.actionButtonText}>📤 Exportar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.clearButton]}
+                    style={[debugLogsStyles.actionButton, debugLogsStyles.clearButton]}
                     onPress={handleClearLogs}
                 >
-                    <Text style={styles.actionButtonText}>🗑️ Limpar</Text>
+                    <Text style={debugLogsStyles.actionButtonText}>🗑️ Limpar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.refreshButton]}
+                    style={[debugLogsStyles.actionButton, debugLogsStyles.refreshButton]}
                     onPress={loadLogs}
                 >
-                    <Text style={styles.actionButtonText}>🔄 Atualizar</Text>
+                    <Text style={debugLogsStyles.actionButtonText}>🔄 Atualizar</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Logs List */}
-            <ScrollView style={styles.logsContainer}>
+            <ScrollView style={debugLogsStyles.logsContainer}>
                 {logs.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyStateEmoji}>📝</Text>
-                        <Text style={styles.emptyStateText}>
+                    <View style={debugLogsStyles.emptyState}>
+                        <Text style={debugLogsStyles.emptyStateEmoji}>📝</Text>
+                        <Text style={debugLogsStyles.emptyStateText}>
                             Nenhum log registrado ainda
                         </Text>
                     </View>
                 ) : (
                     logs.map((log, index) => (
-                        <View key={index} style={styles.logItem}>
+                        <View key={index} style={debugLogsStyles.logItem}>
                             {/* Header do Log */}
-                            <View style={styles.logHeader}>
+                            <View style={debugLogsStyles.logHeader}>
                                 <Text
                                     style={[
-                                        styles.logLevel,
+                                        debugLogsStyles.logLevel,
                                         { color: getLogColor(log.level) },
                                     ]}
                                 >
                                     {log.level}
                                 </Text>
-                                <Text style={styles.logTimestamp}>
+                                <Text style={debugLogsStyles.logTimestamp}>
                                     {formatTimestamp(log.timestamp)}
                                 </Text>
                             </View>
 
                             {/* Mensagem */}
-                            <Text style={styles.logMessage}>{log.message}</Text>
+                            <Text style={debugLogsStyles.logMessage}>{log.message}</Text>
 
                             {/* Contexto */}
                             {log.context && Object.keys(log.context).length > 0 && (
-                                <View style={styles.logContext}>
-                                    <Text style={styles.logContextTitle}>Contexto:</Text>
-                                    <Text style={styles.logContextText}>
+                                <View style={debugLogsStyles.logContext}>
+                                    <Text style={debugLogsStyles.logContextTitle}>Contexto:</Text>
+                                    <Text style={debugLogsStyles.logContextText}>
                                         {JSON.stringify(log.context, null, 2)}
                                     </Text>
                                 </View>
@@ -219,13 +218,13 @@ export default function DebugLogsScreen({ navigation }) {
 
                             {/* Error Details */}
                             {log.error && (
-                                <View style={styles.logError}>
-                                    <Text style={styles.logErrorTitle}>Erro:</Text>
-                                    <Text style={styles.logErrorText}>
+                                <View style={debugLogsStyles.logError}>
+                                    <Text style={debugLogsStyles.logErrorTitle}>Erro:</Text>
+                                    <Text style={debugLogsStyles.logErrorText}>
                                         {log.error.name}: {log.error.message}
                                     </Text>
                                     {log.error.stack && (
-                                        <Text style={styles.logErrorStack}>
+                                        <Text style={debugLogsStyles.logErrorStack}>
                                             {log.error.stack}
                                         </Text>
                                     )}
@@ -239,195 +238,5 @@ export default function DebugLogsScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#666',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    statsCard: {
-        backgroundColor: '#fff',
-        margin: 16,
-        padding: 16,
-        borderRadius: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    statsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 12,
-        color: '#333',
-    },
-    statsRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-    },
-    statItem: {
-        alignItems: 'center',
-    },
-    statNumber: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#666',
-        marginTop: 4,
-    },
-    actionsContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: 16,
-        marginBottom: 16,
-        gap: 8,
-    },
-    actionButton: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    exportButton: {
-        backgroundColor: '#3B82F6',
-    },
-    clearButton: {
-        backgroundColor: '#EF4444',
-    },
-    refreshButton: {
-        backgroundColor: '#10B981',
-    },
-    actionButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    logsContainer: {
-        flex: 1,
-        paddingHorizontal: 16,
-    },
-    emptyState: {
-        alignItems: 'center',
-        marginTop: 60,
-    },
-    emptyStateEmoji: {
-        fontSize: 64,
-        marginBottom: 16,
-    },
-    emptyStateText: {
-        fontSize: 16,
-        color: '#666',
-    },
-    logItem: {
-        backgroundColor: '#fff',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#E8E8E8',
-    },
-    logHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 8,
-    },
-    logLevel: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    logTimestamp: {
-        fontSize: 11,
-        color: '#999',
-    },
-    logMessage: {
-        fontSize: 14,
-        color: '#333',
-        marginBottom: 8,
-    },
-    logContext: {
-        backgroundColor: '#F8F9FA',
-        padding: 8,
-        borderRadius: 4,
-        marginTop: 8,
-    },
-    logContextTitle: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#666',
-        marginBottom: 4,
-    },
-    logContextText: {
-        fontSize: 10,
-        color: '#666',
-        fontFamily: 'monospace',
-    },
-    logError: {
-        backgroundColor: '#FEE2E2',
-        padding: 8,
-        borderRadius: 4,
-        marginTop: 8,
-    },
-    logErrorTitle: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: '#EF4444',
-        marginBottom: 4,
-    },
-    logErrorText: {
-        fontSize: 11,
-        color: '#991B1B',
-        marginBottom: 4,
-    },
-    logErrorStack: {
-        fontSize: 9,
-        color: '#991B1B',
-        fontFamily: 'monospace',
-    },
-});
+
 

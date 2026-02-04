@@ -1,16 +1,15 @@
 import React, {useState, useEffect} from 'react';
-import {
-    View,
+import {View,
     Text,
     Modal,
     TouchableOpacity,
-    StyleSheet,
     TextInput,
     Alert,
     ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {supabase} from '../../supabase';
+import { ownerRentalConfirmationStyles } from '../styles/components/ownerRentalConfirmationStyles';
 
 
 const OwnerRentalConfirmationModal = ({session, navigation}) => {
@@ -386,30 +385,30 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
             animationType="slide"
             onRequestClose={() => setVisible(false)}
         >
-            <View style={styles.modalOverlay}>
+            <View style={ownerRentalConfirmationStyles.modalOverlay}>
                 <ScrollView
-                    contentContainerStyle={styles.scrollContainer}
+                    contentContainerStyle={ownerRentalConfirmationStyles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                 >
-                    <View style={styles.modalContent}>
+                    <View style={ownerRentalConfirmationStyles.modalContent}>
                         {/* Header */}
-                        <View style={styles.header}>
-                            <Text style={styles.headerTitle}>
+                        <View style={ownerRentalConfirmationStyles.header}>
+                            <Text style={ownerRentalConfirmationStyles.headerTitle}>
                                 {activeRental.status === 'approved' ? '📦 Entrega Pendiente' : '⏳ Aguardando Devolución'}
                             </Text>
                             <TouchableOpacity
-                                style={styles.closeButton}
+                                style={ownerRentalConfirmationStyles.closeButton}
                                 onPress={() => setVisible(false)}
                             >
-                                <Text style={styles.closeButtonText}>✕</Text>
+                                <Text style={ownerRentalConfirmationStyles.closeButtonText}>✕</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Indicadores de Página */}
                         {activeRentals.length > 1 && (
-                            <View style={styles.paginationContainer}>
+                            <View style={ownerRentalConfirmationStyles.paginationContainer}>
                                 <TouchableOpacity
-                                    style={styles.arrowButton}
+                                    style={ownerRentalConfirmationStyles.arrowButton}
                                     onPress={() => {
                                         if (currentIndex > 0) {
                                             const newIndex = currentIndex - 1;
@@ -420,27 +419,27 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                     disabled={currentIndex === 0}
                                 >
                                     <Text
-                                        style={[styles.arrowText, currentIndex === 0 && styles.arrowDisabled]}>←</Text>
+                                        style={[ownerRentalConfirmationStyles.arrowText, currentIndex === 0 && ownerRentalConfirmationStyles.arrowDisabled]}>←</Text>
                                 </TouchableOpacity>
 
-                                <View style={styles.dotsContainer}>
+                                <View style={ownerRentalConfirmationStyles.dotsContainer}>
                                     {activeRentals.map((_, index) => (
                                         <View
                                             key={index}
                                             style={[
-                                                styles.dot,
-                                                index === currentIndex && styles.dotActive
+                                                ownerRentalConfirmationStyles.dot,
+                                                index === currentIndex && ownerRentalConfirmationStyles.dotActive
                                             ]}
                                         />
                                     ))}
                                 </View>
 
-                                <Text style={styles.pageIndicator}>
+                                <Text style={ownerRentalConfirmationStyles.pageIndicator}>
                                     {currentIndex + 1} / {activeRentals.length}
                                 </Text>
 
                                 <TouchableOpacity
-                                    style={styles.arrowButton}
+                                    style={ownerRentalConfirmationStyles.arrowButton}
                                     onPress={() => {
                                         if (currentIndex < activeRentals.length - 1) {
                                             const newIndex = currentIndex + 1;
@@ -451,18 +450,18 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                     disabled={currentIndex === activeRentals.length - 1}
                                 >
                                     <Text
-                                        style={[styles.arrowText, currentIndex === activeRentals.length - 1 && styles.arrowDisabled]}>→</Text>
+                                        style={[ownerRentalConfirmationStyles.arrowText, currentIndex === activeRentals.length - 1 && ownerRentalConfirmationStyles.arrowDisabled]}>→</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
 
                         {/* Cronômetro */}
-                        <View style={styles.timerContainer}>
-                            <Text style={styles.timerLabel}>
+                        <View style={ownerRentalConfirmationStyles.timerContainer}>
+                            <Text style={ownerRentalConfirmationStyles.timerLabel}>
                                 {activeRental.status === 'approved' ? 'Tiempo para entrega:' : 'Tiempo para devolución:'}
                             </Text>
                             <Text
-                                style={styles.timerValue}
+                                style={ownerRentalConfirmationStyles.timerValue}
                                 numberOfLines={2}
                                 adjustsFontSizeToFit
                             >
@@ -471,33 +470,33 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                         </View>
 
                         {/* Dados da Locação */}
-                        <View style={styles.detailsContainer}>
-                            <Text style={styles.itemTitle}>{activeRental.item?.title || 'Item'}</Text>
+                        <View style={ownerRentalConfirmationStyles.detailsContainer}>
+                            <Text style={ownerRentalConfirmationStyles.itemTitle}>{activeRental.item?.title || 'Item'}</Text>
 
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>📅 Recogida:</Text>
-                                <Text style={styles.detailValue}>
+                            <View style={ownerRentalConfirmationStyles.detailRow}>
+                                <Text style={ownerRentalConfirmationStyles.detailLabel}>📅 Recogida:</Text>
+                                <Text style={ownerRentalConfirmationStyles.detailValue}>
                                     {formatDate(activeRental.start_date)} - {activeRental.pickup_time || '10:00'}
                                 </Text>
                             </View>
 
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>📅 Devolución:</Text>
-                                <Text style={styles.detailValue}>
+                            <View style={ownerRentalConfirmationStyles.detailRow}>
+                                <Text style={ownerRentalConfirmationStyles.detailLabel}>📅 Devolución:</Text>
+                                <Text style={ownerRentalConfirmationStyles.detailValue}>
                                     {formatDate(activeRental.end_date)} - {activeRental.return_time || '18:00'}
                                 </Text>
                             </View>
 
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>👤 Locatario:</Text>
-                                <Text style={styles.detailValue}>
+                            <View style={ownerRentalConfirmationStyles.detailRow}>
+                                <Text style={ownerRentalConfirmationStyles.detailLabel}>👤 Locatario:</Text>
+                                <Text style={ownerRentalConfirmationStyles.detailValue}>
                                     {activeRental.renter?.full_name || 'Usuario'}
                                 </Text>
                             </View>
 
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>📍 Dirección de Entrega:</Text>
-                                <Text style={styles.detailValue}>
+                            <View style={ownerRentalConfirmationStyles.detailRow}>
+                                <Text style={ownerRentalConfirmationStyles.detailLabel}>📍 Dirección de Entrega:</Text>
+                                <Text style={ownerRentalConfirmationStyles.detailValue}>
                                     {activeRental.item?.street ? (
                                         `${activeRental.item.street}${activeRental.item.number ? `, ${activeRental.item.number}` : ''}${activeRental.item.complement ? `, ${activeRental.item.complement}` : ''}\n${activeRental.item.postal_code} ${activeRental.item.city}${activeRental.item.province ? `, ${activeRental.item.province}` : ''}`
                                     ) : (
@@ -506,9 +505,9 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                 </Text>
                             </View>
 
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>💰 Total a Recibir:</Text>
-                                <Text style={[styles.detailValue, styles.priceText]}>
+                            <View style={ownerRentalConfirmationStyles.detailRow}>
+                                <Text style={ownerRentalConfirmationStyles.detailLabel}>💰 Total a Recibir:</Text>
+                                <Text style={[ownerRentalConfirmationStyles.detailValue, ownerRentalConfirmationStyles.priceText]}>
                                     €{calculateOwnerAmount(activeRental).toFixed(2)}
                                 </Text>
                             </View>
@@ -517,9 +516,9 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                             {activeRental.status === 'approved' && (
                                 <>
                                     {/* Instrucciones */}
-                                    <View style={styles.instructionsContainer}>
-                                        <Text style={styles.instructionsTitle}>📋 Instrucciones:</Text>
-                                        <Text style={styles.instructionsText}>
+                                    <View style={ownerRentalConfirmationStyles.instructionsContainer}>
+                                        <Text style={ownerRentalConfirmationStyles.instructionsTitle}>📋 Instrucciones:</Text>
+                                        <Text style={ownerRentalConfirmationStyles.instructionsText}>
                                             1. Entrega el artículo al locatario{'\n'}
                                             2. Verifica que ambos estén de acuerdo con el estado{'\n'}
                                             3. Solicita el código de recogida al locatario{'\n'}
@@ -528,10 +527,10 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                     </View>
 
                                     {/* Campo de Código */}
-                                    <View style={styles.codeInputContainer}>
-                                        <Text style={styles.codeInputLabel}>Código del Locatario:</Text>
+                                    <View style={ownerRentalConfirmationStyles.codeInputContainer}>
+                                        <Text style={ownerRentalConfirmationStyles.codeInputLabel}>Código del Locatario:</Text>
                                         <TextInput
-                                            style={styles.codeInput}
+                                            style={ownerRentalConfirmationStyles.codeInput}
                                             value={codeInput}
                                             onChangeText={setCodeInput}
                                             placeholder="000000"
@@ -539,21 +538,21 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                                             maxLength={6}
                                             placeholderTextColor="#999"
                                         />
-                                        <Text style={styles.codeInputHint}>
+                                        <Text style={ownerRentalConfirmationStyles.codeInputHint}>
                                             El locatario debe mostrarte su código de 6 dígitos después de confirmar que el
                                             artículo está de acuerdo con lo anunciado.
                                         </Text>
                                     </View>
 
                                     {/* Código do Owner (Referência) */}
-                                    <View style={styles.ownerCodeContainer}>
-                                        <Text style={styles.ownerCodeLabel}>Tu Código de Devolución:</Text>
-                                        <View style={styles.ownerCodeBadge}>
-                                            <Text style={styles.ownerCodeValue}>
+                                    <View style={ownerRentalConfirmationStyles.ownerCodeContainer}>
+                                        <Text style={ownerRentalConfirmationStyles.ownerCodeLabel}>Tu Código de Devolución:</Text>
+                                        <View style={ownerRentalConfirmationStyles.ownerCodeBadge}>
+                                            <Text style={ownerRentalConfirmationStyles.ownerCodeValue}>
                                                 {activeRental.owner_code || '------'}
                                             </Text>
                                         </View>
-                                        <Text style={styles.ownerCodeHint}>
+                                        <Text style={ownerRentalConfirmationStyles.ownerCodeHint}>
                                             Guarda este código. El locatario deberá ingresarlo al devolver el artículo.
                                         </Text>
                                     </View>
@@ -564,25 +563,25 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                             {activeRental.status === 'active' && (
                                 <>
                                     {/* Mensagem de aguardo */}
-                                    <View style={styles.activeWarning}>
-                                        <Text style={styles.activeWarningIcon}>✅</Text>
+                                    <View style={ownerRentalConfirmationStyles.activeWarning}>
+                                        <Text style={ownerRentalConfirmationStyles.activeWarningIcon}>✅</Text>
                                         <View style={{flex: 1}}>
-                                            <Text style={styles.activeWarningTitle}>Artículo Entregado</Text>
-                                            <Text style={styles.activeWarningText}>
+                                            <Text style={ownerRentalConfirmationStyles.activeWarningTitle}>Artículo Entregado</Text>
+                                            <Text style={ownerRentalConfirmationStyles.activeWarningText}>
                                                 El locatario tiene el artículo. Aguarda la devolución en la fecha acordada.
                                             </Text>
                                         </View>
                                     </View>
 
                                     {/* Código do Owner DESTACADO */}
-                                    <View style={styles.ownerCodeContainerActive}>
-                                        <Text style={styles.ownerCodeLabelActive}>🔑 Tu Código de Devolución:</Text>
-                                        <View style={styles.ownerCodeBadgeActive}>
-                                            <Text style={styles.ownerCodeValueActive}>
+                                    <View style={ownerRentalConfirmationStyles.ownerCodeContainerActive}>
+                                        <Text style={ownerRentalConfirmationStyles.ownerCodeLabelActive}>🔑 Tu Código de Devolución:</Text>
+                                        <View style={ownerRentalConfirmationStyles.ownerCodeBadgeActive}>
+                                            <Text style={ownerRentalConfirmationStyles.ownerCodeValueActive}>
                                                 {activeRental.owner_code || '------'}
                                             </Text>
                                         </View>
-                                        <Text style={styles.ownerCodeHintActive}>
+                                        <Text style={ownerRentalConfirmationStyles.ownerCodeHintActive}>
                                             📌 Cuando el locatario devuelva el artículo:{'\n'}
                                             1. Verifica que esté en buenas condiciones{'\n'}
                                             2. Muestra este código al locatario{'\n'}
@@ -595,14 +594,14 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
                         </View>
 
                         {/* Botões */}
-                        <View style={styles.buttonsContainer}>
+                        <View style={ownerRentalConfirmationStyles.buttonsContainer}>
                             {activeRental.status === 'approved' && (
                                 <TouchableOpacity
-                                    style={[styles.confirmButton, confirming && styles.confirmButtonDisabled]}
+                                    style={[ownerRentalConfirmationStyles.confirmButton, confirming && ownerRentalConfirmationStyles.confirmButtonDisabled]}
                                     onPress={handleConfirmPickup}
                                     disabled={confirming}
                                 >
-                                    <Text style={styles.confirmButtonText}>
+                                    <Text style={ownerRentalConfirmationStyles.confirmButtonText}>
                                         {confirming ? 'Confirmando...' : '✓ Confirmar Entrega'}
                                     </Text>
                                 </TouchableOpacity>
@@ -610,29 +609,29 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
 
                             {/* Botão de Chat - Sempre visível */}
                             <TouchableOpacity
-                                style={styles.chatButton}
+                                style={ownerRentalConfirmationStyles.chatButton}
                                 onPress={handleOpenChat}
                             >
                                 <Ionicons name="chatbubble-ellipses" size={20} color="#fff" style={{marginRight: 8}} />
-                                <Text style={styles.chatButtonText}>
+                                <Text style={ownerRentalConfirmationStyles.chatButtonText}>
                                     Chatear con {activeRental.renter?.full_name || 'Locatario'}
                                 </Text>
                             </TouchableOpacity>
 
                             {/* Botão de Cancelar - Sempre visível */}
                             <TouchableOpacity
-                                style={styles.cancelButton}
+                                style={ownerRentalConfirmationStyles.cancelButton}
                                 onPress={handleCancelRental}
                             >
                                 <Ionicons name="close-circle-outline" size={20} color="#fff" style={{marginRight: 8}} />
-                                <Text style={styles.cancelButtonText}>Cancelar Locación</Text>
+                                <Text style={ownerRentalConfirmationStyles.cancelButtonText}>Cancelar Locación</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={styles.closeModalButton}
+                                style={ownerRentalConfirmationStyles.closeModalButton}
                                 onPress={() => setVisible(false)}
                             >
-                                <Text style={styles.closeModalButtonText}>Cerrar</Text>
+                                <Text style={ownerRentalConfirmationStyles.closeModalButtonText}>Cerrar</Text>
                             </TouchableOpacity>
                         </View>
 
@@ -645,384 +644,7 @@ const OwnerRentalConfirmationModal = ({session, navigation}) => {
     );
 };
 
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    },
-    scrollContainer: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        width: '100%',
-        maxWidth: 500,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
-        elevation: 10,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#2c4455',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    closeButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        backgroundColor: 'rgba(255, 255, 255, 0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    closeButtonText: {
-        fontSize: 18,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    timerContainer: {
-        backgroundColor: '#EFF6FF',
-        padding: 20,
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    timerLabel: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 8,
-    },
-    timerValue: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        fontVariant: ['tabular-nums'],
-        textAlign: 'center',
-        flexWrap: 'wrap',
-        paddingHorizontal: 10,
-    },
-    detailsContainer: {
-        padding: 20,
-    },
-    itemTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#1a3a52',
-        marginBottom: 20,
-        textAlign: 'center',
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    detailLabel: {
-        fontSize: 15,
-        color: '#666',
-        fontWeight: '600',
-    },
-    detailValue: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '500',
-        flex: 1,
-        textAlign: 'right',
-        marginLeft: 10,
-    },
-    priceText: {
-        color: '#10B981',
-        fontWeight: 'bold',
-        fontSize: 16,
-    },
-    instructionsContainer: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: '#F0F9FF',
-        borderRadius: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#2c4455',
-    },
-    instructionsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        marginBottom: 10,
-    },
-    instructionsText: {
-        fontSize: 14,
-        color: '#666',
-        lineHeight: 22,
-    },
-    codeInputContainer: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: '#F9FAFB',
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#2c4455',
-    },
-    codeInputLabel: {
-        fontSize: 14,
-        color: '#2c4455',
-        fontWeight: '600',
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    codeInput: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        textAlign: 'center',
-        letterSpacing: 8,
-        borderWidth: 2,
-        borderColor: '#D1D5DB',
-        fontVariant: ['tabular-nums'],
-    },
-    codeInputHint: {
-        fontSize: 12,
-        color: '#666',
-        textAlign: 'center',
-        marginTop: 8,
-        fontStyle: 'italic',
-    },
-    ownerCodeContainer: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: '#FEF3C7',
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#F59E0B',
-        borderStyle: 'dashed',
-    },
-    ownerCodeLabel: {
-        fontSize: 14,
-        color: '#92400E',
-        fontWeight: '600',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    ownerCodeBadge: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    ownerCodeValue: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#F59E0B',
-        letterSpacing: 4,
-        fontVariant: ['tabular-nums'],
-    },
-    ownerCodeHint: {
-        fontSize: 12,
-        color: '#92400E',
-        textAlign: 'center',
-        fontStyle: 'italic',
-    },
-    activeWarning: {
-        marginTop: 20,
-        padding: 15,
-        backgroundColor: '#D1FAE5',
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#10B981',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: 12,
-    },
-    activeWarningIcon: {
-        fontSize: 24,
-    },
-    activeWarningTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#065F46',
-        marginBottom: 5,
-    },
-    activeWarningText: {
-        fontSize: 14,
-        color: '#047857',
-        lineHeight: 20,
-    },
-    ownerCodeContainerActive: {
-        marginTop: 20,
-        padding: 20,
-        backgroundColor: '#FEF3C7',
-        borderRadius: 12,
-        borderWidth: 3,
-        borderColor: '#F59E0B',
-        shadowColor: '#F59E0B',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    ownerCodeLabelActive: {
-        fontSize: 16,
-        color: '#92400E',
-        fontWeight: 'bold',
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    ownerCodeBadgeActive: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginBottom: 12,
-        borderWidth: 2,
-        borderColor: '#F59E0B',
-    },
-    ownerCodeValueActive: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: '#F59E0B',
-        letterSpacing: 6,
-        fontVariant: ['tabular-nums'],
-    },
-    ownerCodeHintActive: {
-        fontSize: 13,
-        color: '#92400E',
-        lineHeight: 20,
-    },
-    buttonsContainer: {
-        padding: 20,
-        gap: 12,
-    },
-    chatButton: {
-        backgroundColor: '#2c4455',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        shadowColor: '#2c4455',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    chatButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    confirmButton: {
-        backgroundColor: '#10B981',
-        paddingVertical: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        shadowColor: '#10B981',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    confirmButtonDisabled: {
-        backgroundColor: '#9CA3AF',
-        opacity: 0.6,
-    },
-    confirmButtonText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    cancelButton: {
-        backgroundColor: '#EF4444',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        shadowColor: '#EF4444',
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    cancelButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    closeModalButton: {
-        backgroundColor: '#E5E7EB',
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    closeModalButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#666',
-    },
-    paginationContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 15,
-        backgroundColor: '#F9FAFB',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-        gap: 15,
-    },
-    arrowButton: {
-        padding: 8,
-    },
-    arrowText: {
-        fontSize: 24,
-        color: '#2c4455',
-        fontWeight: 'bold',
-    },
-    arrowDisabled: {
-        color: '#D1D5DB',
-    },
-    dotsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#D1D5DB',
-    },
-    dotActive: {
-        backgroundColor: '#2c4455',
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    pageIndicator: {
-        fontSize: 14,
-        color: '#666',
-        fontWeight: '600',
-    },
-});
+
 
 export default OwnerRentalConfirmationModal;
 

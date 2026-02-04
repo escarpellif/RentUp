@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {
-    StyleSheet,
     View,
     Text,
     ScrollView,
@@ -11,8 +10,7 @@ import {
     Platform,
     Image,
     StatusBar,
-    ImageBackground,
-    Dimensions
+    ImageBackground
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
@@ -30,6 +28,7 @@ import TestimonialsSection from '../components/TestimonialsSection';
 import Footer from '../components/Footer';
 import UnifiedRentalModal from '../components/UnifiedRentalModal';
 import ReviewModal from '../components/ReviewModal';
+import { homeStyles } from '../styles/screens/homeStyles';
 
 export default function HomeScreen({navigation, session, isGuest}) {
     const {t} = useTranslation();
@@ -161,7 +160,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={homeStyles.container}>
             
             {/* Modal Unificado de Locações (mostra todas: como locatário E como locador) */}
             {!isGuest && session && (
@@ -178,120 +177,125 @@ export default function HomeScreen({navigation, session, isGuest}) {
 
             <StatusBar barStyle="dark-content" backgroundColor="#fff"/>
             {/* Header com Menu Hamburger */}
-            <View style={styles.header}>
+            <View style={homeStyles.header}>
                 <TouchableOpacity
-                    style={styles.menuButton}
+                    style={homeStyles.menuButton}
                     onPress={() => setMenuVisible(true)}
                 >
-                    <View style={styles.hamburger}>
-                        <View style={styles.hamburgerLine}/>
-                        <View style={styles.hamburgerLine}/>
-                        <View style={styles.hamburgerLine}/>
+                    <View style={homeStyles.hamburger}>
+                        <View style={homeStyles.hamburgerLine}/>
+                        <View style={homeStyles.hamburgerLine}/>
+                        <View style={homeStyles.hamburgerLine}/>
                     </View>
                     {(unreadCount + unreadMessages + pendingRentals) > 0 && (
-                        <View style={styles.notificationDot}>
-                            <Text style={styles.notificationDotText}>
+                        <View style={homeStyles.notificationDot}>
+                            <Text style={homeStyles.notificationDotText}>
                                 {unreadCount + unreadMessages + pendingRentals}
                             </Text>
                         </View>
                     )}
                 </TouchableOpacity>
 
-                <View style={styles.headerTitleContainer}>
+                <View style={homeStyles.headerTitleContainer}>
                     <Image
                         source={require('../../assets/images/app-icon.png')}
-                        style={styles.headerIcon}
+                        style={homeStyles.headerIcon}
                         resizeMode="contain"
                     />
-                    <Text style={styles.headerTitle}>ALUKO</Text>
+                    <Text style={homeStyles.headerTitle}>ALUKO</Text>
                 </View>
 
                 <TouchableOpacity
-                    style={styles.profileButton}
+                    style={homeStyles.profileButton}
                     onPress={() => navigation.navigate('Profile')}
                 >
                     <Ionicons name="person-circle-outline" size={28} color="#2c4455" />
                     {userUnread > 0 && (
-                        <View style={styles.userNotificationDot}>
-                            <Text style={styles.userNotificationDotText}>{userUnread}</Text>
+                        <View style={homeStyles.userNotificationDot}>
+                            <Text style={homeStyles.userNotificationDotText}>{userUnread}</Text>
                         </View>
                     )}
                 </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+            <ScrollView style={homeStyles.content} showsVerticalScrollIndicator={false}>
                 {/* Hero Section - Carrousel */}
-                <View style={styles.heroCarouselContainer}>
+                <View style={homeStyles.heroCarouselContainer}>
                     <ScrollView
                         horizontal
                         pagingEnabled
                         showsHorizontalScrollIndicator={false}
                         onScroll={(event) => {
-                            const scrollPosition = event.nativeEvent.contentOffset.x;
-                            const screenWidth = Dimensions.get('window').width;
-                            const index = Math.round(scrollPosition / screenWidth);
-                            setHeroIndex(index);
+                            try {
+                                const scrollPosition = event.nativeEvent.contentOffset.x;
+                                // TEMPORÁRIO: Valor fixo para debug
+                                const screenWidth = 375;
+                                const index = Math.round(scrollPosition / screenWidth);
+                                setHeroIndex(index);
+                            } catch (error) {
+                                console.log('Erro ao calcular scroll:', error);
+                            }
                         }}
                         scrollEventThrottle={16}
-                        style={styles.heroScrollView}
+                        style={homeStyles.heroScrollView}
                     >
                         {/* Slide 1 */}
                         <ImageBackground
                             source={require('../../assets/images/img-1.png')}
-                            style={styles.heroSectionBackground}
+                            style={homeStyles.heroSectionBackground}
                             resizeMode="cover"
                         >
 
-                            <View style={styles.heroSection}>
-                                <View style={styles.heroCard}>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
+                            <View style={homeStyles.heroSection}>
+                                <View style={homeStyles.heroCard}>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle1')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
                                     {/* Spacer para manter posição dos botões */}
-                                    <View style={styles.heroSpacer} />
+                                    <View style={homeStyles.heroSpacer} />
 
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle3')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle4')}</Text>
 
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
 
-                                    <View style={styles.heroButtonsContainer}>
+                                    <View style={homeStyles.heroButtonsContainer}>
                                         <TouchableOpacity
-                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            style={[homeStyles.heroButton, homeStyles.heroButtonAnunciar]}
                                             onPress={() => navigation.navigate('Home')}
                                         >
-                                            <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
+                                            <Text style={homeStyles.heroButtonText}>{t('home.explore')}</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            style={[homeStyles.heroButton, homeStyles.heroButtonAnunciar]}
                                             onPress={() => navigation.navigate('AddItem')}
                                         >
-                                            <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                            <Text style={homeStyles.heroButtonText}>{t('home.post')}</Text>
                                         </TouchableOpacity>
                                     </View>
 
                                     {/* Indicadores de slides */}
-                                    <View style={styles.carouselIndicators}>
-                                        <View style={[styles.carouselDot, heroIndex === 0 && styles.carouselDotActive]} />
-                                        <View style={[styles.carouselDot, heroIndex === 1 && styles.carouselDotActive]} />
+                                    <View style={homeStyles.carouselIndicators}>
+                                        <View style={[homeStyles.carouselDot, heroIndex === 0 && homeStyles.carouselDotActive]} />
+                                        <View style={[homeStyles.carouselDot, heroIndex === 1 && homeStyles.carouselDotActive]} />
                                     </View>
                                 </View>
-                                <View style={styles.searchContainer}>
+                                <View style={homeStyles.searchContainer}>
                                     <TextInput
-                                        style={styles.searchInput}
+                                        style={homeStyles.searchInput}
                                         placeholder={t('home.search')}
                                         value={searchQuery}
                                         onChangeText={setSearchQuery}
                                         onSubmitEditing={handleSearch}
                                     />
                                     <TouchableOpacity
-                                        style={styles.searchButton}
+                                        style={homeStyles.searchButton}
                                         onPress={handleSearch}
                                     >
                                         <Ionicons name="search" size={20} color="#10B981" />
@@ -303,59 +307,59 @@ export default function HomeScreen({navigation, session, isGuest}) {
                         {/* Slide 2 */}
                         <ImageBackground
                             source={require('../../assets/images/background-homepage2.png')}
-                            style={styles.heroSectionBackground}
+                            style={homeStyles.heroSectionBackground}
                             resizeMode="cover"
                         >
-                            <View style={styles.heroSection}>
-                                <View style={styles.heroCard}>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle1')}</Text>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle2')}</Text>
+                            <View style={homeStyles.heroSection}>
+                                <View style={homeStyles.heroCard}>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle1')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle2')}</Text>
 
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle1')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle2')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle3')}</Text>
 
                                     {/* Spacer para manter posição dos botões */}
-                                    <View style={styles.heroSpacer} />
+                                    <View style={homeStyles.heroSpacer} />
 
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle3')}</Text>
-                                    <Text style={styles.heroTitle}>{t('home.heroTitle4')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle3')}</Text>
+                                    <Text style={homeStyles.heroTitle}>{t('home.heroTitle4')}</Text>
 
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
-                                    <Text style={styles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle4')}</Text>
+                                    <Text style={homeStyles.heroSubtitle}>{t('home.heroSubtitle5')}</Text>
 
-                                    <View style={styles.heroButtonsContainer}>
+                                    <View style={homeStyles.heroButtonsContainer}>
                                         <TouchableOpacity
-                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            style={[homeStyles.heroButton, homeStyles.heroButtonAnunciar]}
                                             onPress={() => navigation.navigate('Home')}
                                         >
-                                            <Text style={styles.heroButtonText}>{t('home.explore')}</Text>
+                                            <Text style={homeStyles.heroButtonText}>{t('home.explore')}</Text>
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
-                                            style={[styles.heroButton, styles.heroButtonAnunciar]}
+                                            style={[homeStyles.heroButton, homeStyles.heroButtonAnunciar]}
                                             onPress={() => navigation.navigate('AddItem')}
                                         >
-                                            <Text style={styles.heroButtonText}>{t('home.post')}</Text>
+                                            <Text style={homeStyles.heroButtonText}>{t('home.post')}</Text>
                                         </TouchableOpacity>
                                     </View>
 
                                     {/* Indicadores de slides */}
-                                    <View style={styles.carouselIndicators}>
-                                        <View style={[styles.carouselDot, heroIndex === 0 && styles.carouselDotActive]} />
-                                        <View style={[styles.carouselDot, heroIndex === 1 && styles.carouselDotActive]} />
+                                    <View style={homeStyles.carouselIndicators}>
+                                        <View style={[homeStyles.carouselDot, heroIndex === 0 && homeStyles.carouselDotActive]} />
+                                        <View style={[homeStyles.carouselDot, heroIndex === 1 && homeStyles.carouselDotActive]} />
                                     </View>
                                 </View>
-                                <View style={styles.searchContainer}>
+                                <View style={homeStyles.searchContainer}>
                                     <TextInput
-                                        style={styles.searchInput}
+                                        style={homeStyles.searchInput}
                                         placeholder={t('home.search')}
                                         value={searchQuery}
                                         onChangeText={setSearchQuery}
                                         onSubmitEditing={handleSearch}
                                     />
                                     <TouchableOpacity
-                                        style={styles.searchButton}
+                                        style={homeStyles.searchButton}
                                         onPress={handleSearch}
                                     >
                                         <Ionicons name="search" size={20} color="#10B981" />
@@ -367,49 +371,49 @@ export default function HomeScreen({navigation, session, isGuest}) {
                 </View>
 
                 {/* Search Bar */}
-                {/*<View style={styles.searchContainer}>*/}
+                {/*<View style={homeStyles.searchContainer}>*/}
                 {/*    <TextInput*/}
-                {/*        style={styles.searchInput}*/}
+                {/*        style={homeStyles.searchInput}*/}
                 {/*        placeholder={t('home.search')}*/}
                 {/*        value={searchQuery}*/}
                 {/*        onChangeText={setSearchQuery}*/}
                 {/*        onSubmitEditing={handleSearch}*/}
                 {/*    />*/}
                 {/*    <TouchableOpacity*/}
-                {/*        style={styles.searchButton}*/}
+                {/*        style={homeStyles.searchButton}*/}
                 {/*        onPress={handleSearch}*/}
                 {/*    >*/}
-                {/*        <Text style={styles.searchIcon}>🔍</Text>*/}
+                {/*        <Text style={homeStyles.searchIcon}>🔍</Text>*/}
                 {/*    </TouchableOpacity>*/}
                 {/*</View>*/}
 
                 {/* Categories Section */}
-                <View style={styles.section}>
-                    <View style={styles.categoriesContainer}>
+                <View style={homeStyles.section}>
+                    <View style={homeStyles.categoriesContainer}>
                         {/* Header dentro do container */}
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>{t('home.categories')}</Text>
+                        <View style={homeStyles.sectionHeader}>
+                            <Text style={homeStyles.sectionTitle}>{t('home.categories')}</Text>
                             <TouchableOpacity
-                                style={styles.viewAllButton}
+                                style={homeStyles.viewAllButton}
                                 onPress={() => navigation.navigate('Home')}
                             >
-                                <Text style={styles.viewAllButtonText}>{t('home.seeAll')}</Text>
-                                <Text style={styles.viewAllButtonIcon}>→</Text>
+                                <Text style={homeStyles.viewAllButtonText}>{t('home.seeAll')}</Text>
+                                <Text style={homeStyles.viewAllButtonIcon}>→</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Grid de categorias */}
-                        <View style={styles.categoriesGrid}>
+                        <View style={homeStyles.categoriesGrid}>
                             {categories.map((category) => (
                                 <TouchableOpacity
                                     key={category.id}
-                                    style={[styles.categoryCard, {backgroundColor: category.bgColor}]}
+                                    style={[homeStyles.categoryCard, {backgroundColor: category.bgColor}]}
                                     onPress={() => handleCategoryPress(category)}
                                 >
-                                    <View style={[styles.categoryIconContainer, {backgroundColor: category.color}]}>
+                                    <View style={[homeStyles.categoryIconContainer, {backgroundColor: category.color}]}>
                                         <Ionicons name={category.icon} size={32} color="#fff" />
                                     </View>
-                                    <Text style={styles.categoryName}>{category.name}</Text>
+                                    <Text style={homeStyles.categoryName}>{category.name}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -437,86 +441,86 @@ export default function HomeScreen({navigation, session, isGuest}) {
                 onRequestClose={() => setMenuVisible(false)}
             >
                 <TouchableOpacity
-                    style={styles.modalOverlay}
+                    style={homeStyles.modalOverlay}
                     activeOpacity={1}
                     onPress={() => setMenuVisible(false)}
                 >
-                    <View style={styles.menuContainer}>
-                        <View style={styles.menuHeader}>
-                            <Text style={styles.menuTitle}>{t('menu.title')}</Text>
+                    <View style={homeStyles.menuContainer}>
+                        <View style={homeStyles.menuHeader}>
+                            <Text style={homeStyles.menuTitle}>{t('menu.title')}</Text>
                             <TouchableOpacity
-                                style={styles.closeButton}
+                                style={homeStyles.closeButton}
                                 onPress={() => setMenuVisible(false)}
                             >
-                                <Text style={styles.closeButtonText}>✕</Text>
+                                <Text style={homeStyles.closeButtonText}>✕</Text>
                             </TouchableOpacity>
                         </View>
 
-                        <View style={styles.menuItems}>
+                        <View style={homeStyles.menuItems}>
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={homeStyles.menuItem}
                                 onPress={() => {
                                     setMenuVisible(false);
                                     navigation.navigate('HomeScreen');
                                 }}
                             >
-                                <Text style={styles.menuItemIcon}>←</Text>
-                                <Text style={styles.menuItemText}>{t('menu.back')}</Text>
+                                <Text style={homeStyles.menuItemIcon}>←</Text>
+                                <Text style={homeStyles.menuItemText}>{t('menu.back')}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={homeStyles.menuItem}
                                 onPress={() => {
                                     setMenuVisible(false);
                                     navigation.navigate('Home');
                                 }}
                             >
-                                <Text style={styles.menuItemIcon}>🛍️</Text>
-                                <Text style={styles.menuItemText}>{t('menu.marketplace')}</Text>
+                                <Text style={homeStyles.menuItemIcon}>🛍️</Text>
+                                <Text style={homeStyles.menuItemText}>{t('menu.marketplace')}</Text>
                             </TouchableOpacity>
 
                             {/* Protected Menu Items - Hidden for Guests */}
                             {!isGuest && (
                                 <>
                                     <TouchableOpacity
-                                        style={styles.menuItem}
+                                        style={homeStyles.menuItem}
                                         onPress={() => {
                                             setMenuVisible(false);
                                             navigation.navigate('MyAds');
                                         }}
                                     >
-                                        <Text style={styles.menuItemIcon}>📦</Text>
-                                        <Text style={styles.menuItemText}>{t('menu.myAds')}</Text>
+                                        <Text style={homeStyles.menuItemIcon}>📦</Text>
+                                        <Text style={homeStyles.menuItemText}>{t('menu.myAds')}</Text>
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.menuItem}
+                                        style={homeStyles.menuItem}
                                         onPress={() => {
                                             setMenuVisible(false);
                                             navigation.navigate('ChatsList');
                                         }}
                                     >
-                                        <Text style={styles.menuItemIcon}>💬</Text>
-                                        <Text style={styles.menuItemText}>{t('menu.chats')}</Text>
+                                        <Text style={homeStyles.menuItemIcon}>💬</Text>
+                                        <Text style={homeStyles.menuItemText}>{t('menu.chats')}</Text>
                                         {unreadMessages > 0 && (
-                                            <View style={styles.menuBadge}>
-                                                <Text style={styles.menuBadgeText}>{unreadMessages}</Text>
+                                            <View style={homeStyles.menuBadge}>
+                                                <Text style={homeStyles.menuBadgeText}>{unreadMessages}</Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
 
                                     <TouchableOpacity
-                                        style={styles.menuItem}
+                                        style={homeStyles.menuItem}
                                         onPress={() => {
                                             setMenuVisible(false);
                                             navigation.navigate('MyRentals');
                                         }}
                                     >
-                                        <Text style={styles.menuItemIcon}>🔑</Text>
-                                        <Text style={styles.menuItemText}>{t('menu.myTransactions')}</Text>
+                                        <Text style={homeStyles.menuItemIcon}>🔑</Text>
+                                        <Text style={homeStyles.menuItemText}>{t('menu.myTransactions')}</Text>
                                         {pendingRentals > 0 && (
-                                            <View style={styles.menuBadge}>
-                                                <Text style={styles.menuBadgeText}>{pendingRentals}</Text>
+                                            <View style={homeStyles.menuBadge}>
+                                                <Text style={homeStyles.menuBadgeText}>{pendingRentals}</Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
@@ -527,34 +531,34 @@ export default function HomeScreen({navigation, session, isGuest}) {
                             {/* Admin - Apenas para usuários admin */}
                             {isAdmin && (
                                 <>
-                                    <View style={styles.menuDivider}/>
+                                    <View style={homeStyles.menuDivider}/>
 
                                     <TouchableOpacity
-                                        style={styles.menuItem}
+                                        style={homeStyles.menuItem}
                                         onPress={() => {
                                             setMenuVisible(false);
                                             navigation.navigate('AdminDashboard');
                                         }}
                                     >
-                                        <Text style={styles.menuItemIcon}>📊</Text>
-                                        <Text style={styles.menuItemText}>Panel de Admin</Text>
+                                        <Text style={homeStyles.menuItemIcon}>📊</Text>
+                                        <Text style={homeStyles.menuItemText}>Panel de Admin</Text>
                                         {(unreadCount > 0) && (
-                                            <View style={styles.menuBadge}>
-                                                <Text style={styles.menuBadgeText}>{unreadCount}</Text>
+                                            <View style={homeStyles.menuBadge}>
+                                                <Text style={homeStyles.menuBadgeText}>{unreadCount}</Text>
                                             </View>
                                         )}
                                     </TouchableOpacity>
                                 </>
                             )}
 
-                            <View style={styles.menuDivider}/>
+                            <View style={homeStyles.menuDivider}/>
 
                             <TouchableOpacity
-                                style={styles.menuItem}
+                                style={homeStyles.menuItem}
                                 onPress={handleLogout}
                             >
-                                <Text style={styles.menuItemIcon}>🚪</Text>
-                                <Text style={styles.menuItemText}>{t('menu.logout')}</Text>
+                                <Text style={homeStyles.menuItemIcon}>🚪</Text>
+                                <Text style={homeStyles.menuItemText}>{t('menu.logout')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -563,9 +567,9 @@ export default function HomeScreen({navigation, session, isGuest}) {
 
             {/* Tab Bar Bottom - Estilo Marketplace */}
             {!isGuest && (
-                <View style={styles.tabBar}>
+                <View style={homeStyles.tabBar}>
                     <TouchableOpacity
-                        style={styles.tabButton}
+                        style={homeStyles.tabButton}
                         onPress={() => {
                             console.log('🔘 Botão Locaciones clicado na HomeScreen');
 
@@ -587,44 +591,44 @@ export default function HomeScreen({navigation, session, isGuest}) {
                         }}
                     >
                         <Ionicons name="ticket-outline" size={24} color="#9CA3AF" />
-                        <Text style={styles.tabLabel}>Locaciones</Text>
+                        <Text style={homeStyles.tabLabel}>Locaciones</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.tabButton}
+                        style={homeStyles.tabButton}
                         onPress={() => navigation.navigate('MyRentals')}
                     >
                         <Ionicons name="hourglass-outline" size={24} color="#9CA3AF" />
-                        <Text style={styles.tabLabel}>Pendientes</Text>
+                        <Text style={homeStyles.tabLabel}>Pendientes</Text>
                         {pendingRentals > 0 && (
-                            <View style={styles.tabBadge}>
-                                <Text style={styles.tabBadgeText}>{pendingRentals}</Text>
+                            <View style={homeStyles.tabBadge}>
+                                <Text style={homeStyles.tabBadgeText}>{pendingRentals}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.tabButton}
+                        style={homeStyles.tabButton}
                         onPress={() => navigation.navigate('ChatsList')}
                     >
                         <Ionicons name="chatbubbles-outline" size={24} color="#9CA3AF" />
-                        <Text style={styles.tabLabel}>Chats</Text>
+                        <Text style={homeStyles.tabLabel}>Chats</Text>
                         {unreadMessages > 0 && (
-                            <View style={styles.tabBadge}>
-                                <Text style={styles.tabBadgeText}>{unreadMessages}</Text>
+                            <View style={homeStyles.tabBadge}>
+                                <Text style={homeStyles.tabBadgeText}>{unreadMessages}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={styles.tabButton}
+                        style={homeStyles.tabButton}
                         onPress={() => navigation.navigate('Profile')}
                     >
                         <Ionicons name="person-outline" size={24} color="#9CA3AF" />
-                        <Text style={styles.tabLabel}>{t('tabBar.myProfile')}</Text>
+                        <Text style={homeStyles.tabLabel}>{t('tabBar.myProfile')}</Text>
                         {userUnread > 0 && (
-                            <View style={styles.tabBadge}>
-                                <Text style={styles.tabBadgeText}>{userUnread}</Text>
+                            <View style={homeStyles.tabBadge}>
+                                <Text style={homeStyles.tabBadgeText}>{userUnread}</Text>
                             </View>
                         )}
                     </TouchableOpacity>
@@ -634,489 +638,4 @@ export default function HomeScreen({navigation, session, isGuest}) {
     );
 }
 
-const styles = StyleSheet.create({
-    backgroundImage: {
-        flex: 1,
-        width: '100%',
-        height: '100%',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#f2f2f2',
-        paddingTop: Platform.OS === 'android' ? (25 || 0) + 20 : 35,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-    },
-    menuButton: {
-        padding: 5,
-        position: 'relative',
-    },
-    notificationDot: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        backgroundColor: '#dc3545',
-        borderRadius: 10,
-        minWidth: 20,
-        height: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    notificationDotText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: 'bold',
-    },
-    hamburger: {
-        width: 30,
-        height: 24,
-        justifyContent: 'space-between',
-    },
-    hamburgerLine: {
-        width: '100%',
-        height: 3,
-        backgroundColor: '#333',
-        borderRadius: 2,
-    },
-    headerTitleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    titleTextContainer: {
-        flexDirection: 'column',
-        alignItems: 'center',
-    },
-    headerIcon: {
-        width: 28,
-        height: 28,
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    headerSubtitle: {
-        fontSize: 11,
-        fontWeight: '600',
-        color: '#10B981',
-        textAlign: 'center',
-        lineHeight: 14,
-        marginTop: 2,
-    },
-    profileButton: {
-        padding: 5,
-    },
-    content: {
-        flex: 1,
-    },
-    heroCarouselContainer: {
-        width: '380',
-        height: 610,
-        overflow: 'hidden',
-    },
-    heroScrollView: {
-        width: '380',
-        height: 650,
-    },
-    heroSection: {
-        padding: 0,
-        flex: 1,
-    },
-    heroSectionBackground: {
-        width: '380',
-        height: 580,
-    },
-    heroCard: {
 
-        borderRadius: 20,
-        padding: 30,
-        alignItems: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-    },
-    heroTitle: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#1a3a52',
-        textAlign: 'center',
-        lineHeight: 28,
-    },
-    heroSubtitle: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginTop: 4,
-        lineHeight: 20,
-    },
-    heroSpacer: {
-        height: 150,
-        marginVertical: -10,
-    },
-    heroButtonsContainer: {
-        flexDirection: 'row',
-        marginTop: 50,
-        gap: 12,
-    },
-    heroButton: {
-        flex: 1,
-        paddingVertical: 14,
-        paddingHorizontal: 24,
-        borderRadius: 25,
-    },
-    heroButtonExplorar: {
-        backgroundColor: '#FF6347',
-    },
-    heroButtonAnunciar: {
-        backgroundColor: '#10B981',
-    },
-    heroButtonText: {
-        color: '#fff',
-        fontSize: 15,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    carouselIndicators: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 20,
-        gap: 10,
-    },
-    carouselDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-        backgroundColor: '#ccc',
-    },
-    carouselDotActive: {
-        backgroundColor: '#10B981',
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        marginHorizontal: 10,
-        marginVertical: -3,
-        maxWidth: '95%',
-        alignSelf: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 25,
-        paddingHorizontal: 15,
-        paddingVertical: 5,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        borderColor: '#10B981',
-
-    },
-    searchInput: {
-        flex: 1,
-        paddingVertical: 10,
-        fontSize: 16,
-    },
-    searchButton: {
-        justifyContent: 'center',
-        paddingHorizontal: 10,
-    },
-    searchIcon: {
-        fontSize: 20,
-    },
-    section: {
-        marginTop: 0,
-        paddingHorizontal: 20,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 20,
-        paddingHorizontal: 0,
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    viewAllButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#10B981',
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        borderRadius: 16,
-        gap: 4,
-    },
-    viewAllButtonText: {
-        fontSize: 12,
-        color: '#fff',
-        fontWeight: '600',
-    },
-    viewAllButtonIcon: {
-        fontSize: 14,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    categoriesContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        paddingTop: 20,
-        paddingBottom: 40,
-        paddingHorizontal: 15,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.08,
-        shadowRadius: 4,
-    },
-    categoriesGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    categoryCard: {
-        width: '31%',
-        aspectRatio: 1,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-        padding: 12,
-        backgroundColor: '#fff',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    categoryIconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    categoryIcon: {
-        fontSize: 32,
-        marginBottom: 5,
-    },
-    categoryName: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: '#2c4455',
-        textAlign: 'center',
-    },
-    browseButton: {
-        backgroundColor: '#007bff',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    browseButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    quickActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        marginTop: 20,
-        marginBottom: 30,
-        gap: 15,
-    },
-    quickActionButton: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 15,
-        alignItems: 'center',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: {width: 0, height: 1},
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-    },
-    quickActionIcon: {
-        fontSize: 32,
-        marginBottom: 10,
-    },
-    quickActionText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        textAlign: 'center',
-    },
-    menuOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-start',
-    },
-    menuContainer: {
-        width: '75%',
-        height: '100%',
-        backgroundColor: '#fff',
-        paddingTop: 50,
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: {width: 2, height: 0},
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-    },
-    menuDrawer: {
-        width: '75%',
-        height: '100%',
-        backgroundColor: '#fff',
-        paddingTop: 50,
-    },
-    closeButton: {
-        padding: 8,
-    },
-    closeButtonText: {
-        fontSize: 24,
-        color: '#666',
-    },
-    menuHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-    },
-    menuTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    menuSubtitle: {
-        fontSize: 14,
-        color: '#666',
-    },
-    menuItems: {
-        paddingTop: 20,
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
-    },
-    menuItemIcon: {
-        fontSize: 24,
-        marginRight: 15,
-        width: 30,
-    },
-    menuItemText: {
-        fontSize: 16,
-        color: '#333',
-        fontWeight: '500',
-    },
-    menuBadge: {
-        position: 'absolute',
-        right: 20,
-        backgroundColor: '#10B981',
-        borderRadius: 12,
-        minWidth: 24,
-        height: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 6,
-    },
-    menuBadgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    menuDivider: {
-        height: 1,
-        backgroundColor: '#e0e0e0',
-        marginVertical: 10,
-        marginHorizontal: 20,
-    },
-    userNotificationDot: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        backgroundColor: '#dc3545',
-        borderRadius: 10,
-        minWidth: 20,
-        height: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    userNotificationDotText: {
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: 'bold',
-    },
-    // Tab Bar
-    tabBar: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-        paddingTop: 8,
-        elevation: 8,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    tabButton: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 8,
-        position: 'relative',
-    },
-    tabLabel: {
-        fontSize: 11,
-        color: '#9CA3AF',
-        marginTop: 4,
-        fontWeight: '500',
-    },
-    tabBadge: {
-        position: 'absolute',
-        top: 0,
-        right: '25%',
-        backgroundColor: '#EF4444',
-        borderRadius: 10,
-        minWidth: 18,
-        height: 18,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: '#fff',
-    },
-    tabBadgeText: {
-        color: '#fff',
-        fontSize: 10,
-        fontWeight: 'bold',
-    },
-});

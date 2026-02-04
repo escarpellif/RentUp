@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     FlatList,
     TouchableOpacity,
     Alert,
@@ -14,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { adminItemsStyles } from '../styles/screens/adminItemsStyles';
 
 export default function AdminItemsScreen({ navigation }) {
     const [items, setItems] = useState([]);
@@ -129,73 +128,73 @@ export default function AdminItemsScreen({ navigation }) {
 
         return (
             <TouchableOpacity
-                style={styles.itemCard}
+                style={adminItemsStyles.itemCard}
                 onPress={() => navigation.navigate('ItemDetails', { itemId: item.id })}
             >
                 {/* Image */}
-                <View style={styles.imageContainer}>
+                <View style={adminItemsStyles.imageContainer}>
                     {photoUrl ? (
-                        <Image source={{ uri: photoUrl }} style={styles.itemImage} />
+                        <Image source={{ uri: photoUrl }} style={adminItemsStyles.itemImage} />
                     ) : (
-                        <View style={[styles.itemImage, styles.noImage]}>
+                        <View style={[adminItemsStyles.itemImage, adminItemsStyles.noImage]}>
                             <Ionicons name="image-outline" size={40} color="#9CA3AF" />
                         </View>
                     )}
 
                     {/* Status Badges */}
-                    <View style={styles.badgesContainer}>
+                    <View style={adminItemsStyles.badgesContainer}>
                         {!item.is_active && (
-                            <View style={[styles.statusBadge, { backgroundColor: '#EF4444' }]}>
-                                <Text style={styles.statusBadgeText}>Inactivo</Text>
+                            <View style={[adminItemsStyles.statusBadge, { backgroundColor: '#EF4444' }]}>
+                                <Text style={adminItemsStyles.statusBadgeText}>Inactivo</Text>
                             </View>
                         )}
                         {item.is_paused && (
-                            <View style={[styles.statusBadge, { backgroundColor: '#F59E0B' }]}>
-                                <Text style={styles.statusBadgeText}>Pausado</Text>
+                            <View style={[adminItemsStyles.statusBadge, { backgroundColor: '#F59E0B' }]}>
+                                <Text style={adminItemsStyles.statusBadgeText}>Pausado</Text>
                             </View>
                         )}
                         {item.is_active && !item.is_paused && (
-                            <View style={[styles.statusBadge, { backgroundColor: '#10B981' }]}>
-                                <Text style={styles.statusBadgeText}>Activo</Text>
+                            <View style={[adminItemsStyles.statusBadge, { backgroundColor: '#10B981' }]}>
+                                <Text style={adminItemsStyles.statusBadgeText}>Activo</Text>
                             </View>
                         )}
                     </View>
                 </View>
 
                 {/* Info */}
-                <View style={styles.itemInfo}>
-                    <View style={styles.itemHeader}>
-                        <Text style={styles.itemTitle} numberOfLines={1}>
+                <View style={adminItemsStyles.itemInfo}>
+                    <View style={adminItemsStyles.itemHeader}>
+                        <Text style={adminItemsStyles.itemTitle} numberOfLines={1}>
                             {item.title}
                         </Text>
-                        <Text style={styles.itemPrice}>€{item.price_per_day}/día</Text>
+                        <Text style={adminItemsStyles.itemPrice}>€{item.price_per_day}/día</Text>
                     </View>
 
-                    <Text style={styles.itemCategory}>{item.category}</Text>
+                    <Text style={adminItemsStyles.itemCategory}>{item.category}</Text>
 
-                    <View style={styles.ownerInfo}>
+                    <View style={adminItemsStyles.ownerInfo}>
                         <Ionicons name="person" size={14} color="#6B7280" />
-                        <Text style={styles.ownerText}>{item.owner?.full_name}</Text>
+                        <Text style={adminItemsStyles.ownerText}>{item.owner?.full_name}</Text>
                     </View>
 
-                    <View style={styles.locationInfo}>
+                    <View style={adminItemsStyles.locationInfo}>
                         <Ionicons name="location" size={14} color="#6B7280" />
-                        <Text style={styles.locationText} numberOfLines={1}>
+                        <Text style={adminItemsStyles.locationText} numberOfLines={1}>
                             {item.location}
                         </Text>
                     </View>
 
-                    <View style={styles.dateInfo}>
+                    <View style={adminItemsStyles.dateInfo}>
                         <Ionicons name="calendar" size={14} color="#6B7280" />
-                        <Text style={styles.dateText}>
+                        <Text style={adminItemsStyles.dateText}>
                             {new Date(item.created_at).toLocaleDateString('es-ES')}
                         </Text>
                     </View>
 
                     {/* Actions */}
-                    <View style={styles.actions}>
+                    <View style={adminItemsStyles.actions}>
                         <TouchableOpacity
-                            style={[styles.actionButton, item.is_active ? styles.deactivateButton : styles.activateButton]}
+                            style={[adminItemsStyles.actionButton, item.is_active ? adminItemsStyles.deactivateButton : adminItemsStyles.activateButton]}
                             onPress={() => toggleItemStatus(item.id, item.is_active)}
                         >
                             <Ionicons
@@ -203,17 +202,17 @@ export default function AdminItemsScreen({ navigation }) {
                                 size={16}
                                 color="#fff"
                             />
-                            <Text style={styles.actionButtonText}>
+                            <Text style={adminItemsStyles.actionButtonText}>
                                 {item.is_active ? 'Desactivar' : 'Activar'}
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.deleteButton]}
+                            style={[adminItemsStyles.actionButton, adminItemsStyles.deleteButton]}
                             onPress={() => deleteItem(item.id)}
                         >
                             <Ionicons name="trash" size={16} color="#fff" />
-                            <Text style={styles.actionButtonText}>Eliminar</Text>
+                            <Text style={adminItemsStyles.actionButtonText}>Eliminar</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -233,21 +232,21 @@ export default function AdminItemsScreen({ navigation }) {
     });
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminItemsStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminItemsStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gestión de Artículos</Text>
+                <Text style={adminItemsStyles.headerTitle}>Gestión de Artículos</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             {/* Search */}
-            <View style={styles.searchContainer}>
+            <View style={adminItemsStyles.searchContainer}>
                 <Ionicons name="search" size={20} color="#9CA3AF" />
                 <TextInput
-                    style={styles.searchInput}
+                    style={adminItemsStyles.searchInput}
                     placeholder="Buscar por título, categoría, propietario..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -258,66 +257,66 @@ export default function AdminItemsScreen({ navigation }) {
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
+                style={adminItemsStyles.filtersContainer}
+                contentContainerStyle={adminItemsStyles.filtersContent}
             >
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+                    style={[adminItemsStyles.filterButton, filter === 'all' && adminItemsStyles.filterButtonActive]}
                     onPress={() => setFilter('all')}
                 >
-                    <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+                    <Text style={[adminItemsStyles.filterText, filter === 'all' && adminItemsStyles.filterTextActive]}>
                         Todos
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'active' && styles.filterButtonActive]}
+                    style={[adminItemsStyles.filterButton, filter === 'active' && adminItemsStyles.filterButtonActive]}
                     onPress={() => setFilter('active')}
                 >
-                    <Text style={[styles.filterText, filter === 'active' && styles.filterTextActive]}>
+                    <Text style={[adminItemsStyles.filterText, filter === 'active' && adminItemsStyles.filterTextActive]}>
                         Activos
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'paused' && styles.filterButtonActive]}
+                    style={[adminItemsStyles.filterButton, filter === 'paused' && adminItemsStyles.filterButtonActive]}
                     onPress={() => setFilter('paused')}
                 >
-                    <Text style={[styles.filterText, filter === 'paused' && styles.filterTextActive]}>
+                    <Text style={[adminItemsStyles.filterText, filter === 'paused' && adminItemsStyles.filterTextActive]}>
                         Pausados
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'inactive' && styles.filterButtonActive]}
+                    style={[adminItemsStyles.filterButton, filter === 'inactive' && adminItemsStyles.filterButtonActive]}
                     onPress={() => setFilter('inactive')}
                 >
-                    <Text style={[styles.filterText, filter === 'inactive' && styles.filterTextActive]}>
+                    <Text style={[adminItemsStyles.filterText, filter === 'inactive' && adminItemsStyles.filterTextActive]}>
                         Inactivos
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
 
             {/* Stats Summary */}
-            <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{filteredItems.length}</Text>
-                    <Text style={styles.statLabel}>Total</Text>
+            <View style={adminItemsStyles.statsContainer}>
+                <View style={adminItemsStyles.statItem}>
+                    <Text style={adminItemsStyles.statValue}>{filteredItems.length}</Text>
+                    <Text style={adminItemsStyles.statLabel}>Total</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminItemsStyles.statItem}>
+                    <Text style={adminItemsStyles.statValue}>
                         {filteredItems.filter(i => i.is_active && !i.is_paused).length}
                     </Text>
-                    <Text style={styles.statLabel}>Activos</Text>
+                    <Text style={adminItemsStyles.statLabel}>Activos</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminItemsStyles.statItem}>
+                    <Text style={adminItemsStyles.statValue}>
                         {filteredItems.filter(i => i.is_paused).length}
                     </Text>
-                    <Text style={styles.statLabel}>Pausados</Text>
+                    <Text style={adminItemsStyles.statLabel}>Pausados</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminItemsStyles.statItem}>
+                    <Text style={adminItemsStyles.statValue}>
                         {filteredItems.filter(i => !i.is_active).length}
                     </Text>
-                    <Text style={styles.statLabel}>Inactivos</Text>
+                    <Text style={adminItemsStyles.statLabel}>Inactivos</Text>
                 </View>
             </View>
 
@@ -326,14 +325,14 @@ export default function AdminItemsScreen({ navigation }) {
                 data={filteredItems}
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={adminItemsStyles.list}
                 refreshControl={
                     <RefreshControl refreshing={loading} onRefresh={loadItems} />
                 }
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
+                    <View style={adminItemsStyles.emptyContainer}>
                         <Ionicons name="cube-outline" size={64} color="#9CA3AF" />
-                        <Text style={styles.emptyText}>No hay artículos</Text>
+                        <Text style={adminItemsStyles.emptyText}>No hay artículos</Text>
                     </View>
                 }
             />
@@ -341,231 +340,5 @@ export default function AdminItemsScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        margin: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 8,
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    filtersContainer: {
-        maxHeight: 50,
-        marginBottom: 16,
-    },
-    filtersContent: {
-        paddingHorizontal: 16,
-        gap: 8,
-    },
-    filterButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginRight: 8,
-    },
-    filterButtonActive: {
-        backgroundColor: '#3B82F6',
-        borderColor: '#3B82F6',
-    },
-    filterText: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    filterTextActive: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
-        marginBottom: 16,
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    list: {
-        padding: 16,
-    },
-    itemCard: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        overflow: 'hidden',
-    },
-    imageContainer: {
-        width: 120,
-        height: 150,
-        position: 'relative',
-    },
-    itemImage: {
-        width: '100%',
-        height: '100%',
-    },
-    noImage: {
-        backgroundColor: '#F3F4F6',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    badgesContainer: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        gap: 4,
-    },
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    statusBadgeText: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: '#fff',
-    },
-    itemInfo: {
-        flex: 1,
-        padding: 12,
-    },
-    itemHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 4,
-    },
-    itemTitle: {
-        flex: 1,
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginRight: 8,
-    },
-    itemPrice: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    itemCategory: {
-        fontSize: 13,
-        color: '#6B7280',
-        marginBottom: 8,
-    },
-    ownerInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginBottom: 4,
-    },
-    ownerText: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    locationInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginBottom: 4,
-    },
-    locationText: {
-        fontSize: 13,
-        color: '#6B7280',
-        flex: 1,
-    },
-    dateInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        marginBottom: 12,
-    },
-    dateText: {
-        fontSize: 12,
-        color: '#9CA3AF',
-    },
-    actions: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    actionButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 4,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    activateButton: {
-        backgroundColor: '#10B981',
-    },
-    deactivateButton: {
-        backgroundColor: '#F59E0B',
-    },
-    deleteButton: {
-        backgroundColor: '#EF4444',
-    },
-    actionButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#fff',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 64,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#9CA3AF',
-        marginTop: 16,
-    },
-});
+
 

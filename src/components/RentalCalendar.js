@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { StyleSheet, View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, Alert } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { supabase } from '../../supabase';
+import { rentalCalendarStyles } from '../styles/components/rentalCalendarStyles';
 
 export default function RentalCalendar({
     visible,
@@ -186,14 +187,14 @@ export default function RentalCalendar({
     // Renderização inline (sem modal)
     const renderCalendar = () => (
         <>
-            <View style={styles.legend}>
-                <View style={styles.legendItem}>
-                    <View style={[styles.legendBox, { backgroundColor: '#007bff' }]} />
-                    <Text style={styles.legendText}>Selecionado</Text>
+            <View style={rentalCalendarStyles.legend}>
+                <View style={rentalCalendarStyles.legendItem}>
+                    <View style={[rentalCalendarStyles.legendBox, { backgroundColor: '#007bff' }]} />
+                    <Text style={rentalCalendarStyles.legendText}>Selecionado</Text>
                 </View>
-                <View style={styles.legendItem}>
-                    <View style={[styles.legendBox, { backgroundColor: '#ff4444' }]} />
-                    <Text style={styles.legendText}>Reservado</Text>
+                <View style={rentalCalendarStyles.legendItem}>
+                    <View style={[rentalCalendarStyles.legendBox, { backgroundColor: '#ff4444' }]} />
+                    <Text style={rentalCalendarStyles.legendText}>Reservado</Text>
                 </View>
             </View>
 
@@ -211,7 +212,7 @@ export default function RentalCalendar({
             />
 
             {selectedStart && selectedEnd && (
-                <View style={styles.summary}>
+                <View style={rentalCalendarStyles.summary}>
                     <Text>Check-in: {moment(selectedStart).format('DD/MM/YYYY')}</Text>
                     <Text>Check-out: {moment(selectedEnd).format('DD/MM/YYYY')}</Text>
                 </View>
@@ -220,7 +221,7 @@ export default function RentalCalendar({
             {/* Botão confirmar para modo inline */}
             {!isModal && (
                 <TouchableOpacity
-                    style={[styles.button, styles.confirm, { marginTop: 12 }]}
+                    style={[rentalCalendarStyles.button, rentalCalendarStyles.confirm, { marginTop: 12 }]}
                     onPress={handleConfirm}
                 >
                     <Text style={{ color: '#fff', fontWeight: 'bold' }}>Confirmar Fechas</Text>
@@ -232,7 +233,7 @@ export default function RentalCalendar({
     // Se não for modal, renderiza inline
     if (!isModal) {
         return (
-            <View style={styles.inlineContainer}>
+            <View style={rentalCalendarStyles.inlineContainer}>
                 {renderCalendar()}
             </View>
         );
@@ -241,18 +242,18 @@ export default function RentalCalendar({
     // Renderização modal (original)
     return (
         <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-            <View style={styles.overlay}>
-                <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Text style={styles.title}>Selecione as Datas</Text>
-                        <TouchableOpacity onPress={handleClose}><Text style={styles.close}>✕</Text></TouchableOpacity>
+            <View style={rentalCalendarStyles.overlay}>
+                <View style={rentalCalendarStyles.container}>
+                    <View style={rentalCalendarStyles.header}>
+                        <Text style={rentalCalendarStyles.title}>Selecione as Datas</Text>
+                        <TouchableOpacity onPress={handleClose}><Text style={rentalCalendarStyles.close}>✕</Text></TouchableOpacity>
                     </View>
 
                     {renderCalendar()}
 
-                    <View style={styles.footer}>
-                        <TouchableOpacity style={[styles.button, styles.cancel]} onPress={handleClose}><Text>Cancelar</Text></TouchableOpacity>
-                        <TouchableOpacity style={[styles.button, styles.confirm]} onPress={handleConfirm}><Text style={{ color: '#fff' }}>Confirmar</Text></TouchableOpacity>
+                    <View style={rentalCalendarStyles.footer}>
+                        <TouchableOpacity style={[rentalCalendarStyles.button, rentalCalendarStyles.cancel]} onPress={handleClose}><Text>Cancelar</Text></TouchableOpacity>
+                        <TouchableOpacity style={[rentalCalendarStyles.button, rentalCalendarStyles.confirm]} onPress={handleConfirm}><Text style={{ color: '#fff' }}>Confirmar</Text></TouchableOpacity>
                     </View>
                 </View>
             </View>
@@ -260,20 +261,4 @@ export default function RentalCalendar({
     );
 }
 
-const styles = StyleSheet.create({
-    overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
-    container: { backgroundColor: '#fff', borderRadius: 12, padding: 16, maxHeight: '90%' },
-    inlineContainer: { backgroundColor: '#fff', borderRadius: 12, padding: 16 },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-    title: { fontSize: 18, fontWeight: '700' },
-    close: { fontSize: 22, color: '#666' },
-    legend: { flexDirection: 'row', justifyContent: 'flex-start', gap: 12, marginBottom: 8 },
-    legendItem: { flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-    legendBox: { width: 14, height: 14, borderRadius: 3, marginRight: 6 },
-    legendText: { fontSize: 12, color: '#666' },
-    summary: { padding: 10, backgroundColor: '#f5f5f5', borderRadius: 8, marginTop: 10 },
-    footer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
-    button: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center' },
-    cancel: { backgroundColor: '#f0f0f0', marginRight: 8 },
-    confirm: { backgroundColor: '#007bff' },
-});
+

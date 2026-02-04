@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     TextInput,
@@ -11,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { adminBroadcastStyles } from '../styles/screens/adminBroadcastStyles';
 
 export default function AdminBroadcastScreen({ navigation }) {
     const [messageType, setMessageType] = useState('all'); // all, verified, problematic, active_rentals
@@ -125,16 +124,16 @@ export default function AdminBroadcastScreen({ navigation }) {
     const RecipientButton = ({ type, icon, label, description }) => (
         <TouchableOpacity
             style={[
-                styles.recipientButton,
-                messageType === type && styles.recipientButtonActive,
+                adminBroadcastStyles.recipientButton,
+                messageType === type && adminBroadcastStyles.recipientButtonActive,
             ]}
             onPress={() => setMessageType(type)}
         >
-            <View style={styles.recipientButtonLeft}>
+            <View style={adminBroadcastStyles.recipientButtonLeft}>
                 <View
                     style={[
-                        styles.recipientIcon,
-                        messageType === type && styles.recipientIconActive,
+                        adminBroadcastStyles.recipientIcon,
+                        messageType === type && adminBroadcastStyles.recipientIconActive,
                     ]}
                 >
                     <Ionicons
@@ -143,16 +142,16 @@ export default function AdminBroadcastScreen({ navigation }) {
                         color={messageType === type ? '#3B82F6' : '#6B7280'}
                     />
                 </View>
-                <View style={styles.recipientText}>
+                <View style={adminBroadcastStyles.recipientText}>
                     <Text
                         style={[
-                            styles.recipientLabel,
-                            messageType === type && styles.recipientLabelActive,
+                            adminBroadcastStyles.recipientLabel,
+                            messageType === type && adminBroadcastStyles.recipientLabelActive,
                         ]}
                     >
                         {label}
                     </Text>
-                    <Text style={styles.recipientDescription}>{description}</Text>
+                    <Text style={adminBroadcastStyles.recipientDescription}>{description}</Text>
                 </View>
             </View>
             {messageType === type && (
@@ -162,21 +161,21 @@ export default function AdminBroadcastScreen({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminBroadcastStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminBroadcastStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mensaje Masivo</Text>
+                <Text style={adminBroadcastStyles.headerTitle}>Mensaje Masivo</Text>
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView style={styles.content}>
+            <ScrollView style={adminBroadcastStyles.content}>
                 {/* Destinatarios */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📢 Destinatarios</Text>
-                    <View style={styles.recipientsContainer}>
+                <View style={adminBroadcastStyles.section}>
+                    <Text style={adminBroadcastStyles.sectionTitle}>📢 Destinatarios</Text>
+                    <View style={adminBroadcastStyles.recipientsContainer}>
                         <RecipientButton
                             type="all"
                             icon="people"
@@ -205,27 +204,27 @@ export default function AdminBroadcastScreen({ navigation }) {
                 </View>
 
                 {/* Mensaje */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>✉️ Mensaje</Text>
-                    <View style={styles.messageContainer}>
+                <View style={adminBroadcastStyles.section}>
+                    <Text style={adminBroadcastStyles.sectionTitle}>✉️ Mensaje</Text>
+                    <View style={adminBroadcastStyles.messageContainer}>
                         {/* Asunto */}
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Asunto</Text>
+                        <View style={adminBroadcastStyles.inputGroup}>
+                            <Text style={adminBroadcastStyles.inputLabel}>Asunto</Text>
                             <TextInput
-                                style={styles.subjectInput}
+                                style={adminBroadcastStyles.subjectInput}
                                 placeholder="Ej: Actualización importante de la plataforma"
                                 value={subject}
                                 onChangeText={setSubject}
                                 maxLength={100}
                             />
-                            <Text style={styles.charCount}>{subject.length}/100</Text>
+                            <Text style={adminBroadcastStyles.charCount}>{subject.length}/100</Text>
                         </View>
 
                         {/* Mensaje */}
-                        <View style={styles.inputGroup}>
-                            <Text style={styles.inputLabel}>Mensaje</Text>
+                        <View style={adminBroadcastStyles.inputGroup}>
+                            <Text style={adminBroadcastStyles.inputLabel}>Mensaje</Text>
                             <TextInput
-                                style={styles.messageInput}
+                                style={adminBroadcastStyles.messageInput}
                                 placeholder="Escribe tu mensaje aquí..."
                                 value={message}
                                 onChangeText={setMessage}
@@ -234,18 +233,18 @@ export default function AdminBroadcastScreen({ navigation }) {
                                 textAlignVertical="top"
                                 maxLength={500}
                             />
-                            <Text style={styles.charCount}>{message.length}/500</Text>
+                            <Text style={adminBroadcastStyles.charCount}>{message.length}/500</Text>
                         </View>
 
                         {/* Preview */}
                         {(subject || message) && (
-                            <View style={styles.previewContainer}>
-                                <Text style={styles.previewLabel}>Vista Previa:</Text>
-                                <View style={styles.preview}>
-                                    <Text style={styles.previewSubject}>
+                            <View style={adminBroadcastStyles.previewContainer}>
+                                <Text style={adminBroadcastStyles.previewLabel}>Vista Previa:</Text>
+                                <View style={adminBroadcastStyles.preview}>
+                                    <Text style={adminBroadcastStyles.previewSubject}>
                                         {subject || 'Sin asunto'}
                                     </Text>
-                                    <Text style={styles.previewMessage}>
+                                    <Text style={adminBroadcastStyles.previewMessage}>
                                         {message || 'Sin mensaje'}
                                     </Text>
                                 </View>
@@ -255,9 +254,9 @@ export default function AdminBroadcastScreen({ navigation }) {
                 </View>
 
                 {/* Botão de Enviar */}
-                <View style={styles.sendButtonContainer}>
+                <View style={adminBroadcastStyles.sendButtonContainer}>
                     <TouchableOpacity
-                        style={[styles.sendButton, sending && styles.sendButtonDisabled]}
+                        style={[adminBroadcastStyles.sendButton, sending && adminBroadcastStyles.sendButtonDisabled]}
                         onPress={sendBroadcast}
                         disabled={sending}
                     >
@@ -266,16 +265,16 @@ export default function AdminBroadcastScreen({ navigation }) {
                             size={20}
                             color="#fff"
                         />
-                        <Text style={styles.sendButtonText}>
+                        <Text style={adminBroadcastStyles.sendButtonText}>
                             {sending ? 'Enviando...' : `Enviar a ${getRecipientLabel()}`}
                         </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Info */}
-                <View style={styles.infoContainer}>
+                <View style={adminBroadcastStyles.infoContainer}>
                     <Ionicons name="information-circle" size={20} color="#3B82F6" />
-                    <Text style={styles.infoText}>
+                    <Text style={adminBroadcastStyles.infoText}>
                         Los usuarios recibirán este mensaje como notificación en la app.
                         Usa este canal con responsabilidad.
                     </Text>
@@ -287,189 +286,5 @@ export default function AdminBroadcastScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-    },
-    section: {
-        padding: 16,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 12,
-    },
-    recipientsContainer: {
-        gap: 12,
-    },
-    recipientButton: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-    },
-    recipientButtonActive: {
-        borderColor: '#3B82F6',
-        backgroundColor: '#EFF6FF',
-    },
-    recipientButtonLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    recipientIcon: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        backgroundColor: '#F3F4F6',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    recipientIconActive: {
-        backgroundColor: '#DBEAFE',
-    },
-    recipientText: {
-        flex: 1,
-    },
-    recipientLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 2,
-    },
-    recipientLabelActive: {
-        color: '#3B82F6',
-    },
-    recipientDescription: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    messageContainer: {
-        gap: 16,
-    },
-    inputGroup: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    inputLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 8,
-    },
-    subjectInput: {
-        fontSize: 16,
-        color: '#1F2937',
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 8,
-    },
-    messageInput: {
-        fontSize: 15,
-        color: '#1F2937',
-        padding: 12,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 8,
-        minHeight: 150,
-    },
-    charCount: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginTop: 4,
-        textAlign: 'right',
-    },
-    previewContainer: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    previewLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#6B7280',
-        marginBottom: 12,
-    },
-    preview: {
-        backgroundColor: '#F9FAFB',
-        padding: 16,
-        borderRadius: 8,
-    },
-    previewSubject: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 8,
-    },
-    previewMessage: {
-        fontSize: 14,
-        color: '#4B5563',
-        lineHeight: 20,
-    },
-    sendButtonContainer: {
-        padding: 16,
-    },
-    sendButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#3B82F6',
-        padding: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
-    sendButtonDisabled: {
-        backgroundColor: '#9CA3AF',
-    },
-    sendButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    infoContainer: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        padding: 16,
-        marginHorizontal: 16,
-        backgroundColor: '#EFF6FF',
-        borderRadius: 12,
-        gap: 12,
-    },
-    infoText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#1E40AF',
-        lineHeight: 18,
-    },
-});
+
 

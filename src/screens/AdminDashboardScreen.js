@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     RefreshControl,
@@ -15,6 +13,7 @@ import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
 import { handleApiError } from '../utils/errorHandler';
 import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
+import { adminDashboardStyles } from '../styles/screens/adminDashboardStyles';
 
 export default function AdminDashboardScreen({ navigation, session }) {
     const { t } = useTranslation();
@@ -127,66 +126,66 @@ export default function AdminDashboardScreen({ navigation, session }) {
 
     const StatCard = ({ icon, title, value, color, onPress }) => (
         <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: color }]}
+            style={[adminDashboardStyles.statCard, { borderLeftColor: color }]}
             onPress={onPress}
         >
-            <View style={styles.statIconContainer}>
+            <View style={adminDashboardStyles.statIconContainer}>
                 <Ionicons name={icon} size={32} color={color} />
             </View>
-            <View style={styles.statContent}>
-                <Text style={styles.statValue}>{value}</Text>
-                <Text style={styles.statTitle}>{title}</Text>
+            <View style={adminDashboardStyles.statContent}>
+                <Text style={adminDashboardStyles.statValue}>{value}</Text>
+                <Text style={adminDashboardStyles.statTitle}>{title}</Text>
             </View>
         </TouchableOpacity>
     );
 
     const QuickAction = ({ icon, title, color, onPress }) => (
-        <TouchableOpacity style={styles.actionButton} onPress={onPress}>
-            <View style={[styles.actionIconContainer, { backgroundColor: color + '20' }]}>
+        <TouchableOpacity style={adminDashboardStyles.actionButton} onPress={onPress}>
+            <View style={[adminDashboardStyles.actionIconContainer, { backgroundColor: color + '20' }]}>
                 <Ionicons name={icon} size={28} color={color} />
             </View>
-            <Text style={styles.actionTitle}>{title}</Text>
+            <Text style={adminDashboardStyles.actionTitle}>{title}</Text>
         </TouchableOpacity>
     );
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.loadingContainer}>
+            <SafeAreaView style={adminDashboardStyles.container}>
+                <View style={adminDashboardStyles.loadingContainer}>
                     <ActivityIndicator size="large" color="#3B82F6" />
-                    <Text style={styles.loadingText}>Cargando datos...</Text>
+                    <Text style={adminDashboardStyles.loadingText}>Cargando datos...</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminDashboardStyles.container}>
             <ScrollView
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                 }
             >
                 {/* Header */}
-                <View style={styles.header}>
+                <View style={adminDashboardStyles.header}>
                     <TouchableOpacity
-                        style={styles.backButton}
+                        style={adminDashboardStyles.backButton}
                         onPress={() => navigation.goBack()}
                     >
                         <Ionicons name="arrow-back" size={24} color="#1F2937" />
                     </TouchableOpacity>
-                    <View style={styles.headerCenter}>
-                        <Text style={styles.headerTitle}>Panel de Admin</Text>
-                        <Text style={styles.headerSubtitle}>ALUKO Dashboard</Text>
+                    <View style={adminDashboardStyles.headerCenter}>
+                        <Text style={adminDashboardStyles.headerTitle}>Panel de Admin</Text>
+                        <Text style={adminDashboardStyles.headerSubtitle}>ALUKO Dashboard</Text>
                     </View>
                     <TouchableOpacity
-                        style={styles.notificationButton}
+                        style={adminDashboardStyles.notificationButton}
                         onPress={() => navigation.navigate('AdminNotifications')}
                     >
                         <Ionicons name="notifications" size={24} color="#3B82F6" />
                         {stats.pendingVerifications + stats.openDisputes > 0 && (
-                            <View style={styles.notificationBadge}>
-                                <Text style={styles.notificationBadgeText}>
+                            <View style={adminDashboardStyles.notificationBadge}>
+                                <Text style={adminDashboardStyles.notificationBadgeText}>
                                     {stats.pendingVerifications + stats.openDisputes}
                                 </Text>
                             </View>
@@ -195,10 +194,10 @@ export default function AdminDashboardScreen({ navigation, session }) {
                 </View>
 
                 {/* Estatísticas Principais */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📊 Estadísticas Generales</Text>
+                <View style={adminDashboardStyles.section}>
+                    <Text style={adminDashboardStyles.sectionTitle}>📊 Estadísticas Generales</Text>
 
-                    <View style={styles.statsGrid}>
+                    <View style={adminDashboardStyles.statsGrid}>
                         <StatCard
                             icon="people"
                             title="Total Usuarios"
@@ -258,10 +257,10 @@ export default function AdminDashboardScreen({ navigation, session }) {
                 </View>
 
                 {/* Ações Rápidas */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>⚡ Acciones Rápidas</Text>
+                <View style={adminDashboardStyles.section}>
+                    <Text style={adminDashboardStyles.sectionTitle}>⚡ Acciones Rápidas</Text>
 
-                    <View style={styles.actionsGrid}>
+                    <View style={adminDashboardStyles.actionsGrid}>
                         <QuickAction
                             icon="shield-checkmark"
                             title="Aprobar Verificaciones"
@@ -302,22 +301,22 @@ export default function AdminDashboardScreen({ navigation, session }) {
                 </View>
 
                 {/* Informações do Sistema */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>ℹ️ Información del Sistema</Text>
-                    <View style={styles.infoCard}>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Versión:</Text>
-                            <Text style={styles.infoValue}>1.1.0</Text>
+                <View style={adminDashboardStyles.section}>
+                    <Text style={adminDashboardStyles.sectionTitle}>ℹ️ Información del Sistema</Text>
+                    <View style={adminDashboardStyles.infoCard}>
+                        <View style={adminDashboardStyles.infoRow}>
+                            <Text style={adminDashboardStyles.infoLabel}>Versión:</Text>
+                            <Text style={adminDashboardStyles.infoValue}>1.1.0</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Última actualización:</Text>
-                            <Text style={styles.infoValue}>14/01/2026</Text>
+                        <View style={adminDashboardStyles.infoRow}>
+                            <Text style={adminDashboardStyles.infoLabel}>Última actualización:</Text>
+                            <Text style={adminDashboardStyles.infoValue}>14/01/2026</Text>
                         </View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Estado:</Text>
-                            <View style={styles.statusBadge}>
-                                <View style={styles.statusDot} />
-                                <Text style={styles.statusText}>Operacional</Text>
+                        <View style={adminDashboardStyles.infoRow}>
+                            <Text style={adminDashboardStyles.infoLabel}>Estado:</Text>
+                            <View style={adminDashboardStyles.statusBadge}>
+                                <View style={adminDashboardStyles.statusDot} />
+                                <Text style={adminDashboardStyles.statusText}>Operacional</Text>
                             </View>
                         </View>
                     </View>
@@ -327,192 +326,5 @@ export default function AdminDashboardScreen({ navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F3F4F6',
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 10,
-        fontSize: 16,
-        color: '#6B7280',
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    backButton: {
-        padding: 8,
-    },
-    headerCenter: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    headerSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 2,
-    },
-    notificationButton: {
-        position: 'relative',
-        padding: 8,
-    },
-    notificationBadge: {
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        backgroundColor: '#EF4444',
-        borderRadius: 10,
-        minWidth: 20,
-        height: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 5,
-    },
-    notificationBadgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    section: {
-        padding: 16,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 16,
-    },
-    statsGrid: {
-        gap: 12,
-    },
-    statCard: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        borderLeftWidth: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    statIconContainer: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        backgroundColor: '#F3F4F6',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    statContent: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    statValue: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    statTitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginTop: 4,
-    },
-    actionsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    actionButton: {
-        width: '48%',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    actionIconContainer: {
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    actionTitle: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#1F2937',
-        textAlign: 'center',
-    },
-    infoCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 3,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    infoLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    infoValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#D1FAE5',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#10B981',
-        marginRight: 6,
-    },
-    statusText: {
-        fontSize: 14,
-        color: '#10B981',
-        fontWeight: '600',
-    },
-});
+
 

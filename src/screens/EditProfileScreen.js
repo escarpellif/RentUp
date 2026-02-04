@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    StyleSheet, 
-    View, 
+import {
+    View,
     Text, 
     TextInput, 
     ScrollView, 
@@ -16,6 +15,7 @@ import { supabase } from '../../supabase';
 import { handleApiError } from '../utils/errorHandler';
 import { withTimeout } from '../utils/apiHelpers';
 import Logger from '../services/LoggerService';
+import { editProfileStyles } from '../styles/screens/editProfileStyles';
 
 export default function EditProfileScreen({ navigation, session }) {
     const [loading, setLoading] = useState(false);
@@ -122,40 +122,40 @@ export default function EditProfileScreen({ navigation, session }) {
 
     if (loadingProfile) {
         return (
-            <View style={styles.loadingContainer}>
+            <View style={editProfileStyles.loadingContainer}>
                 <ActivityIndicator size="large" color="#2c4455" />
-                <Text style={styles.loadingText}>Cargando perfil...</Text>
+                <Text style={editProfileStyles.loadingText}>Cargando perfil...</Text>
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.safeContainer}>
+        <SafeAreaView style={editProfileStyles.safeContainer}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.headerContainer}>
+            <View style={editProfileStyles.headerContainer}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={editProfileStyles.backButton}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={editProfileStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>Editar Perfil</Text>
+                <View style={editProfileStyles.headerTitleContainer}>
+                    <Text style={editProfileStyles.headerTitle}>Editar Perfil</Text>
                 </View>
-                <View style={styles.headerSpacer} />
+                <View style={editProfileStyles.headerSpacer} />
             </View>
 
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView style={editProfileStyles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Card: Información Personal */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>👤 Información Personal</Text>
+                <View style={editProfileStyles.card}>
+                    <Text style={editProfileStyles.cardTitle}>👤 Información Personal</Text>
 
-                    <Text style={styles.label}>Nombre de Usuario *</Text>
+                    <Text style={editProfileStyles.label}>Nombre de Usuario *</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setUsername}
                         value={username}
                         placeholder="Ej: juanperez"
@@ -163,9 +163,9 @@ export default function EditProfileScreen({ navigation, session }) {
                         autoCapitalize="none"
                     />
 
-                    <Text style={styles.label}>Nombre Completo *</Text>
+                    <Text style={editProfileStyles.label}>Nombre Completo *</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setFullName}
                         value={fullName}
                         placeholder="Ej: Juan Pérez García"
@@ -175,12 +175,12 @@ export default function EditProfileScreen({ navigation, session }) {
                 </View>
 
                 {/* Card: Datos de Contacto */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📞 Datos de Contacto</Text>
+                <View style={editProfileStyles.card}>
+                    <Text style={editProfileStyles.cardTitle}>📞 Datos de Contacto</Text>
 
-                    <Text style={styles.label}>Teléfono</Text>
+                    <Text style={editProfileStyles.label}>Teléfono</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setPhone}
                         value={phone}
                         placeholder="Ej: +34 600 123 456"
@@ -190,24 +190,24 @@ export default function EditProfileScreen({ navigation, session }) {
                 </View>
 
                 {/* Card: Dirección */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📍 Dirección</Text>
-                    <Text style={styles.cardSubtitle}>
+                <View style={editProfileStyles.card}>
+                    <Text style={editProfileStyles.cardTitle}>📍 Dirección</Text>
+                    <Text style={editProfileStyles.cardSubtitle}>
                         Esta dirección se usará por defecto al anunciar artículos
                     </Text>
 
-                    <Text style={styles.label}>Dirección Completa</Text>
+                    <Text style={editProfileStyles.label}>Dirección Completa</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setAddress}
                         value={address}
                         placeholder="Ej: Calle Mayor, 1, 2ºA"
                         placeholderTextColor="#999"
                     />
 
-                    <Text style={styles.label}>Código Postal</Text>
+                    <Text style={editProfileStyles.label}>Código Postal</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setPostalCode}
                         value={postalCode}
                         placeholder="Ej: 28001"
@@ -215,9 +215,9 @@ export default function EditProfileScreen({ navigation, session }) {
                         keyboardType="numeric"
                     />
 
-                    <Text style={styles.label}>Ciudad</Text>
+                    <Text style={editProfileStyles.label}>Ciudad</Text>
                     <TextInput
-                        style={styles.input}
+                        style={editProfileStyles.input}
                         onChangeText={setCity}
                         value={city}
                         placeholder="Ej: Madrid"
@@ -227,7 +227,7 @@ export default function EditProfileScreen({ navigation, session }) {
 
                 {/* Botão Salvar */}
                 <TouchableOpacity
-                    style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+                    style={[editProfileStyles.saveButton, loading && editProfileStyles.saveButtonDisabled]}
                     onPress={handleSave}
                     disabled={loading}
                     activeOpacity={0.8}
@@ -235,7 +235,7 @@ export default function EditProfileScreen({ navigation, session }) {
                     {loading ? (
                         <ActivityIndicator color="#fff" size="small" />
                     ) : (
-                        <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+                        <Text style={editProfileStyles.saveButtonText}>Guardar Cambios</Text>
                     )}
                 </TouchableOpacity>
 
@@ -245,123 +245,5 @@ export default function EditProfileScreen({ navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    safeContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#333',
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2c4455',
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 16,
-        color: '#666',
-    },
-    scrollContent: {
-        flex: 1,
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    cardSubtitle: {
-        fontSize: 13,
-        color: '#666',
-        marginBottom: 16,
-        fontStyle: 'italic',
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginTop: 12,
-        marginBottom: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        backgroundColor: '#F8F9FA',
-        padding: 14,
-        borderRadius: 12,
-        fontSize: 15,
-        color: '#333',
-    },
-    saveButton: {
-        backgroundColor: '#10B981',
-        paddingVertical: 16,
-        paddingHorizontal: 24,
-        borderRadius: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 3,
-    },
-    saveButtonDisabled: {
-        backgroundColor: '#95a5a6',
-    },
-    saveButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-});
+
 

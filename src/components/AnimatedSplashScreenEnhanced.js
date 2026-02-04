@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet, Image, Easing, Text } from 'react-native';
+import {View, Animated, Image, Easing, Text } from 'react-native';
+import { animatedSplashEnhancedStyles } from '../styles/components/animatedSplashEnhancedStyles';
 
 const AnimatedSplashScreenEnhanced = () => {
     const rotateValue = useRef(new Animated.Value(0)).current;
@@ -41,100 +42,40 @@ const AnimatedSplashScreenEnhanced = () => {
     });
 
     return (
-        <View style={styles.container}>
+        <View style={animatedSplashEnhancedStyles.container}>
             {/* Círculo externo girando */}
             <Animated.View 
                 style={[
-                    styles.circleOuter,
+                    animatedSplashEnhancedStyles.circleOuter,
                     { transform: [{ rotate }] }
                 ]}
             />
 
             {/* Círculo do meio (opcional) */}
-            <View style={styles.circleMiddle} />
+            <View style={animatedSplashEnhancedStyles.circleMiddle} />
 
             {/* Logo/Ícone fixo com pulse */}
             <Animated.View 
                 style={[
-                    styles.logoContainer,
+                    animatedSplashEnhancedStyles.logoContainer,
                     { transform: [{ scale: scaleValue }] }
                 ]}
             >
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={styles.logo}
+                    style={animatedSplashEnhancedStyles.logo}
                     resizeMode="contain"
                 />
             </Animated.View>
 
             {/* Nome do App (opcional) */}
-            <Text style={styles.appName}>ALUKO</Text>
-            <Text style={styles.tagline}>Posee menos, Accede a más</Text>
+            <Text style={animatedSplashEnhancedStyles.appName}>ALUKO</Text>
+            <Text style={animatedSplashEnhancedStyles.tagline}>Posee menos, Accede a más</Text>
         </View>
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#ffffff',
-    },
-    circleOuter: {
-        width: 140,
-        height: 140,
-        borderRadius: 70,
-        borderWidth: 5,
-        borderColor: '#10B981',
-        borderStyle: 'solid',
-        borderLeftColor: 'transparent',
-        borderTopColor: 'transparent',
-        borderRightColor: '#10B98150',
-        borderBottomColor: '#10B98150',
-        position: 'absolute',
-    },
-    circleMiddle: {
-        width: 110,
-        height: 110,
-        borderRadius: 55,
-        backgroundColor: '#F0FDF4',
-        position: 'absolute',
-    },
-    logoContainer: {
-        width: 90,
-        height: 90,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 45,
-        zIndex: 10,
-        shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    logo: {
-        width: 70,
-        height: 70,
-    },
-    appName: {
-        position: 'absolute',
-        bottom: 180,
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        letterSpacing: 1,
-    },
-    tagline: {
-        position: 'absolute',
-        bottom: 150,
-        fontSize: 14,
-        color: '#666',
-        fontStyle: 'italic',
-    },
-});
+
 
 export default AnimatedSplashScreenEnhanced;
 

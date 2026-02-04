@@ -4,13 +4,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { supabase } from './supabase';
 
+console.log('🚀🚀🚀 [DEBUG] APP.JS CARREGADO! 🚀🚀🚀');
+console.log('🚀🚀🚀 [DEBUG] Se você está vendo isso, o app está carregando! 🚀🚀🚀');
+
 // Importar i18n
-import './src/i18n';
+import i18n, { initializeLanguage } from './src/i18n';
+
+console.log('✅ [DEBUG] i18n importado com sucesso!');
 
 // Importar Sistema de Logging e Error Handling
 import ErrorBoundary from './src/components/ErrorBoundary';
 import GlobalErrorHandler from './src/utils/GlobalErrorHandler';
 import Logger from './src/services/LoggerService';
+
+console.log('✅ [DEBUG] Error Handling importado com sucesso!');
 
 // Inicializar Global Error Handler
 GlobalErrorHandler.init();
@@ -51,19 +58,33 @@ import AdminBroadcastScreen from './src/screens/AdminBroadcastScreen';
 
 const Stack = createNativeStackNavigator();
 
+console.log('✅ [DEBUG] Stack Navigator criado com sucesso!');
+
 export default function App() {
+    console.log('🎯 [DEBUG] Função App() INICIADA!');
+
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isGuest, setIsGuest] = useState(false);
     const [minSplashTimeElapsed, setMinSplashTimeElapsed] = useState(false);
 
+    console.log('✅ [DEBUG] Estados inicializados com sucesso!');
+
     useEffect(() => {
+        console.log('⏰ [DEBUG] Iniciando timer do splash screen...');
         // Timer mínimo de 3 segundos para o splash screen
         const splashTimer = setTimeout(() => {
+            console.log('✅ [DEBUG] Timer do splash screen completado!');
             setMinSplashTimeElapsed(true);
         }, 3000); // 3 segundos
 
         return () => clearTimeout(splashTimer);
+    }, []);
+
+    useEffect(() => {
+        console.log('🌍 [DEBUG] Inicializando idioma...');
+        // Inicializar idioma salvo
+        initializeLanguage().catch(console.error);
     }, []);
 
     useEffect(() => {

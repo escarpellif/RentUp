@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import {
-    View,
+import {View,
     Text,
     Modal,
     TouchableOpacity,
-    StyleSheet,
     TextInput,
     Alert,
     ScrollView,
@@ -19,6 +17,7 @@ import { decode } from 'base64-arraybuffer';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
 import PermissionManager from '../utils/PermissionManager';
+import { returnDisputeStyles } from '../styles/components/returnDisputeStyles';
 
 export default function ReturnDisputeModal({
     visible,
@@ -360,55 +359,55 @@ Para processar esta disputa, acesse o painel administrativo.
             animationType="slide"
             onRequestClose={onClose}
         >
-            <SafeAreaView style={styles.modalOverlay}>
+            <SafeAreaView style={returnDisputeStyles.modalOverlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={styles.keyboardView}
+                    style={returnDisputeStyles.keyboardView}
                 >
-                    <View style={styles.modalContainer}>
+                    <View style={returnDisputeStyles.modalContainer}>
                         {/* Header com botão X fixo */}
-                        <View style={styles.header}>
-                            <View style={styles.headerContent}>
-                                <Text style={styles.headerIcon}>⚠️</Text>
-                                <Text style={styles.headerTitle}>{t('dispute.reportProblem')}</Text>
+                        <View style={returnDisputeStyles.header}>
+                            <View style={returnDisputeStyles.headerContent}>
+                                <Text style={returnDisputeStyles.headerIcon}>⚠️</Text>
+                                <Text style={returnDisputeStyles.headerTitle}>{t('dispute.reportProblem')}</Text>
                             </View>
-                            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                                <Text style={styles.closeButtonText}>✕</Text>
+                            <TouchableOpacity onPress={onClose} style={returnDisputeStyles.closeButton}>
+                                <Text style={returnDisputeStyles.closeButtonText}>✕</Text>
                             </TouchableOpacity>
                         </View>
 
                         {/* Conteúdo scrollável */}
                         <ScrollView
                             showsVerticalScrollIndicator={false}
-                            contentContainerStyle={styles.scrollContent}
+                            contentContainerStyle={returnDisputeStyles.scrollContent}
                         >
                             {/* Item Info */}
-                            <View style={styles.itemInfo}>
-                                <Text style={styles.itemTitle}>{rental.item?.title}</Text>
-                                <Text style={styles.itemSubtitle}>
+                            <View style={returnDisputeStyles.itemInfo}>
+                                <Text style={returnDisputeStyles.itemTitle}>{rental.item?.title}</Text>
+                                <Text style={returnDisputeStyles.itemSubtitle}>
                                     {t('dispute.renter')}: {rental.renter?.full_name}
                                 </Text>
                             </View>
 
                             {/* Tipo de Problema */}
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>{t('dispute.issueType')}</Text>
-                                <Text style={styles.sectionSubtitle}>{t('dispute.selectAll')}</Text>
+                            <View style={returnDisputeStyles.section}>
+                                <Text style={returnDisputeStyles.sectionTitle}>{t('dispute.issueType')}</Text>
+                                <Text style={returnDisputeStyles.sectionSubtitle}>{t('dispute.selectAll')}</Text>
 
-                                <View style={styles.issueTypesContainer}>
+                                <View style={returnDisputeStyles.issueTypesContainer}>
                                     {issueTypes.map((type) => (
                                         <TouchableOpacity
                                             key={type.id}
                                             style={[
-                                                styles.issueTypeButton,
-                                                issueType.includes(type.id) && styles.issueTypeButtonActive
+                                                returnDisputeStyles.issueTypeButton,
+                                                issueType.includes(type.id) && returnDisputeStyles.issueTypeButtonActive
                                             ]}
                                             onPress={() => toggleIssueType(type.id)}
                                         >
-                                            <Text style={styles.issueTypeEmoji}>{type.emoji}</Text>
+                                            <Text style={returnDisputeStyles.issueTypeEmoji}>{type.emoji}</Text>
                                             <Text style={[
-                                                styles.issueTypeText,
-                                                issueType.includes(type.id) && styles.issueTypeTextActive
+                                                returnDisputeStyles.issueTypeText,
+                                                issueType.includes(type.id) && returnDisputeStyles.issueTypeTextActive
                                             ]}>
                                                 {type.label}
                                             </Text>
@@ -418,44 +417,44 @@ Para processar esta disputa, acesse o painel administrativo.
                             </View>
 
                             {/* Fotos */}
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>{t('dispute.photos')} *</Text>
-                                <Text style={styles.sectionSubtitle}>{t('dispute.photosRequired')}</Text>
+                            <View style={returnDisputeStyles.section}>
+                                <Text style={returnDisputeStyles.sectionTitle}>{t('dispute.photos')} *</Text>
+                                <Text style={returnDisputeStyles.sectionSubtitle}>{t('dispute.photosRequired')}</Text>
 
-                                <View style={styles.photosContainer}>
+                                <View style={returnDisputeStyles.photosContainer}>
                                     {photos.map((photo, index) => (
-                                        <View key={index} style={styles.photoWrapper}>
-                                            <Image source={{ uri: photo.uri }} style={styles.photo} />
+                                        <View key={index} style={returnDisputeStyles.photoWrapper}>
+                                            <Image source={{ uri: photo.uri }} style={returnDisputeStyles.photo} />
                                             <TouchableOpacity
-                                                style={styles.removePhotoButton}
+                                                style={returnDisputeStyles.removePhotoButton}
                                                 onPress={() => removePhoto(index)}
                                             >
-                                                <Text style={styles.removePhotoText}>✕</Text>
+                                                <Text style={returnDisputeStyles.removePhotoText}>✕</Text>
                                             </TouchableOpacity>
                                         </View>
                                     ))}
 
                                     {photos.length < 5 && (
                                         <TouchableOpacity
-                                            style={styles.addPhotoButton}
+                                            style={returnDisputeStyles.addPhotoButton}
                                             onPress={pickImage}
                                         >
-                                            <Text style={styles.addPhotoIcon}>📷</Text>
-                                            <Text style={styles.addPhotoText}>{t('dispute.addPhoto')}</Text>
+                                            <Text style={returnDisputeStyles.addPhotoIcon}>📷</Text>
+                                            <Text style={returnDisputeStyles.addPhotoText}>{t('dispute.addPhoto')}</Text>
                                         </TouchableOpacity>
                                     )}
                                 </View>
                             </View>
 
                             {/* Observação */}
-                            <View style={styles.section}>
-                                <Text style={styles.sectionTitle}>{t('dispute.observation')} *</Text>
-                                <Text style={styles.sectionSubtitle}>
+                            <View style={returnDisputeStyles.section}>
+                                <Text style={returnDisputeStyles.sectionTitle}>{t('dispute.observation')} *</Text>
+                                <Text style={returnDisputeStyles.sectionSubtitle}>
                                     {t('dispute.observationLimit')} ({observation.length}/500)
                                 </Text>
 
                                 <TextInput
-                                    style={styles.observationInput}
+                                    style={returnDisputeStyles.observationInput}
                                     value={observation}
                                     onChangeText={setObservation}
                                     placeholder={t('dispute.observationPlaceholder')}
@@ -467,35 +466,35 @@ Para processar esta disputa, acesse o painel administrativo.
                             </View>
 
                             {/* Aviso sobre caução */}
-                            <View style={styles.warningBox}>
-                                <Text style={styles.warningIcon}>⚠️</Text>
-                                <View style={styles.warningContent}>
-                                    <Text style={styles.warningTitle}>{t('dispute.depositWarning')}</Text>
-                                    <Text style={styles.warningText}>
+                            <View style={returnDisputeStyles.warningBox}>
+                                <Text style={returnDisputeStyles.warningIcon}>⚠️</Text>
+                                <View style={returnDisputeStyles.warningContent}>
+                                    <Text style={returnDisputeStyles.warningTitle}>{t('dispute.depositWarning')}</Text>
+                                    <Text style={returnDisputeStyles.warningText}>
                                         {t('dispute.depositInfo', { amount: rental.deposit_amount?.toFixed(2) || '0.00' })}
                                     </Text>
                                 </View>
                             </View>
 
                             {/* Botões */}
-                            <View style={styles.buttonsContainer}>
+                            <View style={returnDisputeStyles.buttonsContainer}>
                                 <TouchableOpacity
-                                    style={styles.cancelButton}
+                                    style={returnDisputeStyles.cancelButton}
                                     onPress={onClose}
                                     disabled={uploading}
                                 >
-                                    <Text style={styles.cancelButtonText}>{t('common.cancel')}</Text>
+                                    <Text style={returnDisputeStyles.cancelButtonText}>{t('common.cancel')}</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
                                     style={[
-                                        styles.submitButton,
-                                        uploading && styles.submitButtonDisabled
+                                        returnDisputeStyles.submitButton,
+                                        uploading && returnDisputeStyles.submitButtonDisabled
                                     ]}
                                     onPress={handleSubmitDispute}
                                     disabled={uploading}
                                 >
-                                    <Text style={styles.submitButtonText}>
+                                    <Text style={returnDisputeStyles.submitButtonText}>
                                         {uploading ? t('dispute.submitting') : t('dispute.submit')}
                                     </Text>
                                 </TouchableOpacity>
@@ -508,256 +507,6 @@ Para processar esta disputa, acesse o painel administrativo.
     );
 }
 
-const styles = StyleSheet.create({
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    keyboardView: {
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        width: '92%',
-        maxHeight: '85%',
-        maxWidth: 500,
-        overflow: 'hidden',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 10,
-    },
-    scrollContent: {
-        paddingBottom: 20,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        backgroundColor: '#FEF2F2',
-        borderBottomWidth: 2,
-        borderBottomColor: '#FECACA',
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    headerIcon: {
-        fontSize: 24,
-        marginRight: 10,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#DC2626',
-        flex: 1,
-    },
-    closeButton: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: '#FEE2E2',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 10,
-    },
-    closeButtonText: {
-        fontSize: 20,
-        color: '#DC2626',
-        fontWeight: 'bold',
-    },
-    itemInfo: {
-        padding: 16,
-        backgroundColor: '#F9FAFB',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    itemTitle: {
-        fontSize: 17,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    itemSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    section: {
-        padding: 16,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    sectionSubtitle: {
-        fontSize: 13,
-        color: '#6B7280',
-        marginBottom: 15,
-    },
-    issueTypesContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
-    },
-    issueTypeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-        backgroundColor: '#fff',
-        gap: 8,
-    },
-    issueTypeButtonActive: {
-        borderColor: '#DC2626',
-        backgroundColor: '#FEE2E2',
-    },
-    issueTypeEmoji: {
-        fontSize: 20,
-    },
-    issueTypeText: {
-        fontSize: 14,
-        color: '#6B7280',
-        fontWeight: '600',
-    },
-    issueTypeTextActive: {
-        color: '#DC2626',
-    },
-    photosContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
-    },
-    photoWrapper: {
-        position: 'relative',
-        width: 100,
-        height: 100,
-    },
-    photo: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-    },
-    removePhotoButton: {
-        position: 'absolute',
-        top: -5,
-        right: -5,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#DC2626',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    removePhotoText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    addPhotoButton: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-        borderStyle: 'dashed',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F9FAFB',
-    },
-    addPhotoIcon: {
-        fontSize: 30,
-        marginBottom: 5,
-    },
-    addPhotoText: {
-        fontSize: 12,
-        color: '#6B7280',
-        fontWeight: '600',
-    },
-    observationInput: {
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderRadius: 10,
-        padding: 15,
-        fontSize: 14,
-        color: '#1F2937',
-        minHeight: 120,
-        backgroundColor: '#F9FAFB',
-    },
-    warningBox: {
-        flexDirection: 'row',
-        backgroundColor: '#FEF3C7',
-        padding: 15,
-        marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#F59E0B',
-    },
-    warningIcon: {
-        fontSize: 24,
-        marginRight: 10,
-    },
-    warningContent: {
-        flex: 1,
-    },
-    warningTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#92400E',
-        marginBottom: 5,
-    },
-    warningText: {
-        fontSize: 13,
-        color: '#92400E',
-    },
-    buttonsContainer: {
-        flexDirection: 'row',
-        padding: 20,
-        gap: 10,
-    },
-    cancelButton: {
-        flex: 1,
-        paddingVertical: 15,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#E5E7EB',
-        backgroundColor: '#fff',
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#6B7280',
-    },
-    submitButton: {
-        flex: 1,
-        paddingVertical: 15,
-        borderRadius: 10,
-        backgroundColor: '#DC2626',
-        alignItems: 'center',
-    },
-    submitButtonDisabled: {
-        backgroundColor: '#FCA5A5',
-    },
-    submitButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-});
+
 
 

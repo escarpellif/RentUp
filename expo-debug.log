@@ -1,0 +1,13 @@
+
+> aluko@1.0.0 start
+> expo start --clear
+
+env: load .env
+env: export EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_ANON_KEY
+Starting project at /media/fernando/22cd7c3e-30fb-467e-9342-38056af1e886/fernando/MyApp/aluko
+Starting Metro Bundler
+warning: Bundler cache is empty, rebuilding (this may take a minute)
+Waiting on http://localhost:8081
+Logs for your project will appear below.
+Android ./index.js ░░░░░░░░░░░░░░░░  0.0% (0/1)
+Android ./index.js ▓▓▓▓░░░░░░░░░░░░ 26.7% (204/432)

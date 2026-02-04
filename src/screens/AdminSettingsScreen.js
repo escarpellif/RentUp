@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
     Switch,
@@ -12,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { adminSettingsStyles } from '../styles/screens/adminSettingsStyles';
 
 export default function AdminSettingsScreen({ navigation }) {
     const [settings, setSettings] = useState({
@@ -61,23 +60,23 @@ export default function AdminSettingsScreen({ navigation }) {
     };
 
     const SettingSection = ({ title, children }) => (
-        <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{title}</Text>
-            <View style={styles.sectionContent}>
+        <View style={adminSettingsStyles.section}>
+            <Text style={adminSettingsStyles.sectionTitle}>{title}</Text>
+            <View style={adminSettingsStyles.sectionContent}>
                 {children}
             </View>
         </View>
     );
 
     const SettingRow = ({ icon, label, description, value, onValueChange, type = 'switch' }) => (
-        <View style={styles.settingRow}>
-            <View style={styles.settingLeft}>
-                <View style={styles.iconContainer}>
+        <View style={adminSettingsStyles.settingRow}>
+            <View style={adminSettingsStyles.settingLeft}>
+                <View style={adminSettingsStyles.iconContainer}>
                     <Ionicons name={icon} size={20} color="#3B82F6" />
                 </View>
-                <View style={styles.settingText}>
-                    <Text style={styles.settingLabel}>{label}</Text>
-                    {description && <Text style={styles.settingDescription}>{description}</Text>}
+                <View style={adminSettingsStyles.settingText}>
+                    <Text style={adminSettingsStyles.settingLabel}>{label}</Text>
+                    {description && <Text style={adminSettingsStyles.settingDescription}>{description}</Text>}
                 </View>
             </View>
 
@@ -90,7 +89,7 @@ export default function AdminSettingsScreen({ navigation }) {
                 />
             ) : (
                 <TextInput
-                    style={styles.input}
+                    style={adminSettingsStyles.input}
                     value={String(value)}
                     onChangeText={onValueChange}
                     keyboardType="numeric"
@@ -101,17 +100,17 @@ export default function AdminSettingsScreen({ navigation }) {
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminSettingsStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminSettingsStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Configuraciones</Text>
+                <Text style={adminSettingsStyles.headerTitle}>Configuraciones</Text>
                 <View style={{ width: 24 }} />
             </View>
 
-            <ScrollView style={styles.content}>
+            <ScrollView style={adminSettingsStyles.content}>
                 {/* Plataforma */}
                 <SettingSection title="⚙️ Plataforma">
                     <SettingRow
@@ -231,13 +230,13 @@ export default function AdminSettingsScreen({ navigation }) {
                 </SettingSection>
 
                 {/* Botão de Salvar Tudo */}
-                <View style={styles.saveButtonContainer}>
+                <View style={adminSettingsStyles.saveButtonContainer}>
                     <TouchableOpacity
-                        style={styles.saveButton}
+                        style={adminSettingsStyles.saveButton}
                         onPress={() => Alert.alert('Éxito', 'Todas las configuraciones guardadas')}
                     >
                         <Ionicons name="save" size={20} color="#fff" />
-                        <Text style={styles.saveButtonText}>Guardar Todas las Configuraciones</Text>
+                        <Text style={adminSettingsStyles.saveButtonText}>Guardar Todas las Configuraciones</Text>
                     </TouchableOpacity>
                 </View>
 
@@ -247,108 +246,5 @@ export default function AdminSettingsScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-    },
-    section: {
-        marginTop: 16,
-        marginHorizontal: 16,
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 12,
-    },
-    sectionContent: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        overflow: 'hidden',
-    },
-    settingRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-    },
-    settingLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        marginRight: 16,
-    },
-    iconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#EFF6FF',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    settingText: {
-        flex: 1,
-    },
-    settingLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 2,
-    },
-    settingDescription: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    input: {
-        width: 80,
-        height: 40,
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        fontSize: 15,
-        color: '#1F2937',
-        textAlign: 'center',
-    },
-    saveButtonContainer: {
-        padding: 16,
-    },
-    saveButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#3B82F6',
-        padding: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
-    saveButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-});
+
 

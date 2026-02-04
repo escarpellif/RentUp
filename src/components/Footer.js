@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Linking, TextInput, StyleSheet } from 'react-native';
+import {View, Text, TouchableOpacity, Linking, TextInput } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { footerStyles as styles } from '../styles/footerStyles';
+import { footerStyles } from '../styles/components/footerStyles';
 import {
     AboutUsContent,
     FAQsContent,
@@ -194,31 +195,31 @@ const SupportFormContent = () => {
 
     return (
         <View>
-            <Text style={formStyles.title}>
+            <Text style={footerStyles.title}>
                 {isSpanish ? 'Formulario de Soporte' : 'Support Form'}
             </Text>
 
-            <Text style={formStyles.description}>
+            <Text style={footerStyles.description}>
                 {isSpanish
                     ? 'Completa el formulario a continuación y nos pondremos en contacto contigo lo antes posible.'
                     : 'Fill out the form below and we will get back to you as soon as possible.'}
             </Text>
 
-            <Text style={formStyles.label}>
+            <Text style={footerStyles.label}>
                 {isSpanish ? 'Nombre Completo *' : 'Full Name *'}
             </Text>
             <TextInput
-                style={formStyles.input}
+                style={footerStyles.input}
                 value={name}
                 onChangeText={setName}
                 placeholder={isSpanish ? 'Tu nombre' : 'Your name'}
             />
 
-            <Text style={formStyles.label}>
+            <Text style={footerStyles.label}>
                 {isSpanish ? 'Correo Electrónico *' : 'Email *'}
             </Text>
             <TextInput
-                style={formStyles.input}
+                style={footerStyles.input}
                 value={email}
                 onChangeText={setEmail}
                 placeholder={isSpanish ? 'tu@email.com' : 'your@email.com'}
@@ -226,21 +227,21 @@ const SupportFormContent = () => {
                 autoCapitalize="none"
             />
 
-            <Text style={formStyles.label}>
+            <Text style={footerStyles.label}>
                 {isSpanish ? 'Asunto *' : 'Subject *'}
             </Text>
             <TextInput
-                style={formStyles.input}
+                style={footerStyles.input}
                 value={subject}
                 onChangeText={setSubject}
                 placeholder={isSpanish ? 'Asunto de tu consulta' : 'Subject of your inquiry'}
             />
 
-            <Text style={formStyles.label}>
+            <Text style={footerStyles.label}>
                 {isSpanish ? 'Mensaje *' : 'Message *'}
             </Text>
             <TextInput
-                style={[formStyles.input, formStyles.textArea]}
+                style={[footerStyles.input, footerStyles.textArea]}
                 value={message}
                 onChangeText={setMessage}
                 placeholder={isSpanish ? 'Describe tu problema o pregunta...' : 'Describe your problem or question...'}
@@ -250,18 +251,18 @@ const SupportFormContent = () => {
             />
 
             <TouchableOpacity
-                style={[formStyles.submitButton, sending && formStyles.submitButtonDisabled]}
+                style={[footerStyles.submitButton, sending && footerStyles.submitButtonDisabled]}
                 onPress={handleSubmit}
                 disabled={sending}
             >
-                <Text style={formStyles.submitButtonText}>
+                <Text style={footerStyles.submitButtonText}>
                     {sending
                         ? (isSpanish ? 'Enviando...' : 'Sending...')
                         : (isSpanish ? 'Enviar Mensaje' : 'Send Message')}
                 </Text>
             </TouchableOpacity>
 
-            <Text style={formStyles.infoText}>
+            <Text style={footerStyles.infoText}>
                 {isSpanish
                     ? '📧 También puedes enviarnos un email directamente a: support@aluko.com'
                     : '📧 You can also email us directly at: support@aluko.com'}
@@ -270,61 +271,6 @@ const SupportFormContent = () => {
     );
 };
 
-const formStyles = StyleSheet.create({
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 15,
-        color: '#2c4455',
-    },
-    description: {
-        fontSize: 15,
-        lineHeight: 22,
-        marginBottom: 25,
-        color: '#666',
-    },
-    label: {
-        fontSize: 15,
-        fontWeight: '600',
-        marginBottom: 8,
-        marginTop: 15,
-        color: '#333',
-    },
-    input: {
-        backgroundColor: '#F9FAFB',
-        borderWidth: 1.5,
-        borderColor: '#E5E7EB',
-        borderRadius: 10,
-        padding: 12,
-        fontSize: 15,
-        color: '#333',
-    },
-    textArea: {
-        minHeight: 120,
-        paddingTop: 12,
-    },
-    submitButton: {
-        backgroundColor: '#10B981',
-        paddingVertical: 16,
-        borderRadius: 12,
-        marginTop: 25,
-        alignItems: 'center',
-    },
-    submitButtonDisabled: {
-        backgroundColor: '#9CA3AF',
-    },
-    submitButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    infoText: {
-        fontSize: 13,
-        color: '#6B7280',
-        marginTop: 20,
-        textAlign: 'center',
-        lineHeight: 20,
-    },
-});
+
 
 

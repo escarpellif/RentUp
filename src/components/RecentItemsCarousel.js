@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import * as Location from 'expo-location';
 import { supabase } from '../../supabase';
 import { recentItemsCarouselStyles as styles } from '../styles/recentItemsCarouselStyles';
@@ -8,16 +8,17 @@ import { useTranslation } from 'react-i18next';
 import { handleApiError } from '../utils/errorHandler';
 import { fetchWithRetry, withTimeout } from '../utils/apiHelpers';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.7;
-const CARD_MARGIN = 10;
-
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
 export default function RecentItemsCarousel({ navigation, session }) {
     const { t } = useTranslation();
     const [recentItems, setRecentItems] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const width = 375;
+    const CARD_WIDTH = width * 0.7;
+    const CARD_MARGIN = 10;
     const [userLocation, setUserLocation] = useState(null);
     const userId = session?.user?.id;
 

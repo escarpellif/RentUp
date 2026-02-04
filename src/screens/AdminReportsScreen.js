@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     ScrollView,
     TouchableOpacity,
-    RefreshControl,
-    Dimensions,
+    RefreshControl
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { adminReportsStyles } from '../styles/screens/adminReportsStyles';
 
 export default function AdminReportsScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const SCREEN_WIDTH = 375;
     const [stats, setStats] = useState({
         // Usuarios
         totalUsers: 0,
@@ -107,70 +106,70 @@ export default function AdminReportsScreen({ navigation }) {
 
     const StatCard = ({ title, value, subtitle, icon, color, onPress }) => (
         <TouchableOpacity
-            style={[styles.statCard, { borderLeftColor: color }]}
+            style={[adminReportsStyles.statCard, { borderLeftColor: color }]}
             onPress={onPress}
             disabled={!onPress}
         >
-            <View style={styles.statCardHeader}>
-                <View style={[styles.iconContainer, { backgroundColor: color + '20' }]}>
+            <View style={adminReportsStyles.statCardHeader}>
+                <View style={[adminReportsStyles.iconContainer, { backgroundColor: color + '20' }]}>
                     <Ionicons name={icon} size={24} color={color} />
                 </View>
-                <Text style={styles.statValue}>{value}</Text>
+                <Text style={adminReportsStyles.statValue}>{value}</Text>
             </View>
-            <Text style={styles.statTitle}>{title}</Text>
-            {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+            <Text style={adminReportsStyles.statTitle}>{title}</Text>
+            {subtitle && <Text style={adminReportsStyles.statSubtitle}>{subtitle}</Text>}
         </TouchableOpacity>
     );
 
     const Section = ({ title, children }) => (
-        <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={adminReportsStyles.section}>
+            <Text style={adminReportsStyles.sectionTitle}>{title}</Text>
             {children}
         </View>
     );
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminReportsStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminReportsStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Reportes y Estadísticas</Text>
+                <Text style={adminReportsStyles.headerTitle}>Reportes y Estadísticas</Text>
                 <TouchableOpacity onPress={loadStats}>
                     <Ionicons name="refresh" size={24} color="#3B82F6" />
                 </TouchableOpacity>
             </View>
 
             <ScrollView
-                style={styles.content}
+                style={adminReportsStyles.content}
                 refreshControl={
                     <RefreshControl refreshing={loading} onRefresh={loadStats} />
                 }
             >
                 {/* Resumen Financiero */}
                 <Section title="💰 Resumen Financiero">
-                    <View style={styles.financialSummary}>
-                        <View style={styles.financialCard}>
-                            <Text style={styles.financialLabel}>Ingresos Totales</Text>
-                            <Text style={styles.financialValue}>€{stats.totalRevenue.toFixed(2)}</Text>
+                    <View style={adminReportsStyles.financialSummary}>
+                        <View style={adminReportsStyles.financialCard}>
+                            <Text style={adminReportsStyles.financialLabel}>Ingresos Totales</Text>
+                            <Text style={adminReportsStyles.financialValue}>€{stats.totalRevenue.toFixed(2)}</Text>
                         </View>
-                        <View style={styles.financialCard}>
-                            <Text style={styles.financialLabel}>Este Mes</Text>
-                            <Text style={[styles.financialValue, { color: '#10B981' }]}>
+                        <View style={adminReportsStyles.financialCard}>
+                            <Text style={adminReportsStyles.financialLabel}>Este Mes</Text>
+                            <Text style={[adminReportsStyles.financialValue, { color: '#10B981' }]}>
                                 €{stats.revenueThisMonth.toFixed(2)}
                             </Text>
                         </View>
-                        <View style={styles.financialCard}>
-                            <Text style={styles.financialLabel}>Valor Promedio</Text>
-                            <Text style={styles.financialValue}>€{stats.averageRentalValue.toFixed(2)}</Text>
+                        <View style={adminReportsStyles.financialCard}>
+                            <Text style={adminReportsStyles.financialLabel}>Valor Promedio</Text>
+                            <Text style={adminReportsStyles.financialValue}>€{stats.averageRentalValue.toFixed(2)}</Text>
                         </View>
                     </View>
                 </Section>
 
                 {/* Usuarios */}
                 <Section title="👥 Usuarios">
-                    <View style={styles.statsGrid}>
+                    <View style={adminReportsStyles.statsGrid}>
                         <StatCard
                             title="Total Usuarios"
                             value={stats.totalUsers}
@@ -203,7 +202,7 @@ export default function AdminReportsScreen({ navigation }) {
 
                 {/* Artículos */}
                 <Section title="📦 Artículos">
-                    <View style={styles.statsGrid}>
+                    <View style={adminReportsStyles.statsGrid}>
                         <StatCard
                             title="Total Artículos"
                             value={stats.totalItems}
@@ -235,7 +234,7 @@ export default function AdminReportsScreen({ navigation }) {
 
                 {/* Locaciones */}
                 <Section title="🔄 Locaciones">
-                    <View style={styles.statsGrid}>
+                    <View style={adminReportsStyles.statsGrid}>
                         <StatCard
                             title="Total Locaciones"
                             value={stats.totalRentals}
@@ -268,7 +267,7 @@ export default function AdminReportsScreen({ navigation }) {
 
                 {/* Disputas */}
                 <Section title="⚠️ Disputas">
-                    <View style={styles.statsGrid}>
+                    <View style={adminReportsStyles.statsGrid}>
                         <StatCard
                             title="Total Disputas"
                             value={stats.totalDisputes}
@@ -301,29 +300,29 @@ export default function AdminReportsScreen({ navigation }) {
 
                 {/* KPIs */}
                 <Section title="📊 Indicadores Clave">
-                    <View style={styles.kpiContainer}>
-                        <View style={styles.kpiCard}>
-                            <Text style={styles.kpiLabel}>Tasa de Conversión</Text>
-                            <Text style={styles.kpiValue}>
+                    <View style={adminReportsStyles.kpiContainer}>
+                        <View style={adminReportsStyles.kpiCard}>
+                            <Text style={adminReportsStyles.kpiLabel}>Tasa de Conversión</Text>
+                            <Text style={adminReportsStyles.kpiValue}>
                                 {((stats.completedRentals / stats.totalUsers) * 100).toFixed(1)}%
                             </Text>
-                            <Text style={styles.kpiDescription}>Locaciones por usuario</Text>
+                            <Text style={adminReportsStyles.kpiDescription}>Locaciones por usuario</Text>
                         </View>
 
-                        <View style={styles.kpiCard}>
-                            <Text style={styles.kpiLabel}>Tasa de Activación</Text>
-                            <Text style={styles.kpiValue}>
+                        <View style={adminReportsStyles.kpiCard}>
+                            <Text style={adminReportsStyles.kpiLabel}>Tasa de Activación</Text>
+                            <Text style={adminReportsStyles.kpiValue}>
                                 {((stats.activeItems / stats.totalItems) * 100).toFixed(1)}%
                             </Text>
-                            <Text style={styles.kpiDescription}>Artículos activos</Text>
+                            <Text style={adminReportsStyles.kpiDescription}>Artículos activos</Text>
                         </View>
 
-                        <View style={styles.kpiCard}>
-                            <Text style={styles.kpiLabel}>Tasa de Disputa</Text>
-                            <Text style={styles.kpiValue}>
+                        <View style={adminReportsStyles.kpiCard}>
+                            <Text style={adminReportsStyles.kpiLabel}>Tasa de Disputa</Text>
+                            <Text style={adminReportsStyles.kpiValue}>
                                 {((stats.totalDisputes / stats.totalRentals) * 100).toFixed(1)}%
                             </Text>
-                            <Text style={styles.kpiDescription}>Disputas por locación</Text>
+                            <Text style={adminReportsStyles.kpiDescription}>Disputas por locación</Text>
                         </View>
                     </View>
                 </Section>
@@ -334,127 +333,5 @@ export default function AdminReportsScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-    },
-    section: {
-        padding: 16,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 16,
-    },
-    financialSummary: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    financialCard: {
-        flex: 1,
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        alignItems: 'center',
-    },
-    financialLabel: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginBottom: 8,
-        textAlign: 'center',
-    },
-    financialValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    statCard: {
-        width: (SCREEN_WIDTH - 44) / 2,
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        borderLeftWidth: 4,
-    },
-    statCardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    iconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    statTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    statSubtitle: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    kpiContainer: {
-        gap: 12,
-    },
-    kpiCard: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    kpiLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 8,
-    },
-    kpiValue: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#3B82F6',
-        marginBottom: 4,
-    },
-    kpiDescription: {
-        fontSize: 13,
-        color: '#9CA3AF',
-    },
-});
+
 

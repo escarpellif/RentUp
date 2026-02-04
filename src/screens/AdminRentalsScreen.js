@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     FlatList,
     TouchableOpacity,
     Alert,
@@ -13,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { adminRentalsStyles } from '../styles/screens/adminRentalsStyles';
 
 export default function AdminRentalsScreen({ route, navigation }) {
     const initialFilter = route.params?.filter || 'all';
@@ -77,76 +76,76 @@ export default function AdminRentalsScreen({ route, navigation }) {
 
         return (
             <TouchableOpacity
-                style={styles.rentalCard}
+                style={adminRentalsStyles.rentalCard}
                 onPress={() => navigation.navigate('RentalDetails', { rental: item })}
             >
                 {/* Header */}
-                <View style={styles.rentalHeader}>
-                    <View style={styles.rentalHeaderLeft}>
-                        <Text style={styles.itemTitle} numberOfLines={1}>
+                <View style={adminRentalsStyles.rentalHeader}>
+                    <View style={adminRentalsStyles.rentalHeaderLeft}>
+                        <Text style={adminRentalsStyles.itemTitle} numberOfLines={1}>
                             {item.item?.title}
                         </Text>
-                        <Text style={styles.category}>{item.item?.category}</Text>
+                        <Text style={adminRentalsStyles.category}>{item.item?.category}</Text>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
+                    <View style={[adminRentalsStyles.statusBadge, { backgroundColor: statusInfo.color + '20' }]}>
                         <Ionicons name={statusInfo.icon} size={14} color={statusInfo.color} />
-                        <Text style={[styles.statusText, { color: statusInfo.color }]}>
+                        <Text style={[adminRentalsStyles.statusText, { color: statusInfo.color }]}>
                             {statusInfo.label}
                         </Text>
                     </View>
                 </View>
 
                 {/* Parties */}
-                <View style={styles.partiesContainer}>
-                    <View style={styles.partyColumn}>
-                        <Text style={styles.partyLabel}>Propietario:</Text>
-                        <Text style={styles.partyName}>{item.owner?.full_name}</Text>
+                <View style={adminRentalsStyles.partiesContainer}>
+                    <View style={adminRentalsStyles.partyColumn}>
+                        <Text style={adminRentalsStyles.partyLabel}>Propietario:</Text>
+                        <Text style={adminRentalsStyles.partyName}>{item.owner?.full_name}</Text>
                     </View>
                     <Ionicons name="arrow-forward" size={20} color="#9CA3AF" />
-                    <View style={styles.partyColumn}>
-                        <Text style={styles.partyLabel}>Locatario:</Text>
-                        <Text style={styles.partyName}>{item.renter?.full_name}</Text>
+                    <View style={adminRentalsStyles.partyColumn}>
+                        <Text style={adminRentalsStyles.partyLabel}>Locatario:</Text>
+                        <Text style={adminRentalsStyles.partyName}>{item.renter?.full_name}</Text>
                     </View>
                 </View>
 
                 {/* Dates */}
-                <View style={styles.datesContainer}>
-                    <View style={styles.dateItem}>
+                <View style={adminRentalsStyles.datesContainer}>
+                    <View style={adminRentalsStyles.dateItem}>
                         <Ionicons name="calendar" size={16} color="#6B7280" />
-                        <Text style={styles.dateText}>
+                        <Text style={adminRentalsStyles.dateText}>
                             {new Date(item.start_date).toLocaleDateString('es-ES')} - {new Date(item.end_date).toLocaleDateString('es-ES')}
                         </Text>
                     </View>
-                    <Text style={styles.daysText}>{totalDays} días</Text>
+                    <Text style={adminRentalsStyles.daysText}>{totalDays} días</Text>
                 </View>
 
                 {/* Financial */}
-                <View style={styles.financialContainer}>
-                    <View style={styles.financialRow}>
-                        <Text style={styles.financialLabel}>Subtotal:</Text>
-                        <Text style={styles.financialValue}>€{(item.subtotal || 0).toFixed(2)}</Text>
+                <View style={adminRentalsStyles.financialContainer}>
+                    <View style={adminRentalsStyles.financialRow}>
+                        <Text style={adminRentalsStyles.financialLabel}>Subtotal:</Text>
+                        <Text style={adminRentalsStyles.financialValue}>€{(item.subtotal || 0).toFixed(2)}</Text>
                     </View>
-                    <View style={styles.financialRow}>
-                        <Text style={styles.financialLabel}>Taxa de Servicio:</Text>
-                        <Text style={styles.financialValue}>€{(item.service_fee || 0).toFixed(2)}</Text>
+                    <View style={adminRentalsStyles.financialRow}>
+                        <Text style={adminRentalsStyles.financialLabel}>Taxa de Servicio:</Text>
+                        <Text style={adminRentalsStyles.financialValue}>€{(item.service_fee || 0).toFixed(2)}</Text>
                     </View>
-                    <View style={styles.divider} />
-                    <View style={styles.financialRow}>
-                        <Text style={styles.totalLabel}>Total:</Text>
-                        <Text style={styles.totalValue}>€{totalAmount.toFixed(2)}</Text>
+                    <View style={adminRentalsStyles.divider} />
+                    <View style={adminRentalsStyles.financialRow}>
+                        <Text style={adminRentalsStyles.totalLabel}>Total:</Text>
+                        <Text style={adminRentalsStyles.totalValue}>€{totalAmount.toFixed(2)}</Text>
                     </View>
                 </View>
 
                 {/* Footer */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerDate}>
+                <View style={adminRentalsStyles.footer}>
+                    <Text style={adminRentalsStyles.footerDate}>
                         Creado: {new Date(item.created_at).toLocaleDateString('es-ES')}
                     </Text>
                     <TouchableOpacity
-                        style={styles.viewButton}
+                        style={adminRentalsStyles.viewButton}
                         onPress={() => navigation.navigate('RentalDetails', { rental: item })}
                     >
-                        <Text style={styles.viewButtonText}>Ver Detalles</Text>
+                        <Text style={adminRentalsStyles.viewButtonText}>Ver Detalles</Text>
                         <Ionicons name="chevron-forward" size={16} color="#3B82F6" />
                     </TouchableOpacity>
                 </View>
@@ -165,21 +164,21 @@ export default function AdminRentalsScreen({ route, navigation }) {
     });
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminRentalsStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminRentalsStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gestión de Locaciones</Text>
+                <Text style={adminRentalsStyles.headerTitle}>Gestión de Locaciones</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             {/* Search */}
-            <View style={styles.searchContainer}>
+            <View style={adminRentalsStyles.searchContainer}>
                 <Ionicons name="search" size={20} color="#9CA3AF" />
                 <TextInput
-                    style={styles.searchInput}
+                    style={adminRentalsStyles.searchInput}
                     placeholder="Buscar por artículo, propietario o locatario..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -190,62 +189,62 @@ export default function AdminRentalsScreen({ route, navigation }) {
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
+                style={adminRentalsStyles.filtersContainer}
+                contentContainerStyle={adminRentalsStyles.filtersContent}
             >
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'all' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('all')}
                 >
-                    <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'all' && adminRentalsStyles.filterTextActive]}>
                         Todas
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'pending' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'pending' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('pending')}
                 >
-                    <Text style={[styles.filterText, filter === 'pending' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'pending' && adminRentalsStyles.filterTextActive]}>
                         Pendientes
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'approved' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'approved' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('approved')}
                 >
-                    <Text style={[styles.filterText, filter === 'approved' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'approved' && adminRentalsStyles.filterTextActive]}>
                         Aprobados
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'active' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'active' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('active')}
                 >
-                    <Text style={[styles.filterText, filter === 'active' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'active' && adminRentalsStyles.filterTextActive]}>
                         Activos
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'completed' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'completed' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('completed')}
                 >
-                    <Text style={[styles.filterText, filter === 'completed' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'completed' && adminRentalsStyles.filterTextActive]}>
                         Completados
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'cancelled' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'cancelled' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('cancelled')}
                 >
-                    <Text style={[styles.filterText, filter === 'cancelled' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'cancelled' && adminRentalsStyles.filterTextActive]}>
                         Cancelados
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'dispute_open' && styles.filterButtonActive]}
+                    style={[adminRentalsStyles.filterButton, filter === 'dispute_open' && adminRentalsStyles.filterButtonActive]}
                     onPress={() => setFilter('dispute_open')}
                 >
-                    <Text style={[styles.filterText, filter === 'dispute_open' && styles.filterTextActive]}>
+                    <Text style={[adminRentalsStyles.filterText, filter === 'dispute_open' && adminRentalsStyles.filterTextActive]}>
                         Disputas
                     </Text>
                 </TouchableOpacity>
@@ -256,14 +255,14 @@ export default function AdminRentalsScreen({ route, navigation }) {
                 data={filteredRentals}
                 keyExtractor={(item) => item.id}
                 renderItem={renderRental}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={adminRentalsStyles.list}
                 refreshControl={
                     <RefreshControl refreshing={loading} onRefresh={loadRentals} />
                 }
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
+                    <View style={adminRentalsStyles.emptyContainer}>
                         <Ionicons name="document-outline" size={64} color="#9CA3AF" />
-                        <Text style={styles.emptyText}>No hay locaciones</Text>
+                        <Text style={adminRentalsStyles.emptyText}>No hay locaciones</Text>
                     </View>
                 }
             />
@@ -271,224 +270,5 @@ export default function AdminRentalsScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        margin: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 8,
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    filtersContainer: {
-        maxHeight: 50,
-        marginBottom: 16,
-    },
-    filtersContent: {
-        paddingHorizontal: 16,
-        gap: 8,
-    },
-    filterButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginRight: 8,
-    },
-    filterButtonActive: {
-        backgroundColor: '#3B82F6',
-        borderColor: '#3B82F6',
-    },
-    filterText: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    filterTextActive: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    list: {
-        padding: 16,
-    },
-    rentalCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    rentalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-    },
-    rentalHeaderLeft: {
-        flex: 1,
-        marginRight: 12,
-    },
-    itemTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    category: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    statusBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-        gap: 4,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    partiesContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-        paddingVertical: 12,
-        backgroundColor: '#F9FAFB',
-        paddingHorizontal: 12,
-        borderRadius: 8,
-    },
-    partyColumn: {
-        flex: 1,
-    },
-    partyLabel: {
-        fontSize: 12,
-        color: '#6B7280',
-        marginBottom: 4,
-    },
-    partyName: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    datesContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    dateItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    dateText: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    daysText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#3B82F6',
-    },
-    financialContainer: {
-        backgroundColor: '#F9FAFB',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 12,
-    },
-    financialRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    financialLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    financialValue: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#1F2937',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: '#E5E7EB',
-        marginVertical: 6,
-    },
-    totalLabel: {
-        fontSize: 15,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    totalValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-    },
-    footerDate: {
-        fontSize: 12,
-        color: '#9CA3AF',
-    },
-    viewButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    viewButtonText: {
-        fontSize: 14,
-        color: '#3B82F6',
-        fontWeight: '600',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 64,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#9CA3AF',
-        marginTop: 16,
-    },
-});
+
 

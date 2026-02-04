@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform , StatusBar } from 'react-native';
+import { View, Text, TextInput, ScrollView, Alert, TouchableOpacity, Image, ActivityIndicator, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { getApproximateLocation, getCoordinatesFromAddress, addRandomOffset } from '../utils/locationHelper';
 import CategorySubcategoryPicker from '../components/CategorySubcategoryPicker';
+import { addItemFormStyles } from '../styles/screens/addItemFormStyles';
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
 
@@ -441,44 +442,44 @@ export default function AddItemFormScreen({ session, navigation }) {
     }
 
     return (
-        <SafeAreaView style={styles.safeContainer}>
+        <SafeAreaView style={addItemFormStyles.safeContainer}>
             <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
             {/* Header Verde - Mesmo layout do Marketplace */}
-            <View style={styles.headerContainer}>
-                <View style={styles.headerTopRow}>
+            <View style={addItemFormStyles.headerContainer}>
+                <View style={addItemFormStyles.headerTopRow}>
                     {/* Botão Voltar + Título */}
-                    <View style={styles.leftHeader}>
+                    <View style={addItemFormStyles.leftHeader}>
                         <TouchableOpacity
-                            style={styles.backButton}
+                            style={addItemFormStyles.backButton}
                             onPress={() => navigation.goBack()}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.backArrow}>←</Text>
+                            <Text style={addItemFormStyles.backArrow}>←</Text>
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Anunciar Artículo</Text>
+                        <Text style={addItemFormStyles.headerTitle}>Anunciar Artículo</Text>
                     </View>
 
                     {/* ALUKO à Direita */}
-                    <View style={styles.logoContainer}>
+                    <View style={addItemFormStyles.logoContainer}>
                         <Image
                             source={require('../../assets/images/app-icon.png')}
-                            style={styles.logoImage}
+                            style={addItemFormStyles.logoImage}
                             resizeMode="contain"
                         />
-                        <Text style={styles.logoText}>ALUKO</Text>
+                        <Text style={addItemFormStyles.logoText}>ALUKO</Text>
                     </View>
                 </View>
             </View>
 
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView style={addItemFormStyles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Card: Información Básica */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📝 Información Básica</Text>
+                <View style={addItemFormStyles.card}>
+                    <Text style={addItemFormStyles.cardTitle}>📝 Información Básica</Text>
 
-                    <Text style={styles.label}>Título del Anuncio</Text>
+                    <Text style={addItemFormStyles.label}>Título del Anuncio</Text>
                     <TextInput
-                        style={styles.input}
+                        style={addItemFormStyles.input}
                         onChangeText={setTitle}
                         value={title}
                         placeholder="Ej: Taladro Bosch 18V"
@@ -486,9 +487,9 @@ export default function AddItemFormScreen({ session, navigation }) {
                         maxLength={80}
                     />
 
-                    <Text style={styles.label}>Descripción Completa</Text>
+                    <Text style={addItemFormStyles.label}>Descripción Completa</Text>
                     <TextInput
-                        style={[styles.input, styles.multilineInput]}
+                        style={[addItemFormStyles.input, addItemFormStyles.multilineInput]}
                         onChangeText={setDescription}
                         value={description}
                         placeholder="Describe el estado, accesorios incluidos y condiciones de alquiler..."
@@ -507,14 +508,14 @@ export default function AddItemFormScreen({ session, navigation }) {
                 </View>
 
                 {/* Card: Precio */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>💰 Precio</Text>
+                <View style={addItemFormStyles.card}>
+                    <Text style={addItemFormStyles.cardTitle}>💰 Precio</Text>
 
-                    <Text style={styles.label}>Precio por Día</Text>
-                    <View style={styles.priceInputContainer}>
-                        <Text style={styles.currencySymbol}>€</Text>
+                    <Text style={addItemFormStyles.label}>Precio por Día</Text>
+                    <View style={addItemFormStyles.priceInputContainer}>
+                        <Text style={addItemFormStyles.currencySymbol}>€</Text>
                         <TextInput
-                            style={styles.priceInput}
+                            style={addItemFormStyles.priceInput}
                             onChangeText={(text) => {
                                 const formatted = formatEuroValue(text);
                                 setPricePerDay(formatted);
@@ -524,12 +525,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                             placeholderTextColor="#999"
                             keyboardType="numeric"
                         />
-                        <Text style={styles.perDay}>/día</Text>
+                        <Text style={addItemFormStyles.perDay}>/día</Text>
                     </View>
 
-                    <Text style={styles.label}>Descuento Alquiler 1 Semana (%)</Text>
+                    <Text style={addItemFormStyles.label}>Descuento Alquiler 1 Semana (%)</Text>
                     <TextInput
-                        style={styles.input}
+                        style={addItemFormStyles.input}
                         onChangeText={setDiscountWeek}
                         value={discountWeek}
                         placeholder="0"
@@ -537,9 +538,9 @@ export default function AddItemFormScreen({ session, navigation }) {
                         keyboardType="numeric"
                     />
 
-                    <Text style={styles.label}>Descuento Alquiler 1 Mes (%)</Text>
+                    <Text style={addItemFormStyles.label}>Descuento Alquiler 1 Mes (%)</Text>
                     <TextInput
-                        style={styles.input}
+                        style={addItemFormStyles.input}
                         onChangeText={setDiscountMonth}
                         value={discountMonth}
                         placeholder="0"
@@ -547,12 +548,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                         keyboardType="numeric"
                     />
 
-                    <Text style={styles.label}>Valor del Depósito (Daño o Pérdida)</Text>
-                    <Text style={styles.depositWarning}>💡 Coloca un valor justo. Si lo exageras, las personas no querrán alquilar tu producto.</Text>
-                    <View style={styles.priceInputContainer}>
-                        <Text style={styles.currencySymbol}>€</Text>
+                    <Text style={addItemFormStyles.label}>Valor del Depósito (Daño o Pérdida)</Text>
+                    <Text style={addItemFormStyles.depositWarning}>💡 Coloca un valor justo. Si lo exageras, las personas no querrán alquilar tu producto.</Text>
+                    <View style={addItemFormStyles.priceInputContainer}>
+                        <Text style={addItemFormStyles.currencySymbol}>€</Text>
                         <TextInput
-                            style={styles.priceInput}
+                            style={addItemFormStyles.priceInput}
                             onChangeText={(text) => {
                                 const formatted = formatEuroValue(text);
                                 setDepositValue(formatted);
@@ -566,29 +567,29 @@ export default function AddItemFormScreen({ session, navigation }) {
                 </View>
 
                 {/* Card: Ubicación y Disponibilidad */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📍 Ubicación y Disponibilidad</Text>
+                <View style={addItemFormStyles.card}>
+                    <Text style={addItemFormStyles.cardTitle}>📍 Ubicación y Disponibilidad</Text>
 
-                    <Text style={styles.label}>Ubicación de Recogida *</Text>
+                    <Text style={addItemFormStyles.label}>Ubicación de Recogida *</Text>
 
                     {/* Checkbox para usar endereço de cadastro */}
                     <TouchableOpacity
-                        style={styles.checkboxContainer}
+                        style={addItemFormStyles.checkboxContainer}
                         onPress={() => setUseProfileAddress(!useProfileAddress)}
                         activeOpacity={0.7}
                     >
-                        <View style={[styles.checkbox, useProfileAddress && styles.checkboxChecked]}>
-                            {useProfileAddress && <Text style={styles.checkboxIcon}>✓</Text>}
+                        <View style={[addItemFormStyles.checkbox, useProfileAddress && addItemFormStyles.checkboxChecked]}>
+                            {useProfileAddress && <Text style={addItemFormStyles.checkboxIcon}>✓</Text>}
                         </View>
-                        <Text style={styles.checkboxLabel}>Usar mi dirección de cadastro</Text>
+                        <Text style={addItemFormStyles.checkboxLabel}>Usar mi dirección de cadastro</Text>
                     </TouchableOpacity>
 
                     {!useProfileAddress && (
                         <>
-                            <Text style={styles.sublabel}>Introduce el código postal para buscar la dirección</Text>
+                            <Text style={addItemFormStyles.sublabel}>Introduce el código postal para buscar la dirección</Text>
 
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={(text) => {
                                     setPostalCode(text);
                                     searchAddressByPostalCode(text);
@@ -600,19 +601,19 @@ export default function AddItemFormScreen({ session, navigation }) {
                             />
 
                             {loadingAddress && (
-                                <View style={styles.loadingAddressContainer}>
+                                <View style={addItemFormStyles.loadingAddressContainer}>
                                     <ActivityIndicator size="small" color="#2c4455" />
-                                    <Text style={styles.loadingAddressText}>Buscando direcciones...</Text>
+                                    <Text style={addItemFormStyles.loadingAddressText}>Buscando direcciones...</Text>
                                 </View>
                             )}
 
                             {addressSuggestions.length > 0 && (
-                                <View style={styles.suggestionsContainer}>
-                                    <Text style={styles.suggestionsTitle}>Selecciona una dirección:</Text>
+                                <View style={addItemFormStyles.suggestionsContainer}>
+                                    <Text style={addItemFormStyles.suggestionsTitle}>Selecciona una dirección:</Text>
                                     {addressSuggestions.map((suggestion, index) => (
                                         <TouchableOpacity
                                             key={index}
-                                            style={styles.suggestionItem}
+                                            style={addItemFormStyles.suggestionItem}
                                             onPress={() => {
                                                 setLocation(suggestion.display);
                                                 setLocationFull(suggestion.full);
@@ -629,8 +630,8 @@ export default function AddItemFormScreen({ session, navigation }) {
                                                 setPostalCode(suggestion.postalCode || '');
                                             }}
                                         >
-                                            <Text style={styles.suggestionIcon}>📍</Text>
-                                            <Text style={styles.suggestionText}>{suggestion.display}</Text>
+                                            <Text style={addItemFormStyles.suggestionIcon}>📍</Text>
+                                            <Text style={addItemFormStyles.suggestionText}>{suggestion.display}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
@@ -641,36 +642,36 @@ export default function AddItemFormScreen({ session, navigation }) {
                     {/* Campos de endereço completo */}
                     {(location !== '' || useProfileAddress) && (
                         <>
-                            <Text style={styles.label}>Calle/Avenida *</Text>
+                            <Text style={addItemFormStyles.label}>Calle/Avenida *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setStreet}
                                 value={street}
                                 placeholder="Ej: Calle Gran Vía, 123"
                                 placeholderTextColor="#999"
                             />
 
-                            <Text style={styles.label}>Complemento</Text>
+                            <Text style={addItemFormStyles.label}>Complemento</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setComplement}
                                 value={complement}
                                 placeholder="Ej: Piso 3, Puerta B"
                                 placeholderTextColor="#999"
                             />
 
-                            <Text style={styles.label}>Ciudad *</Text>
+                            <Text style={addItemFormStyles.label}>Ciudad *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setCity}
                                 value={city}
                                 placeholder="Ej: Madrid"
                                 placeholderTextColor="#999"
                             />
 
-                            <Text style={styles.label}>Código Postal *</Text>
+                            <Text style={addItemFormStyles.label}>Código Postal *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setPostalCode}
                                 value={postalCode}
                                 placeholder="Ej: 28001"
@@ -678,9 +679,9 @@ export default function AddItemFormScreen({ session, navigation }) {
                                 keyboardType="numeric"
                             />
 
-                            <Text style={styles.label}>País *</Text>
+                            <Text style={addItemFormStyles.label}>País *</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setCountry}
                                 value={country}
                                 placeholder="España"
@@ -690,36 +691,36 @@ export default function AddItemFormScreen({ session, navigation }) {
                     )}
 
                     {/* Tipo de Entrega */}
-                    <Text style={styles.label}>🚚 Tipo de Entrega</Text>
-                    <View style={styles.deliveryTypeContainer}>
+                    <Text style={addItemFormStyles.label}>🚚 Tipo de Entrega</Text>
+                    <View style={addItemFormStyles.deliveryTypeContainer}>
                         <TouchableOpacity
-                            style={[styles.deliveryOption, deliveryType === 'pickup' && styles.deliveryOptionActive]}
+                            style={[addItemFormStyles.deliveryOption, deliveryType === 'pickup' && addItemFormStyles.deliveryOptionActive]}
                             onPress={() => setDeliveryType('pickup')}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.deliveryOptionIcon}>📍</Text>
-                            <Text style={[styles.deliveryOptionText, deliveryType === 'pickup' && styles.deliveryOptionTextActive]}>
+                            <Text style={addItemFormStyles.deliveryOptionIcon}>📍</Text>
+                            <Text style={[addItemFormStyles.deliveryOptionText, deliveryType === 'pickup' && addItemFormStyles.deliveryOptionTextActive]}>
                                 Retira en Lugar
                             </Text>
                             {deliveryType === 'pickup' && (
-                                <View style={styles.deliveryCheckmark}>
-                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                                <View style={addItemFormStyles.deliveryCheckmark}>
+                                    <Text style={addItemFormStyles.deliveryCheckmarkText}>✓</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.deliveryOption, deliveryType === 'delivery' && styles.deliveryOptionActive]}
+                            style={[addItemFormStyles.deliveryOption, deliveryType === 'delivery' && addItemFormStyles.deliveryOptionActive]}
                             onPress={() => setDeliveryType('delivery')}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.deliveryOptionIcon}>🚚</Text>
-                            <Text style={[styles.deliveryOptionText, deliveryType === 'delivery' && styles.deliveryOptionTextActive]}>
+                            <Text style={addItemFormStyles.deliveryOptionIcon}>🚚</Text>
+                            <Text style={[addItemFormStyles.deliveryOptionText, deliveryType === 'delivery' && addItemFormStyles.deliveryOptionTextActive]}>
                                 Entrego en Casa
                             </Text>
                             {deliveryType === 'delivery' && (
-                                <View style={styles.deliveryCheckmark}>
-                                    <Text style={styles.deliveryCheckmarkText}>✓</Text>
+                                <View style={addItemFormStyles.deliveryCheckmark}>
+                                    <Text style={addItemFormStyles.deliveryCheckmarkText}>✓</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -727,12 +728,12 @@ export default function AddItemFormScreen({ session, navigation }) {
 
                     {/* Campos de Entrega (mostrar apenas se delivery) */}
                     {deliveryType === 'delivery' && (
-                        <View style={styles.deliveryDetailsContainer}>
-                            <Text style={styles.deliveryDetailsTitle}>📦 Detalles de Entrega</Text>
+                        <View style={addItemFormStyles.deliveryDetailsContainer}>
+                            <Text style={addItemFormStyles.deliveryDetailsTitle}>📦 Detalles de Entrega</Text>
 
-                            <Text style={styles.label}>Distancia Máxima de Entrega (km)</Text>
+                            <Text style={addItemFormStyles.label}>Distancia Máxima de Entrega (km)</Text>
                             <TextInput
-                                style={styles.input}
+                                style={addItemFormStyles.input}
                                 onChangeText={setDeliveryDistance}
                                 value={deliveryDistance}
                                 placeholder="Ej: 5"
@@ -741,39 +742,39 @@ export default function AddItemFormScreen({ session, navigation }) {
                             />
 
                             {/* Toggle Entrega Gratuita */}
-                            <Text style={styles.label}>Tipo de Entrega</Text>
-                            <View style={styles.deliveryFeeTypeContainer}>
+                            <Text style={addItemFormStyles.label}>Tipo de Entrega</Text>
+                            <View style={addItemFormStyles.deliveryFeeTypeContainer}>
                                 <TouchableOpacity
-                                    style={[styles.deliveryFeeOption, isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    style={[addItemFormStyles.deliveryFeeOption, isFreeDelivery && addItemFormStyles.deliveryFeeOptionActive]}
                                     onPress={() => {
                                         setIsFreeDelivery(true);
                                         setDeliveryFee('');
                                     }}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={styles.deliveryFeeIcon}>🎁</Text>
-                                    <Text style={[styles.deliveryFeeText, isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                    <Text style={addItemFormStyles.deliveryFeeIcon}>🎁</Text>
+                                    <Text style={[addItemFormStyles.deliveryFeeText, isFreeDelivery && addItemFormStyles.deliveryFeeTextActive]}>
                                         Entrega Gratis
                                     </Text>
                                     {isFreeDelivery && (
-                                        <View style={styles.smallCheckmark}>
-                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        <View style={addItemFormStyles.smallCheckmark}>
+                                            <Text style={addItemFormStyles.smallCheckmarkText}>✓</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.deliveryFeeOption, !isFreeDelivery && styles.deliveryFeeOptionActive]}
+                                    style={[addItemFormStyles.deliveryFeeOption, !isFreeDelivery && addItemFormStyles.deliveryFeeOptionActive]}
                                     onPress={() => setIsFreeDelivery(false)}
                                     activeOpacity={0.7}
                                 >
-                                    <Text style={styles.deliveryFeeIcon}>💰</Text>
-                                    <Text style={[styles.deliveryFeeText, !isFreeDelivery && styles.deliveryFeeTextActive]}>
+                                    <Text style={addItemFormStyles.deliveryFeeIcon}>💰</Text>
+                                    <Text style={[addItemFormStyles.deliveryFeeText, !isFreeDelivery && addItemFormStyles.deliveryFeeTextActive]}>
                                         Cobro por Entrega
                                     </Text>
                                     {!isFreeDelivery && (
-                                        <View style={styles.smallCheckmark}>
-                                            <Text style={styles.smallCheckmarkText}>✓</Text>
+                                        <View style={addItemFormStyles.smallCheckmark}>
+                                            <Text style={addItemFormStyles.smallCheckmarkText}>✓</Text>
                                         </View>
                                     )}
                                 </TouchableOpacity>
@@ -782,11 +783,11 @@ export default function AddItemFormScreen({ session, navigation }) {
                             {/* Campo de valor da entrega (só mostra se não for grátis) */}
                             {!isFreeDelivery && (
                                 <>
-                                    <Text style={styles.label}>Valor de la Entrega</Text>
-                                    <View style={styles.priceInputContainer}>
-                                        <Text style={styles.currencySymbol}>€</Text>
+                                    <Text style={addItemFormStyles.label}>Valor de la Entrega</Text>
+                                    <View style={addItemFormStyles.priceInputContainer}>
+                                        <Text style={addItemFormStyles.currencySymbol}>€</Text>
                                         <TextInput
-                                            style={styles.priceInput}
+                                            style={addItemFormStyles.priceInput}
                                             onChangeText={(text) => {
                                                 const formatted = formatEuroValue(text);
                                                 setDeliveryFee(formatted);
@@ -803,25 +804,25 @@ export default function AddItemFormScreen({ session, navigation }) {
                     )}
 
                     {/* Disponibilidad de Recogida */}
-                    <Text style={styles.label}>⏰ Disponibilidad de Recogida</Text>
+                    <Text style={addItemFormStyles.label}>⏰ Disponibilidad de Recogida</Text>
 
                     {/* Toggle Horarios Flexibles */}
                     <TouchableOpacity
-                        style={styles.checkboxContainer}
+                        style={addItemFormStyles.checkboxContainer}
                         onPress={() => setFlexibleHours(!flexibleHours)}
                         activeOpacity={0.7}
                     >
-                        <View style={[styles.checkbox, flexibleHours && styles.checkboxChecked]}>
-                            {flexibleHours && <Text style={styles.checkboxIcon}>✓</Text>}
+                        <View style={[addItemFormStyles.checkbox, flexibleHours && addItemFormStyles.checkboxChecked]}>
+                            {flexibleHours && <Text style={addItemFormStyles.checkboxIcon}>✓</Text>}
                         </View>
-                        <Text style={styles.checkboxLabel}>Horario flexible (06:00 - 23:00, todos los días)</Text>
+                        <Text style={addItemFormStyles.checkboxLabel}>Horario flexible (06:00 - 23:00, todos los días)</Text>
                     </TouchableOpacity>
 
                     {!flexibleHours && (
                         <>
                             {/* Seletor de Días */}
-                            <Text style={styles.subLabel}>Días disponibles:</Text>
-                            <View style={styles.daysContainer}>
+                            <Text style={addItemFormStyles.subLabel}>Días disponibles:</Text>
+                            <View style={addItemFormStyles.daysContainer}>
                                 {[
                                     { key: 'monday', label: 'L' },
                                     { key: 'tuesday', label: 'M' },
@@ -833,10 +834,10 @@ export default function AddItemFormScreen({ session, navigation }) {
                                 ].map(day => (
                                     <TouchableOpacity
                                         key={day.key}
-                                        style={[styles.dayButton, pickupDays[day.key] && styles.dayButtonActive]}
+                                        style={[addItemFormStyles.dayButton, pickupDays[day.key] && addItemFormStyles.dayButtonActive]}
                                         onPress={() => setPickupDays({...pickupDays, [day.key]: !pickupDays[day.key]})}
                                     >
-                                        <Text style={[styles.dayButtonText, pickupDays[day.key] && styles.dayButtonTextActive]}>
+                                        <Text style={[addItemFormStyles.dayButtonText, pickupDays[day.key] && addItemFormStyles.dayButtonTextActive]}>
                                             {day.label}
                                         </Text>
                                     </TouchableOpacity>
@@ -844,23 +845,23 @@ export default function AddItemFormScreen({ session, navigation }) {
                             </View>
 
                             {/* Horarios Manhã/Tarde/Noite */}
-                            <Text style={styles.subLabel}>Horarios de recogida:</Text>
+                            <Text style={addItemFormStyles.subLabel}>Horarios de recogida:</Text>
 
                             {/* Mañana */}
                             <TouchableOpacity
-                                style={styles.checkboxContainer}
+                                style={addItemFormStyles.checkboxContainer}
                                 onPress={() => setPickupMorning(!pickupMorning)}
                                 activeOpacity={0.7}
                             >
-                                <View style={[styles.checkbox, pickupMorning && styles.checkboxChecked]}>
-                                    {pickupMorning && <Text style={styles.checkboxCheck}>✓</Text>}
+                                <View style={[addItemFormStyles.checkbox, pickupMorning && addItemFormStyles.checkboxChecked]}>
+                                    {pickupMorning && <Text style={addItemFormStyles.checkboxCheck}>✓</Text>}
                                 </View>
-                                <Text style={styles.checkboxLabel}>🌅 Mañana</Text>
+                                <Text style={addItemFormStyles.checkboxLabel}>🌅 Mañana</Text>
                             </TouchableOpacity>
                             {pickupMorning && (
-                                <View style={styles.timeRangeContainer}>
+                                <View style={addItemFormStyles.timeRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -876,12 +877,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Desde:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupMorningStart}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Desde:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupMorningStart}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <Text style={addItemFormStyles.timeRangeSeparator}>-</Text>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -897,27 +898,27 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupMorningEnd}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupMorningEnd}</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {/* Tarde */}
                             <TouchableOpacity
-                                style={styles.checkboxContainer}
+                                style={addItemFormStyles.checkboxContainer}
                                 onPress={() => setPickupAfternoon(!pickupAfternoon)}
                                 activeOpacity={0.7}
                             >
-                                <View style={[styles.checkbox, pickupAfternoon && styles.checkboxChecked]}>
-                                    {pickupAfternoon && <Text style={styles.checkboxCheck}>✓</Text>}
+                                <View style={[addItemFormStyles.checkbox, pickupAfternoon && addItemFormStyles.checkboxChecked]}>
+                                    {pickupAfternoon && <Text style={addItemFormStyles.checkboxCheck}>✓</Text>}
                                 </View>
-                                <Text style={styles.checkboxLabel}>☀️ Tarde</Text>
+                                <Text style={addItemFormStyles.checkboxLabel}>☀️ Tarde</Text>
                             </TouchableOpacity>
                             {pickupAfternoon && (
-                                <View style={styles.timeRangeContainer}>
+                                <View style={addItemFormStyles.timeRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -933,12 +934,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Desde:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupAfternoonStart}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Desde:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupAfternoonStart}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <Text style={addItemFormStyles.timeRangeSeparator}>-</Text>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -954,27 +955,27 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupAfternoonEnd}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupAfternoonEnd}</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
 
                             {/* Noche */}
                             <TouchableOpacity
-                                style={styles.checkboxContainer}
+                                style={addItemFormStyles.checkboxContainer}
                                 onPress={() => setPickupEvening(!pickupEvening)}
                                 activeOpacity={0.7}
                             >
-                                <View style={[styles.checkbox, pickupEvening && styles.checkboxChecked]}>
-                                    {pickupEvening && <Text style={styles.checkboxCheck}>✓</Text>}
+                                <View style={[addItemFormStyles.checkbox, pickupEvening && addItemFormStyles.checkboxChecked]}>
+                                    {pickupEvening && <Text style={addItemFormStyles.checkboxCheck}>✓</Text>}
                                 </View>
-                                <Text style={styles.checkboxLabel}>🌙 Noche</Text>
+                                <Text style={addItemFormStyles.checkboxLabel}>🌙 Noche</Text>
                             </TouchableOpacity>
                             {pickupEvening && (
-                                <View style={styles.timeRangeContainer}>
+                                <View style={addItemFormStyles.timeRangeContainer}>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -990,12 +991,12 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Desde:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupEveningStart}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Desde:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupEveningStart}</Text>
                                     </TouchableOpacity>
-                                    <Text style={styles.timeRangeSeparator}>-</Text>
+                                    <Text style={addItemFormStyles.timeRangeSeparator}>-</Text>
                                     <TouchableOpacity
-                                        style={styles.timePickerButton}
+                                        style={addItemFormStyles.timePickerButton}
                                         onPress={() => {
                                             const hours = Array.from({length: 18}, (_, i) => {
                                                 const hour = (i + 6).toString().padStart(2, '0');
@@ -1011,8 +1012,8 @@ export default function AddItemFormScreen({ session, navigation }) {
                                             );
                                         }}
                                     >
-                                        <Text style={styles.timePickerLabel}>Hasta:</Text>
-                                        <Text style={styles.timePickerValue}>{pickupEveningEnd}</Text>
+                                        <Text style={addItemFormStyles.timePickerLabel}>Hasta:</Text>
+                                        <Text style={addItemFormStyles.timePickerValue}>{pickupEveningEnd}</Text>
                                     </TouchableOpacity>
                                 </View>
                             )}
@@ -1021,33 +1022,33 @@ export default function AddItemFormScreen({ session, navigation }) {
                 </View>
 
                 {/* Card: Fotos */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📸 Fotos del Artículo</Text>
-                    <Text style={styles.cardSubtitle}>Sube hasta 3 fotos - La primera será la principal</Text>
+                <View style={addItemFormStyles.card}>
+                    <Text style={addItemFormStyles.cardTitle}>📸 Fotos del Artículo</Text>
+                    <Text style={addItemFormStyles.cardSubtitle}>Sube hasta 3 fotos - La primera será la principal</Text>
 
-                    <View style={styles.photosGrid}>
+                    <View style={addItemFormStyles.photosGrid}>
                         {photos.map((photo, index) => (
-                            <View key={index} style={styles.photoContainer}>
+                            <View key={index} style={addItemFormStyles.photoContainer}>
                                 <TouchableOpacity
                                     onPress={() => pickImage(index)}
-                                    style={[styles.photoPlaceholder, index === 0 && styles.photoPlaceholderPrimary]}
+                                    style={[addItemFormStyles.photoPlaceholder, index === 0 && addItemFormStyles.photoPlaceholderPrimary]}
                                 >
                                     {photo ? (
                                         <>
-                                            <Image source={{ uri: photo }} style={styles.previewImage} />
-                                            <TouchableOpacity style={styles.removePhotoButton} onPress={() => removePhoto(index)}>
-                                                <Text style={styles.removePhotoText}>✕</Text>
+                                            <Image source={{ uri: photo }} style={addItemFormStyles.previewImage} />
+                                            <TouchableOpacity style={addItemFormStyles.removePhotoButton} onPress={() => removePhoto(index)}>
+                                                <Text style={addItemFormStyles.removePhotoText}>✕</Text>
                                             </TouchableOpacity>
                                             {index === 0 && (
-                                                <View style={styles.primaryBadge}>
-                                                    <Text style={styles.primaryBadgeText}>Principal</Text>
+                                                <View style={addItemFormStyles.primaryBadge}>
+                                                    <Text style={addItemFormStyles.primaryBadgeText}>Principal</Text>
                                                 </View>
                                             )}
                                         </>
                                     ) : (
-                                        <View style={styles.addPhotoContent}>
-                                            <Text style={styles.addPhotoIcon}>📷</Text>
-                                            <Text style={styles.addPhotoText}>
+                                        <View style={addItemFormStyles.addPhotoContent}>
+                                            <Text style={addItemFormStyles.addPhotoIcon}>📷</Text>
+                                            <Text style={addItemFormStyles.addPhotoText}>
                                                 {index === 0 ? 'Foto Principal' : `Foto ${index + 1}`}
                                             </Text>
                                         </View>
@@ -1060,7 +1061,7 @@ export default function AddItemFormScreen({ session, navigation }) {
 
                 {/* Botão Publicar */}
                 <TouchableOpacity
-                    style={[styles.publishButton, loading && styles.publishButtonDisabled]}
+                    style={[addItemFormStyles.publishButton, loading && addItemFormStyles.publishButtonDisabled]}
                     onPress={handleSubmit}
                     disabled={loading}
                     activeOpacity={0.8}
@@ -1069,17 +1070,17 @@ export default function AddItemFormScreen({ session, navigation }) {
                         colors={loading ? ['#95a5a6', '#7f8c8d'] : ['#10B981', '#059669']}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
-                        style={styles.publishButtonGradient}
+                        style={addItemFormStyles.publishButtonGradient}
                     >
                         {loading ? (
-                            <View style={styles.publishButtonContent}>
+                            <View style={addItemFormStyles.publishButtonContent}>
                                 <ActivityIndicator color="#fff" size="small" />
-                                <Text style={styles.publishButtonText}>Procesando...</Text>
+                                <Text style={addItemFormStyles.publishButtonText}>Procesando...</Text>
                             </View>
                         ) : (
-                            <View style={styles.publishButtonContent}>
-                                <Text style={styles.publishButtonIcon}>🚀</Text>
-                                <Text style={styles.publishButtonText}>Anunciar Artículo</Text>
+                            <View style={addItemFormStyles.publishButtonContent}>
+                                <Text style={addItemFormStyles.publishButtonIcon}>🚀</Text>
+                                <Text style={addItemFormStyles.publishButtonText}>Anunciar Artículo</Text>
                             </View>
                         )}
                     </LinearGradient>
@@ -1091,561 +1092,7 @@ export default function AddItemFormScreen({ session, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    safeContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    headerContainer: {
-        backgroundColor: '#10B981',
-        paddingHorizontal: 10,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#059669',
-    },
-    headerTopRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    leftHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    backArrow: {
-        fontSize: 24,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    logoImage: {
-        width: 20,
-        height: 20,
-        borderRadius: 4,
-    },
-    logoText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    scrollContent: {
-        flex: 1,
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 4,
-    },
-    cardSubtitle: {
-        fontSize: 13,
-        color: '#666',
-        marginBottom: 16,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginTop: 12,
-        marginBottom: 8,
-    },
-    sublabel: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 8,
-        fontStyle: 'italic',
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        backgroundColor: '#F8F9FA',
-        padding: 14,
-        borderRadius: 12,
-        fontSize: 15,
-        color: '#333',
-    },
-    multilineInput: {
-        height: 100,
-        textAlignVertical: 'top',
-    },
-    pickerContainer: {
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        overflow: 'hidden',
-    },
-    priceInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        paddingHorizontal: 14,
-    },
-    currencySymbol: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#28a745',
-        marginRight: 8,
-    },
-    priceInput: {
-        flex: 1,
-        paddingVertical: 14,
-        fontSize: 15,
-        color: '#333',
-    },
-    perDay: {
-        fontSize: 14,
-        color: '#666',
-        marginLeft: 8,
-    },
-    depositWarning: {
-        fontSize: 12,
-        color: '#FF9800',
-        fontStyle: 'italic',
-        marginBottom: 8,
-        lineHeight: 18,
-    },
-    checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 8,
-        marginBottom: 12,
-        paddingVertical: 8,
-    },
-    checkbox: {
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-        borderWidth: 2,
-        borderColor: '#2c4455',
-        backgroundColor: '#fff',
-        marginRight: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    checkboxChecked: {
-        backgroundColor: '#2c4455',
-    },
-    checkboxIcon: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    checkboxLabel: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '500',
-    },
-    deliveryTypeContainer: {
-        marginTop: 12,
-        gap: 10,
-    },
-    deliveryOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-        padding: 14,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-    },
-    deliveryOptionActive: {
-        backgroundColor: '#E3F2FD',
-        borderColor: '#2c4455',
-    },
-    deliveryOptionIcon: {
-        fontSize: 20,
-        marginRight: 12,
-    },
-    deliveryOptionText: {
-        fontSize: 15,
-        color: '#666',
-        fontWeight: '500',
-        flex: 1,
-    },
-    deliveryOptionTextActive: {
-        color: '#2c4455',
-        fontWeight: '700',
-    },
-    deliveryCheckmark: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        backgroundColor: '#2c4455',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    deliveryCheckmarkText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    photosGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        marginTop: 12,
-        gap: 10,
-    },
-    photoContainer: {
-        width: '31%',
-        aspectRatio: 1,
-    },
-    photoPlaceholder: {
-        width: '100%',
-        height: '100%',
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        borderStyle: 'dashed',
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-        overflow: 'hidden',
-    },
-    photoPlaceholderPrimary: {
-        borderColor: '#2c4455',
-        borderStyle: 'solid',
-        borderWidth: 2,
-    },
-    addPhotoContent: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    addPhotoIcon: {
-        fontSize: 28,
-        marginBottom: 4,
-    },
-    addPhotoText: {
-        fontSize: 10,
-        color: '#666',
-        textAlign: 'center',
-        fontWeight: '600',
-    },
-    previewImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 10,
-    },
-    removePhotoButton: {
-        position: 'absolute',
-        top: 4,
-        right: 4,
-        backgroundColor: 'rgba(220, 53, 69, 0.9)',
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    removePhotoText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    primaryBadge: {
-        position: 'absolute',
-        bottom: 4,
-        left: 4,
-        backgroundColor: 'rgba(44, 68, 85, 0.9)',
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-    },
-    primaryBadgeText: {
-        color: '#fff',
-        fontSize: 8,
-        fontWeight: 'bold',
-    },
-    publishButton: {
-        marginTop: 8,
-        marginBottom: 8,
-        borderRadius: 16,
-        overflow: 'hidden',
-        elevation: 8,
-        shadowColor: '#10B981',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 6,
-    },
-    publishButtonDisabled: {
-        opacity: 0.7,
-    },
-    publishButtonGradient: {
-        paddingVertical: 18,
-        paddingHorizontal: 24,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    publishButtonContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 12,
-    },
-    publishButtonIcon: {
-        fontSize: 24,
-    },
-    publishButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-        letterSpacing: 0.5,
-    },
-    loadingAddressContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        backgroundColor: '#F8F9FA',
-        borderRadius: 8,
-        marginTop: 8,
-        gap: 10,
-    },
-    loadingAddressText: {
-        fontSize: 14,
-        color: '#666',
-        fontStyle: 'italic',
-    },
-    suggestionsContainer: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-        marginTop: 12,
-        padding: 12,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    suggestionsTitle: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#2c4455',
-        marginBottom: 10,
-    },
-    suggestionItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        backgroundColor: '#F8F9FA',
-        borderRadius: 8,
-        marginBottom: 8,
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    suggestionIcon: {
-        fontSize: 18,
-        marginRight: 10,
-    },
-    suggestionText: {
-        fontSize: 14,
-        color: '#333',
-        flex: 1,
-    },
-    selectedLocationContainer: {
-        marginTop: 12,
-    },
-    selectedLocationLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#2c4455',
-        marginBottom: 8,
-    },
-    selectedLocationBox: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#E8F5E9',
-        padding: 14,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#10B981',
-    },
-    selectedLocationIcon: {
-        fontSize: 20,
-        marginRight: 10,
-    },
-    selectedLocationText: {
-        fontSize: 15,
-        color: '#2c4455',
-        fontWeight: '500',
-        flex: 1,
-    },
-    clearLocationButton: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        backgroundColor: '#dc3545',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    clearLocationText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    // Estilos para disponibilidade de horários
-    subLabel: {
-        fontSize: 14,
-        color: '#555',
-        fontWeight: '600',
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    daysContainer: {
-        flexDirection: 'row',
-        gap: 8,
-        marginBottom: 16,
-    },
-    dayButton: {
-        flex: 1,
-        paddingVertical: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#DDD',
-        backgroundColor: '#F8F9FA',
-        alignItems: 'center',
-    },
-    dayButtonActive: {
-        backgroundColor: '#10B981',
-        borderColor: '#10B981',
-    },
-    dayButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#666',
-    },
-    dayButtonTextActive: {
-        color: '#fff',
-    },
-    timeRangeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        marginBottom: 8,
-    },
-    timePickerButton: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        borderWidth: 1,
-        borderColor: '#DDD',
-        borderRadius: 8,
-        padding: 12,
-    },
-    timePickerLabel: {
-        fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
-    },
-    timePickerValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    timeRangeSeparator: {
-        fontSize: 20,
-        color: '#666',
-        fontWeight: 'bold',
-    },
-    deliveryDetailsContainer: {
-        marginTop: 20,
-        padding: 16,
-        backgroundColor: '#F8F9FA',
-        borderRadius: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#10B981',
-    },
-    deliveryDetailsTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 12,
-    },
-    deliveryFeeTypeContainer: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 8,
-        marginBottom: 12,
-    },
-    deliveryFeeOption: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        gap: 6,
-        minHeight: 44,
-    },
-    deliveryFeeOptionActive: {
-        backgroundColor: '#E8F5E9',
-        borderColor: '#10B981',
-    },
-    deliveryFeeIcon: {
-        fontSize: 16,
-    },
-    deliveryFeeText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#666',
-        flexShrink: 1,
-    },
-    deliveryFeeTextActive: {
-        color: '#10B981',
-    },
-    smallCheckmark: {
-        width: 20,
-        height: 20,
-        borderRadius: 10,
-        backgroundColor: '#10B981',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 4,
-    },
-    smallCheckmarkText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-});
+
 
 
 

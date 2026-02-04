@@ -1,25 +1,24 @@
 import React, { useState } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     ScrollView,
     Image,
     TouchableOpacity,
     Modal,
-    Dimensions,
-    Alert,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { disputeDetailsStyles } from '../styles/screens/disputeDetailsStyles';
 
 export default function DisputeDetailsScreen({ route, navigation }) {
     const { dispute } = route.params;
     const [selectedImage, setSelectedImage] = useState(null);
     const [resolving, setResolving] = useState(false);
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const SCREEN_WIDTH = 375;
 
     const getPhotoUrl = (photoPath) => {
         if (!photoPath) return null;
@@ -131,66 +130,66 @@ export default function DisputeDetailsScreen({ route, navigation }) {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={disputeDetailsStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={disputeDetailsStyles.header}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={disputeDetailsStyles.backButton}
                     onPress={() => navigation.goBack()}
                 >
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Detalles de la Disputa</Text>
+                <Text style={disputeDetailsStyles.headerTitle}>Detalles de la Disputa</Text>
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView style={styles.content}>
+            <ScrollView style={disputeDetailsStyles.content}>
                 {/* Status Badge */}
-                <View style={styles.statusContainer}>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColors[dispute.status] + '20' }]}>
-                        <Text style={[styles.statusText, { color: statusColors[dispute.status] }]}>
+                <View style={disputeDetailsStyles.statusContainer}>
+                    <View style={[disputeDetailsStyles.statusBadge, { backgroundColor: statusColors[dispute.status] + '20' }]}>
+                        <Text style={[disputeDetailsStyles.statusText, { color: statusColors[dispute.status] }]}>
                             {dispute.status === 'open' ? 'Abierta' : dispute.status === 'resolved' ? 'Resuelta' : 'Cancelada'}
                         </Text>
                     </View>
                 </View>
 
                 {/* Item Info */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📦 Artículo</Text>
-                    <View style={styles.card}>
-                        <Text style={styles.itemTitle}>{dispute.item?.title}</Text>
-                        <Text style={styles.itemSubtitle}>ID: {dispute.item_id}</Text>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>📦 Artículo</Text>
+                    <View style={disputeDetailsStyles.card}>
+                        <Text style={disputeDetailsStyles.itemTitle}>{dispute.item?.title}</Text>
+                        <Text style={disputeDetailsStyles.itemSubtitle}>ID: {dispute.item_id}</Text>
                     </View>
                 </View>
 
                 {/* Parties */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>👥 Partes Involucradas</Text>
-                    <View style={styles.card}>
-                        <View style={styles.partyRow}>
-                            <Text style={styles.partyLabel}>Propietario (Reportó):</Text>
-                            <Text style={styles.partyValue}>{dispute.owner?.full_name}</Text>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>👥 Partes Involucradas</Text>
+                    <View style={disputeDetailsStyles.card}>
+                        <View style={disputeDetailsStyles.partyRow}>
+                            <Text style={disputeDetailsStyles.partyLabel}>Propietario (Reportó):</Text>
+                            <Text style={disputeDetailsStyles.partyValue}>{dispute.owner?.full_name}</Text>
                         </View>
-                        <View style={styles.partyRow}>
-                            <Text style={styles.partyEmail}>{dispute.owner?.email}</Text>
+                        <View style={disputeDetailsStyles.partyRow}>
+                            <Text style={disputeDetailsStyles.partyEmail}>{dispute.owner?.email}</Text>
                         </View>
 
-                        <View style={styles.divider} />
+                        <View style={disputeDetailsStyles.divider} />
 
-                        <View style={styles.partyRow}>
-                            <Text style={styles.partyLabel}>Locatario (Acusado):</Text>
-                            <Text style={styles.partyValue}>{dispute.renter?.full_name}</Text>
+                        <View style={disputeDetailsStyles.partyRow}>
+                            <Text style={disputeDetailsStyles.partyLabel}>Locatario (Acusado):</Text>
+                            <Text style={disputeDetailsStyles.partyValue}>{dispute.renter?.full_name}</Text>
                         </View>
-                        <View style={styles.partyRow}>
-                            <Text style={styles.partyEmail}>{dispute.renter?.email}</Text>
+                        <View style={disputeDetailsStyles.partyRow}>
+                            <Text style={disputeDetailsStyles.partyEmail}>{dispute.renter?.email}</Text>
                         </View>
                     </View>
                 </View>
 
                 {/* Issues */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>⚠️ Problemas Reportados</Text>
-                    <View style={styles.card}>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>⚠️ Problemas Reportados</Text>
+                    <View style={disputeDetailsStyles.card}>
                         {dispute.issue_types?.map((issue, index) => {
                             const icons = {
                                 damaged: '💥',
@@ -205,9 +204,9 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                                 not_returned: 'No Devuelto',
                             };
                             return (
-                                <View key={index} style={styles.issueRow}>
-                                    <Text style={styles.issueIcon}>{icons[issue]}</Text>
-                                    <Text style={styles.issueText}>{labels[issue]}</Text>
+                                <View key={index} style={disputeDetailsStyles.issueRow}>
+                                    <Text style={disputeDetailsStyles.issueIcon}>{icons[issue]}</Text>
+                                    <Text style={disputeDetailsStyles.issueText}>{labels[issue]}</Text>
                                 </View>
                             );
                         })}
@@ -215,31 +214,31 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                 </View>
 
                 {/* Observation */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📝 Observaciones del Propietario</Text>
-                    <View style={styles.card}>
-                        <Text style={styles.observationText}>{dispute.observation}</Text>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>📝 Observaciones del Propietario</Text>
+                    <View style={disputeDetailsStyles.card}>
+                        <Text style={disputeDetailsStyles.observationText}>{dispute.observation}</Text>
                     </View>
                 </View>
 
                 {/* Photos */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>
                         📸 Fotos de Evidencia ({dispute.photos?.length || 0})
                     </Text>
-                    <View style={styles.photosContainer}>
+                    <View style={disputeDetailsStyles.photosContainer}>
                         {dispute.photos?.map((photo, index) => (
                             <TouchableOpacity
                                 key={index}
-                                style={styles.photoWrapper}
+                                style={disputeDetailsStyles.photoWrapper}
                                 onPress={() => setSelectedImage(getPhotoUrl(photo))}
                             >
                                 <Image
                                     source={{ uri: getPhotoUrl(photo) }}
-                                    style={styles.photo}
+                                    style={disputeDetailsStyles.photo}
                                     resizeMode="cover"
                                 />
-                                <View style={styles.photoOverlay}>
+                                <View style={disputeDetailsStyles.photoOverlay}>
                                     <Ionicons name="expand" size={24} color="#fff" />
                                 </View>
                             </TouchableOpacity>
@@ -248,38 +247,38 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                 </View>
 
                 {/* Financial Info */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>💰 Información Financiera</Text>
-                    <View style={styles.card}>
-                        <View style={styles.financeRow}>
-                            <Text style={styles.financeLabel}>Valor de la Caución:</Text>
-                            <Text style={styles.financeValue}>€{dispute.deposit_amount?.toFixed(2)}</Text>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>💰 Información Financiera</Text>
+                    <View style={disputeDetailsStyles.card}>
+                        <View style={disputeDetailsStyles.financeRow}>
+                            <Text style={disputeDetailsStyles.financeLabel}>Valor de la Caución:</Text>
+                            <Text style={disputeDetailsStyles.financeValue}>€{dispute.deposit_amount?.toFixed(2)}</Text>
                         </View>
 
                         {dispute.status === 'resolved' && (
                             <>
-                                <View style={styles.divider} />
-                                <View style={styles.financeRow}>
-                                    <Text style={styles.financeLabel}>Severidad:</Text>
-                                    <View style={[styles.severityBadge, { backgroundColor: severityColors[dispute.severity] + '20' }]}>
-                                        <Text style={[styles.severityText, { color: severityColors[dispute.severity] }]}>
+                                <View style={disputeDetailsStyles.divider} />
+                                <View style={disputeDetailsStyles.financeRow}>
+                                    <Text style={disputeDetailsStyles.financeLabel}>Severidad:</Text>
+                                    <View style={[disputeDetailsStyles.severityBadge, { backgroundColor: severityColors[dispute.severity] + '20' }]}>
+                                        <Text style={[disputeDetailsStyles.severityText, { color: severityColors[dispute.severity] }]}>
                                             {dispute.severity === 'ok' ? 'OK' : dispute.severity === 'minor' ? 'Leve' : 'Grave'}
                                         </Text>
                                     </View>
                                 </View>
-                                <View style={styles.financeRow}>
-                                    <Text style={styles.financeLabel}>Porcentaje Retenido:</Text>
-                                    <Text style={styles.financeValue}>{dispute.deduction_percentage}%</Text>
+                                <View style={disputeDetailsStyles.financeRow}>
+                                    <Text style={disputeDetailsStyles.financeLabel}>Porcentaje Retenido:</Text>
+                                    <Text style={disputeDetailsStyles.financeValue}>{dispute.deduction_percentage}%</Text>
                                 </View>
-                                <View style={styles.financeRow}>
-                                    <Text style={styles.financeLabel}>Monto Retenido:</Text>
-                                    <Text style={[styles.financeValue, { color: '#EF4444' }]}>
+                                <View style={disputeDetailsStyles.financeRow}>
+                                    <Text style={disputeDetailsStyles.financeLabel}>Monto Retenido:</Text>
+                                    <Text style={[disputeDetailsStyles.financeValue, { color: '#EF4444' }]}>
                                         €{dispute.deduction_amount?.toFixed(2)}
                                     </Text>
                                 </View>
-                                <View style={styles.financeRow}>
-                                    <Text style={styles.financeLabel}>Monto Devuelto:</Text>
-                                    <Text style={[styles.financeValue, { color: '#10B981' }]}>
+                                <View style={disputeDetailsStyles.financeRow}>
+                                    <Text style={disputeDetailsStyles.financeLabel}>Monto Devuelto:</Text>
+                                    <Text style={[disputeDetailsStyles.financeValue, { color: '#10B981' }]}>
                                         €{dispute.refund_amount?.toFixed(2)}
                                     </Text>
                                 </View>
@@ -289,19 +288,19 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                 </View>
 
                 {/* Dates */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>📅 Fechas</Text>
-                    <View style={styles.card}>
-                        <View style={styles.dateRow}>
-                            <Text style={styles.dateLabel}>Creada:</Text>
-                            <Text style={styles.dateValue}>
+                <View style={disputeDetailsStyles.section}>
+                    <Text style={disputeDetailsStyles.sectionTitle}>📅 Fechas</Text>
+                    <View style={disputeDetailsStyles.card}>
+                        <View style={disputeDetailsStyles.dateRow}>
+                            <Text style={disputeDetailsStyles.dateLabel}>Creada:</Text>
+                            <Text style={disputeDetailsStyles.dateValue}>
                                 {new Date(dispute.created_at).toLocaleString('es-ES')}
                             </Text>
                         </View>
                         {dispute.resolved_at && (
-                            <View style={styles.dateRow}>
-                                <Text style={styles.dateLabel}>Resuelta:</Text>
-                                <Text style={styles.dateValue}>
+                            <View style={disputeDetailsStyles.dateRow}>
+                                <Text style={disputeDetailsStyles.dateLabel}>Resuelta:</Text>
+                                <Text style={disputeDetailsStyles.dateValue}>
                                     {new Date(dispute.resolved_at).toLocaleString('es-ES')}
                                 </Text>
                             </View>
@@ -312,12 +311,12 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                 {/* Action Button */}
                 {dispute.status === 'open' && (
                     <TouchableOpacity
-                        style={[styles.resolveButton, resolving && styles.resolveButtonDisabled]}
+                        style={[disputeDetailsStyles.resolveButton, resolving && disputeDetailsStyles.resolveButtonDisabled]}
                         onPress={handleResolveDispute}
                         disabled={resolving}
                     >
                         <Ionicons name="checkmark-circle" size={24} color="#fff" />
-                        <Text style={styles.resolveButtonText}>
+                        <Text style={disputeDetailsStyles.resolveButtonText}>
                             {resolving ? 'Resolviendo...' : 'Resolver Disputa'}
                         </Text>
                     </TouchableOpacity>
@@ -333,9 +332,9 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                 animationType="fade"
                 onRequestClose={() => setSelectedImage(null)}
             >
-                <View style={styles.imageModalOverlay}>
+                <View style={disputeDetailsStyles.imageModalOverlay}>
                     <TouchableOpacity
-                        style={styles.imageModalClose}
+                        style={disputeDetailsStyles.imageModalClose}
                         onPress={() => setSelectedImage(null)}
                     >
                         <Ionicons name="close-circle" size={40} color="#fff" />
@@ -344,7 +343,7 @@ export default function DisputeDetailsScreen({ route, navigation }) {
                     {selectedImage && (
                         <Image
                             source={{ uri: selectedImage }}
-                            style={styles.fullImage}
+                            style={disputeDetailsStyles.fullImage}
                             resizeMode="contain"
                         />
                     )}
@@ -354,203 +353,5 @@ export default function DisputeDetailsScreen({ route, navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    backButton: {
-        padding: 4,
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-    },
-    statusContainer: {
-        alignItems: 'center',
-        paddingVertical: 16,
-    },
-    statusBadge: {
-        paddingHorizontal: 20,
-        paddingVertical: 8,
-        borderRadius: 20,
-    },
-    statusText: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    section: {
-        padding: 16,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 12,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    itemTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    itemSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    partyRow: {
-        marginBottom: 4,
-    },
-    partyLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 4,
-    },
-    partyValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    partyEmail: {
-        fontSize: 14,
-        color: '#9CA3AF',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: '#E5E7EB',
-        marginVertical: 12,
-    },
-    issueRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    issueIcon: {
-        fontSize: 24,
-        marginRight: 12,
-    },
-    issueText: {
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    observationText: {
-        fontSize: 15,
-        color: '#374151',
-        lineHeight: 22,
-    },
-    photosContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 12,
-    },
-    photoWrapper: {
-        width: (SCREEN_WIDTH - 48) / 2,
-        height: (SCREEN_WIDTH - 48) / 2,
-        borderRadius: 12,
-        overflow: 'hidden',
-        position: 'relative',
-    },
-    photo: {
-        width: '100%',
-        height: '100%',
-    },
-    photoOverlay: {
-        position: 'absolute',
-        bottom: 8,
-        right: 8,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        borderRadius: 20,
-        padding: 8,
-    },
-    financeRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    financeLabel: {
-        fontSize: 15,
-        color: '#6B7280',
-    },
-    financeValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#1F2937',
-    },
-    severityBadge: {
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    severityText: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    dateRow: {
-        marginBottom: 8,
-    },
-    dateLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 4,
-    },
-    dateValue: {
-        fontSize: 15,
-        color: '#1F2937',
-    },
-    resolveButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#10B981',
-        margin: 16,
-        padding: 16,
-        borderRadius: 12,
-        gap: 8,
-    },
-    resolveButtonDisabled: {
-        backgroundColor: '#9CA3AF',
-    },
-    resolveButtonText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    imageModalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    imageModalClose: {
-        position: 'absolute',
-        top: 50,
-        right: 20,
-        zIndex: 10,
-    },
-    fullImage: {
-        width: SCREEN_WIDTH,
-        height: '80%',
-    },
-});
+
 

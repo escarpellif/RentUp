@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import {View, Text, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { staticContentsStyles } from '../styles/components/staticContentsStyles';
 
 export const AboutUsContent = () => {
     const { i18n } = useTranslation();
@@ -9,16 +10,16 @@ export const AboutUsContent = () => {
     return (
         <View>
             {/* Logo e Título */}
-            <View style={headerStyles.headerContainer}>
+            <View style={staticContentsStyles.headerContainer}>
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={headerStyles.logo}
+                    style={staticContentsStyles.logo}
                     resizeMode="contain"
                 />
-                <Text style={headerStyles.brandName}>ALUKO</Text>
+                <Text style={staticContentsStyles.brandName}>ALUKO</Text>
             </View>
 
-            <Text style={headerStyles.pageTitle}>
+            <Text style={staticContentsStyles.pageTitle}>
                 {isSpanish ? 'Nuestra Misión' : 'Our Mission'}
             </Text>
             <Text style={{ fontSize: 16, lineHeight: 24, marginBottom: 15, color: '#333' }}>
@@ -97,16 +98,16 @@ export const FAQsContent = () => {
     return (
         <View>
             {/* Logo e Título */}
-            <View style={headerStyles.headerContainer}>
+            <View style={staticContentsStyles.headerContainer}>
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={headerStyles.logo}
+                    style={staticContentsStyles.logo}
                     resizeMode="contain"
                 />
-                <Text style={headerStyles.brandName}>ALUKO</Text>
+                <Text style={staticContentsStyles.brandName}>ALUKO</Text>
             </View>
 
-            <Text style={headerStyles.pageTitle}>
+            <Text style={staticContentsStyles.pageTitle}>
                 {isSpanish ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}
             </Text>
 
@@ -131,16 +132,16 @@ export const UserPolicyContent = () => {
     return (
         <View>
             {/* Logo e Título */}
-            <View style={headerStyles.headerContainer}>
+            <View style={staticContentsStyles.headerContainer}>
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={headerStyles.logo}
+                    style={staticContentsStyles.logo}
                     resizeMode="contain"
                 />
-                <Text style={headerStyles.brandName}>ALUKO</Text>
+                <Text style={staticContentsStyles.brandName}>ALUKO</Text>
             </View>
 
-            <Text style={headerStyles.pageTitle}>
+            <Text style={staticContentsStyles.pageTitle}>
                 {isSpanish ? 'Política de Usuario' : 'User Policy'}
             </Text>
 
@@ -178,16 +179,16 @@ export const CancellationContent = () => {
     return (
         <View>
             {/* Logo e Título */}
-            <View style={headerStyles.headerContainer}>
+            <View style={staticContentsStyles.headerContainer}>
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={headerStyles.logo}
+                    style={staticContentsStyles.logo}
                     resizeMode="contain"
                 />
-                <Text style={headerStyles.brandName}>ALUKO</Text>
+                <Text style={staticContentsStyles.brandName}>ALUKO</Text>
             </View>
 
-            <Text style={headerStyles.pageTitle}>
+            <Text style={staticContentsStyles.pageTitle}>
                 {isSpanish ? 'Política de Cancelación' : 'Cancellation Policy'}
             </Text>
 
@@ -228,16 +229,16 @@ export const PrivacyContent = () => {
     return (
         <View>
             {/* Logo e Título */}
-            <View style={headerStyles.headerContainer}>
+            <View style={staticContentsStyles.headerContainer}>
                 <Image
                     source={require('../../assets/images/app-icon.png')}
-                    style={headerStyles.logo}
+                    style={staticContentsStyles.logo}
                     resizeMode="contain"
                 />
-                <Text style={headerStyles.brandName}>ALUKO</Text>
+                <Text style={staticContentsStyles.brandName}>ALUKO</Text>
             </View>
 
-            <Text style={headerStyles.pageTitle}>
+            <Text style={staticContentsStyles.pageTitle}>
                 {isSpanish ? 'Política de Privacidad' : 'Privacy Policy'}
             </Text>
 
@@ -279,31 +280,5 @@ export const PrivacyContent = () => {
 };
 
 // Estilos compartilhados para os headers
-const headerStyles = StyleSheet.create({
-    headerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-        paddingBottom: 15,
-        borderBottomWidth: 2,
-        borderBottomColor: '#10B981',
-    },
-    logo: {
-        width: 40,
-        height: 40,
-        marginRight: 12,
-    },
-    brandName: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#10B981',
-        letterSpacing: 1,
-    },
-    pageTitle: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        color: '#2c4455',
-    },
-});
+
 

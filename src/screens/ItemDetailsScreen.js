@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform , StatusBar, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
@@ -7,6 +7,7 @@ import ExactLocationMap from '../components/ExactLocationMap';
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 import { requiereAutenticacion } from '../utils/guestCheck';
 import { useTranslation } from 'react-i18next';
+import { itemDetailsStyles } from '../styles/screens/itemDetailsStyles';
 
 
 const SUPABASE_URL = 'https://fvhnkwxvxnsatqmljnxu.supabase.co';
@@ -171,15 +172,15 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
         const ratingValue = rating ? parseFloat(rating) : 0;
 
         return (
-            <View style={styles.starsContainer}>
-                <View style={styles.starsRow}>
+            <View style={itemDetailsStyles.starsContainer}>
+                <View style={itemDetailsStyles.starsRow}>
                     {[1, 2, 3, 4, 5].map((star) => (
-                        <Text key={star} style={styles.starIcon}>
+                        <Text key={star} style={itemDetailsStyles.starIcon}>
                             {star <= Math.round(ratingValue) ? '⭐' : '☆'}
                         </Text>
                     ))}
                 </View>
-                <Text style={styles.ratingNumber}>
+                <Text style={itemDetailsStyles.ratingNumber}>
                     {ratingValue > 0 ? ratingValue.toFixed(1) : ''} ({count || 0} {count === 1 ? 'valoración' : 'valoraciones'})
                 </Text>
             </View>
@@ -187,94 +188,94 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
     };
 
     return (
-        <SafeAreaView style={styles.safeContainer}>
+        <SafeAreaView style={itemDetailsStyles.safeContainer}>
             <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
             {/* Header Verde - Mesmo layout do Marketplace */}
-            <View style={styles.headerContainer}>
-                <View style={styles.headerTopRow}>
+            <View style={itemDetailsStyles.headerContainer}>
+                <View style={itemDetailsStyles.headerTopRow}>
                     {/* Botão Voltar + Título */}
-                    <View style={styles.leftHeader}>
+                    <View style={itemDetailsStyles.leftHeader}>
                         <TouchableOpacity
-                            style={styles.backButtonCircle}
+                            style={itemDetailsStyles.backButtonCircle}
                             onPress={() => navigation.goBack()}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.backArrow}>←</Text>
+                            <Text style={itemDetailsStyles.backArrow}>←</Text>
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>Detalles del Artículo</Text>
+                        <Text style={itemDetailsStyles.headerTitle}>Detalles del Artículo</Text>
                     </View>
 
                     {/* ALUKO à Direita */}
-                    <View style={styles.logoContainer}>
+                    <View style={itemDetailsStyles.logoContainer}>
                         <Image
                             source={require('../../assets/images/app-icon.png')}
-                            style={styles.logoImage}
+                            style={itemDetailsStyles.logoImage}
                             resizeMode="contain"
                         />
-                        <Text style={styles.logoText}>ALUKO</Text>
+                        <Text style={itemDetailsStyles.logoText}>ALUKO</Text>
                     </View>
                 </View>
             </View>
 
-            <ScrollView style={styles.scrollContainer}>
+            <ScrollView style={itemDetailsStyles.scrollContainer}>
                 {/* Card Branco com Conteúdo */}
-                <View style={styles.cardContainer}>
+                <View style={itemDetailsStyles.cardContainer}>
                     {/* Carrossel de Fotos */}
                     {photos.length > 0 ? (
                         <PhotoCarousel photos={photos} supabaseUrl={SUPABASE_URL} />
                     ) : (
-                        <View style={styles.noPhotoContainer}>
-                            <Text style={styles.noPhotoText}>📷</Text>
-                            <Text style={styles.noPhotoLabel}>Sin foto disponible</Text>
+                        <View style={itemDetailsStyles.noPhotoContainer}>
+                            <Text style={itemDetailsStyles.noPhotoText}>📷</Text>
+                            <Text style={itemDetailsStyles.noPhotoLabel}>Sin foto disponible</Text>
                         </View>
                     )}
 
                     {/* Informações Principais */}
-                    <View style={styles.contentContainer}>
+                    <View style={itemDetailsStyles.contentContainer}>
                         {/* Categoria no topo */}
-                        <View style={styles.categoryBadgeContainer}>
-                            <View style={styles.badge}>
-                                <Text style={styles.badgeText}>{item.category}</Text>
+                        <View style={itemDetailsStyles.categoryBadgeContainer}>
+                            <View style={itemDetailsStyles.badge}>
+                                <Text style={itemDetailsStyles.badgeText}>{item.category}</Text>
                             </View>
                         </View>
 
-                        <Text style={styles.title}>{item?.title || 'Sin título'}</Text>
+                        <Text style={itemDetailsStyles.title}>{item?.title || 'Sin título'}</Text>
 
-                        <View style={styles.priceContainer}>
-                            <Text style={styles.price}>
+                        <View style={itemDetailsStyles.priceContainer}>
+                            <Text style={itemDetailsStyles.price}>
                                 €{(session?.user?.id === item?.owner_id
                                     ? parseFloat(item?.price_per_day || 0)
                                     : parseFloat(item?.price_per_day || 0) * 1.18
                                 ).toFixed(2)}
                             </Text>
-                            <Text style={styles.priceLabel}> / día</Text>
+                            <Text style={itemDetailsStyles.priceLabel}> / día</Text>
                         </View>
 
                         {/* Descrição */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Descripción</Text>
-                            <Text style={styles.description}>{item.description}</Text>
+                        <View style={itemDetailsStyles.section}>
+                            <Text style={itemDetailsStyles.sectionTitle}>Descripción</Text>
+                            <Text style={itemDetailsStyles.description}>{item.description}</Text>
                         </View>
 
                         {/* Descontos - Mostrar apenas se houver descontos */}
                         {(item.discount_week > 0 || item.discount_month > 0) && (
-                            <View style={styles.discountContainer}>
-                                <Text style={styles.discountTitle}>🎉 {t('items.discountsAvailable')}</Text>
+                            <View style={itemDetailsStyles.discountContainer}>
+                                <Text style={itemDetailsStyles.discountTitle}>🎉 {t('items.discountsAvailable')}</Text>
                                 {item.discount_week > 0 && (
-                                    <View style={styles.discountItem}>
-                                        <Text style={styles.discountIcon}>📅</Text>
-                                        <Text style={styles.discountText}>
-                                            <Text style={styles.discountBold}>{item.discount_week}% OFF</Text>
+                                    <View style={itemDetailsStyles.discountItem}>
+                                        <Text style={itemDetailsStyles.discountIcon}>📅</Text>
+                                        <Text style={itemDetailsStyles.discountText}>
+                                            <Text style={itemDetailsStyles.discountBold}>{item.discount_week}% OFF</Text>
                                             {' '}{t('items.weeklyDiscount')}
                                         </Text>
                                     </View>
                                 )}
                                 {item.discount_month > 0 && (
-                                    <View style={styles.discountItem}>
-                                        <Text style={styles.discountIcon}>📆</Text>
-                                        <Text style={styles.discountText}>
-                                            <Text style={styles.discountBold}>{item.discount_month}% OFF</Text>
+                                    <View style={itemDetailsStyles.discountItem}>
+                                        <Text style={itemDetailsStyles.discountIcon}>📆</Text>
+                                        <Text style={itemDetailsStyles.discountText}>
+                                            <Text style={itemDetailsStyles.discountBold}>{item.discount_month}% OFF</Text>
                                             {' '}{t('items.monthlyDiscount')}
                                         </Text>
                                     </View>
@@ -283,42 +284,42 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                         )}
 
                         {/* Opções de Entrega */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>🚚 Opciones de Entrega</Text>
+                        <View style={itemDetailsStyles.section}>
+                            <Text style={itemDetailsStyles.sectionTitle}>🚚 Opciones de Entrega</Text>
                             {item.delivery_type === 'delivery' ? (
-                                <View style={styles.deliveryOptionsContainer}>
+                                <View style={itemDetailsStyles.deliveryOptionsContainer}>
                                     {item.is_free_delivery ? (
                                         <>
-                                            <View style={styles.deliveryOption}>
-                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
-                                                <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                            <View style={itemDetailsStyles.deliveryOption}>
+                                                <Text style={itemDetailsStyles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={itemDetailsStyles.deliveryOptionText}>Recogida en el local</Text>
                                             </View>
-                                            <Text style={styles.orText}>O</Text>
-                                            <View style={styles.deliveryOption}>
-                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
-                                                <Text style={styles.deliveryOptionText}>Entrega gratis</Text>
+                                            <Text style={itemDetailsStyles.orText}>O</Text>
+                                            <View style={itemDetailsStyles.deliveryOption}>
+                                                <Text style={itemDetailsStyles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={itemDetailsStyles.deliveryOptionText}>Entrega gratis</Text>
                                             </View>
                                             {item.delivery_distance && (
-                                                <Text style={styles.deliveryNote}>
+                                                <Text style={itemDetailsStyles.deliveryNote}>
                                                     📍 Entrega hasta {item.delivery_distance} km
                                                 </Text>
                                             )}
                                         </>
                                     ) : (
                                         <>
-                                            <View style={styles.deliveryOption}>
-                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
-                                                <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                            <View style={itemDetailsStyles.deliveryOption}>
+                                                <Text style={itemDetailsStyles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={itemDetailsStyles.deliveryOptionText}>Recogida en el local</Text>
                                             </View>
-                                            <Text style={styles.orText}>O</Text>
-                                            <View style={styles.deliveryOption}>
-                                                <Text style={styles.deliveryOptionIcon}>✓</Text>
-                                                <Text style={styles.deliveryOptionText}>
+                                            <Text style={itemDetailsStyles.orText}>O</Text>
+                                            <View style={itemDetailsStyles.deliveryOption}>
+                                                <Text style={itemDetailsStyles.deliveryOptionIcon}>✓</Text>
+                                                <Text style={itemDetailsStyles.deliveryOptionText}>
                                                     Entrega mediante taxa de €{parseFloat(item.delivery_fee || 0).toFixed(2)}
                                                 </Text>
                                             </View>
                                             {item.delivery_distance && (
-                                                <Text style={styles.deliveryNote}>
+                                                <Text style={itemDetailsStyles.deliveryNote}>
                                                     📍 Entrega hasta {item.delivery_distance} km
                                                 </Text>
                                             )}
@@ -326,19 +327,19 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                                     )}
                                 </View>
                             ) : (
-                                <View style={styles.deliveryOptionsContainer}>
-                                    <View style={styles.deliveryOption}>
-                                        <Text style={styles.deliveryOptionIcon}>✓</Text>
-                                        <Text style={styles.deliveryOptionText}>Recogida en el local</Text>
+                                <View style={itemDetailsStyles.deliveryOptionsContainer}>
+                                    <View style={itemDetailsStyles.deliveryOption}>
+                                        <Text style={itemDetailsStyles.deliveryOptionIcon}>✓</Text>
+                                        <Text style={itemDetailsStyles.deliveryOptionText}>Recogida en el local</Text>
                                     </View>
                                 </View>
                             )}
                         </View>
 
                         {/* Ubicación */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Ubicación</Text>
-                            <Text style={styles.locationText}>📍 {item.location_full || item.location}</Text>
+                        <View style={itemDetailsStyles.section}>
+                            <Text style={itemDetailsStyles.sectionTitle}>Ubicación</Text>
+                            <Text style={itemDetailsStyles.locationText}>📍 {item.location_full || item.location}</Text>
                         </View>
 
                         {/* Exact Location Map */}
@@ -348,16 +349,16 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                         />
 
                         {/* Informações do Dono */}
-                        <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Anunciante</Text>
+                        <View style={itemDetailsStyles.section}>
+                            <Text style={itemDetailsStyles.sectionTitle}>Anunciante</Text>
                             {loading ? (
                                 <Text>Cargando...</Text>
                             ) : (
-                                <View style={styles.ownerCardLeft}>
-                                    <Text style={styles.ownerNameLeft}>
+                                <View style={itemDetailsStyles.ownerCardLeft}>
+                                    <Text style={itemDetailsStyles.ownerNameLeft}>
                                         {ownerProfile?.full_name || 'Usuario'}
                                     </Text>
-                                    <View style={styles.starsContainerLeft}>
+                                    <View style={itemDetailsStyles.starsContainerLeft}>
                                         {renderStars(ownerProfile?.rating_average || 0, ownerProfile?.rating_count || 0)}
                                     </View>
                                 </View>
@@ -365,17 +366,17 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                         </View>
 
                 {/* Informações Adicionais */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Información</Text>
-                    <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>Disponible:</Text>
-                        <Text style={styles.infoValue}>
+                <View style={itemDetailsStyles.section}>
+                    <Text style={itemDetailsStyles.sectionTitle}>Información</Text>
+                    <View style={itemDetailsStyles.infoItem}>
+                        <Text style={itemDetailsStyles.infoLabel}>Disponible:</Text>
+                        <Text style={itemDetailsStyles.infoValue}>
                             {item.is_available ? '✅ Sí' : '❌ No disponible'}
                         </Text>
                     </View>
-                    <View style={styles.infoItem}>
-                        <Text style={styles.infoLabel}>Anunciado el:</Text>
-                        <Text style={styles.infoValue}>
+                    <View style={itemDetailsStyles.infoItem}>
+                        <Text style={itemDetailsStyles.infoLabel}>Anunciado el:</Text>
+                        <Text style={itemDetailsStyles.infoValue}>
                             {new Date(item.created_at).toLocaleDateString('es-ES')}
                         </Text>
                     </View>
@@ -383,21 +384,21 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
 
                 {/* Botões de Ação - Ocultar se for o próprio dono */}
                 {session?.user?.id !== item?.owner_id && (
-                    <View style={styles.actionButtons}>
+                    <View style={itemDetailsStyles.actionButtons}>
                         <TouchableOpacity
-                            style={styles.primaryButton}
+                            style={itemDetailsStyles.primaryButton}
                             onPress={handleRequestRental}
                         >
-                            <Text style={styles.primaryButtonText}>
+                            <Text style={itemDetailsStyles.primaryButtonText}>
                                 🔑 Solicitar Alquiler
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={styles.contactButton}
+                            style={itemDetailsStyles.contactButton}
                             onPress={handleContact}
                         >
-                            <Text style={styles.contactButtonText}>
+                            <Text style={itemDetailsStyles.contactButtonText}>
                                 💬 Chat
                             </Text>
                         </TouchableOpacity>
@@ -413,356 +414,4 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
     );
 }
 
-const styles = StyleSheet.create({
-    safeContainer: {
-        flex: 1,
-        backgroundColor: '#E8EAED',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    // Header Verde - Mesmo layout do Marketplace
-    headerContainer: {
-        backgroundColor: '#10B981',
-        paddingTop: 12,
-        paddingBottom: 12,
-        paddingHorizontal: 16,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-    },
-    headerTopRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    leftHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    backButtonCircle: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    backArrow: {
-        fontSize: 20,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    logoImage: {
-        width: 20,
-        height: 20,
-        borderRadius: 4,
-    },
-    logoText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    scrollContainer: {
-        flex: 1,
-        backgroundColor: '#E8EAED',
-    },
-    cardContainer: {
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
-        marginTop: 16,
-        marginBottom: 16,
-        borderRadius: 12,
-        overflow: 'hidden',
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-    },
-    noPhotoContainer: {
-        width: '100%',
-        height: 300,
-        backgroundColor: '#F8F9FA',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    noPhotoText: {
-        fontSize: 60,
-        marginBottom: 10,
-    },
-    noPhotoLabel: {
-        fontSize: 16,
-        color: '#666',
-    },
-    contentContainer: {
-        padding: 20,
-    },
-    categoryBadgeContainer: {
-        flexDirection: 'row',
-        marginBottom: 12,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#333',
-        textAlign: 'left',
-    },
-    priceContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        marginBottom: 15,
-    },
-    price: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    priceLabel: {
-        fontSize: 18,
-        color: '#6c757d',
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-        gap: 10,
-    },
-    badge: {
-        backgroundColor: '#007bff',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 15,
-        alignSelf: 'flex-start',
-    },
-    badgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    location: {
-        fontSize: 14,
-        color: '#6c757d',
-    },
-    locationText: {
-        fontSize: 16,
-        color: '#495057',
-        lineHeight: 24,
-        textAlign: 'left',
-    },
-    section: {
-        marginTop: 20,
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#e9ecef',
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#2c4455',
-        textAlign: 'left',
-    },
-    description: {
-        fontSize: 16,
-        lineHeight: 24,
-        color: '#495057',
-        textAlign: 'left',
-    },
-    ownerCard: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#f8f9fa',
-        padding: 15,
-        borderRadius: 10,
-    },
-    ownerCardLeft: {
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-        backgroundColor: 'transparent',
-        padding: 0,
-    },
-    ownerInfo: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    ownerName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    ownerNameLeft: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-        textAlign: 'left',
-        marginBottom: 8,
-    },
-    contactButton: {
-        backgroundColor: '#2c4455',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    contactButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    starsContainer: {
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 5,
-    },
-    starsContainerLeft: {
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
-        marginTop: 5,
-    },
-    starsRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    starIcon: {
-        fontSize: 16,
-        marginRight: 2,
-    },
-    ratingNumber: {
-        marginTop: 6,
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        textAlign: 'left',
-    },
-    infoItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: 8,
-    },
-    infoLabel: {
-        fontSize: 14,
-        color: '#6c757d',
-    },
-    infoValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-    },
-    actionButtons: {
-        marginTop: 30,
-        gap: 10,
-    },
-    primaryButton: {
-        backgroundColor: '#28a745',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    primaryButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    secondaryButton: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#007bff',
-    },
-    secondaryButtonText: {
-        color: '#007bff',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    deliveryOptionsContainer: {
-        backgroundColor: '#F8F9FA',
-        padding: 16,
-        borderRadius: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#10B981',
-    },
-    deliveryOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10,
-        gap: 10,
-    },
-    deliveryOptionIcon: {
-        fontSize: 18,
-        color: '#10B981',
-        fontWeight: 'bold',
-    },
-    deliveryOptionText: {
-        fontSize: 15,
-        color: '#333',
-        fontWeight: '500',
-    },
-    deliveryNote: {
-        fontSize: 13,
-        color: '#666',
-        fontStyle: 'italic',
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-    },
-    orText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        color: '#999',
-        textAlign: 'center',
-        marginVertical: 8,
-    },
-    // Estilos para Descontos
-    discountContainer: {
-        backgroundColor: '#FFF3E0',
-        padding: 16,
-        borderRadius: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#FF9800',
-        marginTop: 20,
-        marginBottom: 10,
-    },
-    discountTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E65100',
-        marginBottom: 12,
-        textAlign: 'left',
-    },
-    discountItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        gap: 10,
-    },
-    discountIcon: {
-        fontSize: 20,
-    },
-    discountText: {
-        fontSize: 15,
-        color: '#333',
-        flex: 1,
-    },
-    discountBold: {
-        fontWeight: 'bold',
-        color: '#E65100',
-        fontSize: 16,
-    },
-});
+

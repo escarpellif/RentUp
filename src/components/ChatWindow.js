@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet, Platform, Alert, ImageBackground, KeyboardAvoidingView } from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Platform, Alert, ImageBackground, KeyboardAvoidingView } from 'react-native';
 import { supabase } from '../../supabase';
+import { chatWindowStyles } from '../styles/components/chatWindowStyles';
 
 export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfileId, session, onClose }) {
     const [messages, setMessages] = useState([]);
@@ -77,8 +78,8 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     // Validação
     if (!receiverId || !session?.user?.id) {
         return (
-            <View style={styles.container}>
-                <Text style={styles.errorText}>Error: Información del usuario incompleta</Text>
+            <View style={chatWindowStyles.container}>
+                <Text style={chatWindowStyles.errorText}>Error: Información del usuario incompleta</Text>
             </View>
         );
     }
@@ -143,17 +144,17 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
         const isCurrentUser = item.sender_id === session?.user?.id;
 
         return (
-            <View style={[styles.messageRow, isCurrentUser ? styles.messageRowRight : styles.messageRowLeft]}>
+            <View style={[chatWindowStyles.messageRow, isCurrentUser ? chatWindowStyles.messageRowRight : chatWindowStyles.messageRowLeft]}>
                 <View
                     style={[
-                        styles.messageBubble,
-                        isCurrentUser ? styles.messageBubbleCurrentUser : styles.messageBubbleOtherUser,
+                        chatWindowStyles.messageBubble,
+                        isCurrentUser ? chatWindowStyles.messageBubbleCurrentUser : chatWindowStyles.messageBubbleOtherUser,
                     ]}
                 >
-                    <Text style={[styles.messageText, isCurrentUser ? styles.messageTextLight : styles.messageTextDark]}>
+                    <Text style={[chatWindowStyles.messageText, isCurrentUser ? chatWindowStyles.messageTextLight : chatWindowStyles.messageTextDark]}>
                         {item.message_text}
                     </Text>
-                    <Text style={[styles.messageTime, isCurrentUser ? styles.messageTimeLight : styles.messageTimeDark]}>
+                    <Text style={[chatWindowStyles.messageTime, isCurrentUser ? chatWindowStyles.messageTimeLight : chatWindowStyles.messageTimeDark]}>
                         {new Date(item.created_at).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -166,9 +167,9 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
+            <View style={chatWindowStyles.loadingContainer}>
                 <ActivityIndicator size="large" color="#2c4455" />
-                <Text style={styles.loadingText}>Cargando mensajes...</Text>
+                <Text style={chatWindowStyles.loadingText}>Cargando mensajes...</Text>
             </View>
         );
     }
@@ -176,23 +177,23 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.container}
+            style={chatWindowStyles.container}
             keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
             <ImageBackground
                 source={require('../../assets/images/chat-bg.png')}
-                style={styles.backgroundContainer}
-                imageStyle={styles.backgroundImage}
+                style={chatWindowStyles.backgroundContainer}
+                imageStyle={chatWindowStyles.backgroundImage}
             >
                 {/* Header del Chat */}
-                <View style={styles.header}>
-                    <View style={styles.headerContent}>
-                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                            <Text style={styles.closeButtonText}>✕</Text>
+                <View style={chatWindowStyles.header}>
+                    <View style={chatWindowStyles.headerContent}>
+                        <TouchableOpacity onPress={onClose} style={chatWindowStyles.closeButton}>
+                            <Text style={chatWindowStyles.closeButtonText}>✕</Text>
                         </TouchableOpacity>
-                        <View style={styles.headerTitle}>
-                            <Text style={styles.headerItemTitle} numberOfLines={1}>{itemTitle}</Text>
-                            <Text style={styles.headerUserName}>{ownerProfile.username || 'Usuario'}</Text>
+                        <View style={chatWindowStyles.headerTitle}>
+                            <Text style={chatWindowStyles.headerItemTitle} numberOfLines={1}>{itemTitle}</Text>
+                            <Text style={chatWindowStyles.headerUserName}>{ownerProfile.username || 'Usuario'}</Text>
                         </View>
                     </View>
                 </View>
@@ -203,15 +204,15 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
                     data={messages}
                     renderItem={renderMessage}
                     keyExtractor={(item) => item.id}
-                    style={styles.messagesList}
-                    contentContainerStyle={styles.messagesContent}
+                    style={chatWindowStyles.messagesList}
+                    contentContainerStyle={chatWindowStyles.messagesContent}
                     onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                 />
 
                 {/* Input de Mensagem */}
-                <View style={styles.inputContainer}>
+                <View style={chatWindowStyles.inputContainer}>
                     <TextInput
-                        style={styles.input}
+                        style={chatWindowStyles.input}
                         placeholder="Escriba un mensaje..."
                         placeholderTextColor="#999"
                         value={messageText}
@@ -221,12 +222,12 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
                         editable={!sending}
                     />
                     <TouchableOpacity
-                        style={[styles.sendButton, (!messageText.trim() || sending) && styles.sendButtonDisabled]}
+                        style={[chatWindowStyles.sendButton, (!messageText.trim() || sending) && chatWindowStyles.sendButtonDisabled]}
                         onPress={sendMessage}
                         disabled={!messageText.trim() || sending}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.sendButtonText}>{sending ? '...' : '📤'}</Text>
+                        <Text style={chatWindowStyles.sendButtonText}>{sending ? '...' : '📤'}</Text>
                     </TouchableOpacity>
                 </View>
             </ImageBackground>
@@ -234,174 +235,5 @@ export default function ChatWindow({ itemId, itemTitle, ownerProfile, ownerProfi
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    backgroundContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-    },
-    backgroundImage: {
-        opacity: 0.7,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-    },
-    loadingText: {
-        marginTop: 10,
-        fontSize: 14,
-        color: '#666',
-    },
-    errorText: {
-        fontSize: 16,
-        color: '#dc3545',
-        textAlign: 'center',
-        marginTop: 20,
-    },
-    header: {
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        marginTop: 25,
-        borderBottomColor: '#E8E8E8',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        paddingTop: Platform.OS === 'android' ? 20 : 18,
-        paddingBottom: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-        gap: 12,
-    },
-    closeButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#F0F0F0',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexShrink: 0,
-    },
-    closeButtonText: {
-        fontSize: 24,
-        color: '#333',
-        fontWeight: '600',
-    },
-    headerTitle: {
-        flex: 1,
-        justifyContent: 'center',
-    },
-    headerItemTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#1a1a1a',
-        marginBottom: 4,
-        lineHeight: 20,
-    },
-    headerUserName: {
-        fontSize: 13,
-        color: '#666',
-        fontWeight: '500',
-    },
-    messagesList: {
-        flex: 1,
-    },
-    messagesContent: {
-        paddingHorizontal: 16,
-        paddingVertical: 24,
-        paddingBottom: 30,
-    },
-    messageRow: {
-        marginVertical: 8,
-        flexDirection: 'row',
-    },
-    messageRowLeft: {
-        justifyContent: 'flex-start',
-    },
-    messageRowRight: {
-        justifyContent: 'flex-end',
-    },
-    messageBubble: {
-        maxWidth: '78%',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 18,
-    },
-    messageBubbleCurrentUser: {
-        backgroundColor: '#2c4455',
-    },
-    messageBubbleOtherUser: {
-        backgroundColor: '#E8E8E8',
-    },
-    messageText: {
-        fontSize: 16,
-        lineHeight: 22,
-    },
-    messageTextLight: {
-        color: '#fff',
-    },
-    messageTextDark: {
-        color: '#333',
-    },
-    messageTime: {
-        fontSize: 12,
-        marginTop: 6,
-    },
-    messageTimeLight: {
-        color: 'rgba(255, 255, 255, 0.6)',
-    },
-    messageTimeDark: {
-        color: '#999',
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#E8E8E8',
-        paddingHorizontal: 16,
-        paddingVertical: 16,
-        paddingBottom: Platform.OS === 'android' ? 16 : 20,
-        gap: 12,
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#F0F0F0',
-        borderRadius: 24,
-        paddingHorizontal: 18,
-        paddingVertical: 14,
-        fontSize: 16,
-        color: '#333',
-        maxHeight: 100,
-    },
-    sendButton: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
-        backgroundColor: '#10B981',
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        flexShrink: 0,
-    },
-    sendButtonDisabled: {
-        backgroundColor: '#ccc',
-        opacity: 0.6,
-    },
-    sendButtonText: {
-        fontSize: 22,
-    },
-});
+
 

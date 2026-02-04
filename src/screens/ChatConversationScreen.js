@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet, Platform, StatusBar, KeyboardAvoidingView } from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, FlatList, ActivityIndicator, Platform, StatusBar, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { handleApiError } from '../utils/errorHandler';
 import { withTimeout } from '../utils/apiHelpers';
+import { chatConversationStyles } from '../styles/screens/chatConversationStyles';
 
 export default function ChatConversationScreen({ route, navigation, session }) {
     const { itemId, item, otherUser, conversationId } = route.params;
@@ -155,17 +156,17 @@ export default function ChatConversationScreen({ route, navigation, session }) {
         const isCurrentUser = item.sender_id === session.user.id;
 
         return (
-            <View style={[styles.messageRow, isCurrentUser ? styles.messageRowRight : styles.messageRowLeft]}>
+            <View style={[chatConversationStyles.messageRow, isCurrentUser ? chatConversationStyles.messageRowRight : chatConversationStyles.messageRowLeft]}>
                 <View
                     style={[
-                        styles.messageBubble,
-                        isCurrentUser ? styles.messageBubbleCurrentUser : styles.messageBubbleOtherUser,
+                        chatConversationStyles.messageBubble,
+                        isCurrentUser ? chatConversationStyles.messageBubbleCurrentUser : chatConversationStyles.messageBubbleOtherUser,
                     ]}
                 >
-                    <Text style={[styles.messageText, isCurrentUser ? styles.messageTextLight : styles.messageTextDark]}>
+                    <Text style={[chatConversationStyles.messageText, isCurrentUser ? chatConversationStyles.messageTextLight : chatConversationStyles.messageTextDark]}>
                         {item.message_text}
                     </Text>
-                    <Text style={[styles.messageTime, isCurrentUser ? styles.messageTimeLight : styles.messageTimeDark]}>
+                    <Text style={[chatConversationStyles.messageTime, isCurrentUser ? chatConversationStyles.messageTimeLight : chatConversationStyles.messageTimeDark]}>
                         {new Date(item.created_at).toLocaleTimeString('es-ES', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -181,40 +182,40 @@ export default function ChatConversationScreen({ route, navigation, session }) {
 
     if (loading) {
         return (
-            <SafeAreaView style={styles.container}>
+            <SafeAreaView style={chatConversationStyles.container}>
                 <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
-                <View style={styles.loadingContainer}>
+                <View style={chatConversationStyles.loadingContainer}>
                     <ActivityIndicator size="large" color="#2c4455" />
-                    <Text style={styles.loadingText}>Cargando mensajes...</Text>
+                    <Text style={chatConversationStyles.loadingText}>Cargando mensajes...</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={chatConversationStyles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F8F9FA" />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={chatConversationStyles.header}>
                 <TouchableOpacity
-                    style={styles.backButton}
+                    style={chatConversationStyles.backButton}
                     onPress={() => navigation.goBack()}
                     activeOpacity={0.7}
                 >
-                    <Text style={styles.backArrow}>←</Text>
+                    <Text style={chatConversationStyles.backArrow}>←</Text>
                 </TouchableOpacity>
-                <View style={styles.headerInfo}>
-                    <Text style={styles.headerName}>{otherUserName}</Text>
-                    <Text style={styles.headerItem} numberOfLines={1}>📦 {itemTitle}</Text>
+                <View style={chatConversationStyles.headerInfo}>
+                    <Text style={chatConversationStyles.headerName}>{otherUserName}</Text>
+                    <Text style={chatConversationStyles.headerItem} numberOfLines={1}>📦 {itemTitle}</Text>
                 </View>
-                <View style={styles.headerSpacer} />
+                <View style={chatConversationStyles.headerSpacer} />
             </View>
 
             {/* Messages */}
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                style={styles.chatContainer}
+                style={chatConversationStyles.chatContainer}
                 keyboardVerticalOffset={0}
             >
                 <FlatList
@@ -222,14 +223,14 @@ export default function ChatConversationScreen({ route, navigation, session }) {
                     data={messages}
                     renderItem={renderMessage}
                     keyExtractor={(item) => item.id}
-                    contentContainerStyle={styles.messagesList}
+                    contentContainerStyle={chatConversationStyles.messagesList}
                     onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                 />
 
                 {/* Input */}
-                <View style={styles.inputContainer}>
+                <View style={chatConversationStyles.inputContainer}>
                     <TextInput
-                        style={styles.input}
+                        style={chatConversationStyles.input}
                         value={messageText}
                         onChangeText={setMessageText}
                         placeholder="Escribe un mensaje..."
@@ -238,12 +239,12 @@ export default function ChatConversationScreen({ route, navigation, session }) {
                         maxLength={500}
                     />
                     <TouchableOpacity
-                        style={[styles.sendButton, (!messageText.trim() || sending) && styles.sendButtonDisabled]}
+                        style={[chatConversationStyles.sendButton, (!messageText.trim() || sending) && chatConversationStyles.sendButtonDisabled]}
                         onPress={sendMessage}
                         disabled={!messageText.trim() || sending}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.sendButtonText}>
+                        <Text style={chatConversationStyles.sendButtonText}>
                             {sending ? '...' : '➤'}
                         </Text>
                     </TouchableOpacity>
@@ -253,142 +254,5 @@ export default function ChatConversationScreen({ route, navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#E5DDD5',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#2c4455',
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#fff',
-    },
-    headerInfo: {
-        flex: 1,
-        marginLeft: 12,
-    },
-    headerName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    headerItem: {
-        fontSize: 12,
-        color: 'rgba(255, 255, 255, 0.8)',
-        marginTop: 2,
-    },
-    headerSpacer: {
-        width: 40,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 12,
-        fontSize: 14,
-        color: '#666',
-    },
-    chatContainer: {
-        flex: 1,
-    },
-    messagesList: {
-        padding: 16,
-        gap: 8,
-    },
-    messageRow: {
-        flexDirection: 'row',
-        marginVertical: 4,
-    },
-    messageRowRight: {
-        justifyContent: 'flex-end',
-    },
-    messageRowLeft: {
-        justifyContent: 'flex-start',
-    },
-    messageBubble: {
-        maxWidth: '75%',
-        borderRadius: 12,
-        padding: 12,
-    },
-    messageBubbleCurrentUser: {
-        backgroundColor: '#10B981',
-        borderBottomRightRadius: 4,
-    },
-    messageBubbleOtherUser: {
-        backgroundColor: '#fff',
-        borderBottomLeftRadius: 4,
-    },
-    messageText: {
-        fontSize: 15,
-        lineHeight: 20,
-    },
-    messageTextLight: {
-        color: '#fff',
-    },
-    messageTextDark: {
-        color: '#333',
-    },
-    messageTime: {
-        fontSize: 11,
-        marginTop: 4,
-    },
-    messageTimeLight: {
-        color: 'rgba(255, 255, 255, 0.8)',
-    },
-    messageTimeDark: {
-        color: '#999',
-    },
-    inputContainer: {
-        flexDirection: 'row',
-        padding: 12,
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#E8E8E8',
-        alignItems: 'flex-end',
-    },
-    input: {
-        flex: 1,
-        backgroundColor: '#F8F9FA',
-        borderRadius: 20,
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        fontSize: 15,
-        maxHeight: 100,
-        color: '#333',
-    },
-    sendButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#10B981',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginLeft: 8,
-    },
-    sendButtonDisabled: {
-        opacity: 0.5,
-    },
-    sendButtonText: {
-        fontSize: 20,
-        color: '#fff',
-    },
-});
+
 

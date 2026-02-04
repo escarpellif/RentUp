@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Alert, RefreshControl, Dimensions } from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+import { myRentals_TABBARStyles } from '../styles/screens/myRentals_TABBARStyles';
 
 export default function MyRentalsScreen({ navigation, session }) {
     const { t } = useTranslation();
@@ -13,6 +12,9 @@ export default function MyRentalsScreen({ navigation, session }) {
     const [rentals, setRentals] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+
+    // TEMPORÁRIO: Valor fixo para debug
+    const SCREEN_WIDTH = 375;
 
     useEffect(() => {
         fetchRentals();
@@ -276,28 +278,28 @@ export default function MyRentalsScreen({ navigation, session }) {
         };
 
         return (
-            <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                    <Text style={styles.itemTitle}>{rental.item?.title}</Text>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColors[rental.status] }]}>
-                        <Text style={styles.statusText}>{statusLabels[rental.status]}</Text>
+            <View style={myRentals_TABBARStyles.card}>
+                <View style={myRentals_TABBARStyles.cardHeader}>
+                    <Text style={myRentals_TABBARStyles.itemTitle}>{rental.item?.title}</Text>
+                    <View style={[myRentals_TABBARStyles.statusBadge, { backgroundColor: statusColors[rental.status] }]}>
+                        <Text style={myRentals_TABBARStyles.statusText}>{statusLabels[rental.status]}</Text>
                     </View>
                 </View>
 
-                <Text style={styles.cardSubtitle}>
+                <Text style={myRentals_TABBARStyles.cardSubtitle}>
                     {isOwner ? `Alquilado por: ${rental.renter?.full_name}` : `Propietario: ${rental.owner?.full_name}`}
                 </Text>
 
-                <View style={styles.infoRow}>
+                <View style={myRentals_TABBARStyles.infoRow}>
                     <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                    <Text style={styles.infoText}>
+                    <Text style={myRentals_TABBARStyles.infoText}>
                         {new Date(rental.start_date).toLocaleDateString()} - {new Date(rental.end_date).toLocaleDateString()}
                     </Text>
                 </View>
 
-                <View style={styles.infoRow}>
+                <View style={myRentals_TABBARStyles.infoRow}>
                     <Ionicons name="cash-outline" size={16} color="#6B7280" />
-                    <Text style={styles.infoText}>
+                    <Text style={myRentals_TABBARStyles.infoText}>
                         {isOwner
                             ? `Recibirás: €${calculateOwnerAmount(rental).toFixed(2)}`
                             : `Total: €${parseFloat(rental.total_amount).toFixed(2)}`
@@ -306,28 +308,28 @@ export default function MyRentalsScreen({ navigation, session }) {
                 </View>
 
                 {activeTab === 'hosting' && rental.status === 'pending' && (
-                    <View style={styles.actionRow}>
+                    <View style={myRentals_TABBARStyles.actionRow}>
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.approveBtn]}
+                            style={[myRentals_TABBARStyles.actionButton, myRentals_TABBARStyles.approveBtn]}
                             onPress={() => handleApprove(rental.id)}
                         >
-                            <Text style={styles.actionButtonText}>✓ Aprobar</Text>
+                            <Text style={myRentals_TABBARStyles.actionButtonText}>✓ Aprobar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.actionButton, styles.rejectBtn]}
+                            style={[myRentals_TABBARStyles.actionButton, myRentals_TABBARStyles.rejectBtn]}
                             onPress={() => handleReject(rental.id)}
                         >
-                            <Text style={styles.actionButtonText}>✗ Rechazar</Text>
+                            <Text style={myRentals_TABBARStyles.actionButtonText}>✗ Rechazar</Text>
                         </TouchableOpacity>
                     </View>
                 )}
 
                 {activeTab === 'renting' && rental.status === 'pending' && (
                     <TouchableOpacity
-                        style={[styles.actionButton, styles.cancelBtn]}
+                        style={[myRentals_TABBARStyles.actionButton, myRentals_TABBARStyles.cancelBtn]}
                         onPress={() => handleCancel(rental.id)}
                     >
-                        <Text style={styles.actionButtonText}>Cancelar Solicitud</Text>
+                        <Text style={myRentals_TABBARStyles.actionButtonText}>Cancelar Solicitud</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -336,7 +338,7 @@ export default function MyRentalsScreen({ navigation, session }) {
 
     const TabButton = ({ tab, icon, label }) => (
         <TouchableOpacity
-            style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
+            style={[myRentals_TABBARStyles.tabButton, activeTab === tab && myRentals_TABBARStyles.tabButtonActive]}
             onPress={() => setActiveTab(tab)}
         >
             <Ionicons
@@ -344,20 +346,20 @@ export default function MyRentalsScreen({ navigation, session }) {
                 size={24}
                 color={activeTab === tab ? '#3B82F6' : '#9CA3AF'}
             />
-            <Text style={[styles.tabLabel, activeTab === tab && styles.tabLabelActive]}>
+            <Text style={[myRentals_TABBARStyles.tabLabel, activeTab === tab && myRentals_TABBARStyles.tabLabelActive]}>
                 {label}
             </Text>
         </TouchableOpacity>
     );
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={myRentals_TABBARStyles.container} edges={['top']}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={myRentals_TABBARStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mis Transacciones</Text>
+                <Text style={myRentals_TABBARStyles.headerTitle}>Mis Transacciones</Text>
                 <TouchableOpacity onPress={fetchRentals}>
                     <Ionicons name="refresh" size={24} color="#3B82F6" />
                 </TouchableOpacity>
@@ -365,15 +367,15 @@ export default function MyRentalsScreen({ navigation, session }) {
 
             {/* Content */}
             <ScrollView
-                style={styles.content}
+                style={myRentals_TABBARStyles.content}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
             >
                 {loading ? (
                     <ActivityIndicator size="large" color="#3B82F6" style={{ marginTop: 40 }} />
                 ) : rentals.length === 0 ? (
-                    <View style={styles.emptyState}>
+                    <View style={myRentals_TABBARStyles.emptyState}>
                         <Ionicons name="file-tray-outline" size={64} color="#D1D5DB" />
-                        <Text style={styles.emptyText}>No hay transacciones</Text>
+                        <Text style={myRentals_TABBARStyles.emptyText}>No hay transacciones</Text>
                     </View>
                 ) : (
                     rentals.map((rental) => <RentalCard key={rental.id} rental={rental} />)
@@ -383,7 +385,7 @@ export default function MyRentalsScreen({ navigation, session }) {
             </ScrollView>
 
             {/* Tab Bar Bottom */}
-            <View style={styles.tabBar}>
+            <View style={myRentals_TABBARStyles.tabBar}>
                 <TabButton tab="renting" icon="search-outline" label="Alquilo" />
                 <TabButton tab="hosting" icon="cube-outline" label="Mis Productos" />
                 <TabButton tab="tickets" icon="ticket-outline" label="Tickets" />
@@ -392,136 +394,5 @@ export default function MyRentalsScreen({ navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    content: {
-        flex: 1,
-    },
-    card: {
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
-        marginTop: 16,
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 8,
-    },
-    itemTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        flex: 1,
-    },
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#fff',
-    },
-    cardSubtitle: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 12,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 8,
-        gap: 8,
-    },
-    infoText: {
-        fontSize: 14,
-        color: '#4B5563',
-    },
-    actionRow: {
-        flexDirection: 'row',
-        marginTop: 12,
-        gap: 8,
-    },
-    actionButton: {
-        flex: 1,
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    approveBtn: {
-        backgroundColor: '#10B981',
-    },
-    rejectBtn: {
-        backgroundColor: '#EF4444',
-    },
-    cancelBtn: {
-        backgroundColor: '#EF4444',
-        marginTop: 12,
-    },
-    actionButtonText: {
-        color: '#fff',
-        fontWeight: '600',
-        fontSize: 14,
-    },
-    emptyState: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#9CA3AF',
-        marginTop: 16,
-    },
-    // Tab Bar
-    tabBar: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-        paddingBottom: 20,
-        paddingTop: 8,
-    },
-    tabButton: {
-        flex: 1,
-        alignItems: 'center',
-        paddingVertical: 8,
-    },
-    tabButtonActive: {
-        // Active state handled by icon/text color
-    },
-    tabLabel: {
-        fontSize: 12,
-        color: '#9CA3AF',
-        marginTop: 4,
-        fontWeight: '500',
-    },
-    tabLabelActive: {
-        color: '#3B82F6',
-        fontWeight: '600',
-    },
-});
+
 

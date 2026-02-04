@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import {
-    View,
+import {View,
     Text,
-    StyleSheet,
     FlatList,
     TouchableOpacity,
     Alert,
@@ -13,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
+import { adminUsersStyles } from '../styles/screens/adminUsersStyles';
 
 export default function AdminUsersScreen({ navigation }) {
     const [users, setUsers] = useState([]);
@@ -132,60 +131,60 @@ export default function AdminUsersScreen({ navigation }) {
         const verificationStatus = item.verification_status || null;
 
         return (
-            <View style={styles.userCard}>
+            <View style={adminUsersStyles.userCard}>
                 {/* Header */}
-                <View style={styles.userHeader}>
-                    <View style={styles.userHeaderLeft}>
-                        <Text style={styles.userName}>{item.full_name || 'Sin nombre'}</Text>
-                        <Text style={styles.userEmail}>{item.email}</Text>
+                <View style={adminUsersStyles.userHeader}>
+                    <View style={adminUsersStyles.userHeaderLeft}>
+                        <Text style={adminUsersStyles.userName}>{item.full_name || 'Sin nombre'}</Text>
+                        <Text style={adminUsersStyles.userEmail}>{item.email}</Text>
                     </View>
-                    <View style={styles.badges}>
+                    <View style={adminUsersStyles.badges}>
                         {item.is_admin && (
-                            <View style={[styles.badge, { backgroundColor: '#8B5CF6' }]}>
-                                <Text style={styles.badgeText}>Admin</Text>
+                            <View style={[adminUsersStyles.badge, { backgroundColor: '#8B5CF6' }]}>
+                                <Text style={adminUsersStyles.badgeText}>Admin</Text>
                             </View>
                         )}
                         {item.problematic_user && (
-                            <View style={[styles.badge, { backgroundColor: '#EF4444' }]}>
-                                <Text style={styles.badgeText}>⚠️</Text>
+                            <View style={[adminUsersStyles.badge, { backgroundColor: '#EF4444' }]}>
+                                <Text style={adminUsersStyles.badgeText}>⚠️</Text>
                             </View>
                         )}
                     </View>
                 </View>
 
                 {/* Info Grid */}
-                <View style={styles.infoGrid}>
-                    <View style={styles.infoItem}>
+                <View style={adminUsersStyles.infoGrid}>
+                    <View style={adminUsersStyles.infoItem}>
                         <Ionicons name="checkmark-circle" size={16} color={verificationColors[verificationStatus]} />
-                        <Text style={[styles.infoText, { color: verificationColors[verificationStatus] }]}>
+                        <Text style={[adminUsersStyles.infoText, { color: verificationColors[verificationStatus] }]}>
                             {verificationLabels[verificationStatus]}
                         </Text>
                     </View>
-                    <View style={styles.infoItem}>
+                    <View style={adminUsersStyles.infoItem}>
                         <Ionicons name="location" size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>{item.city || 'Sin ubicación'}</Text>
+                        <Text style={adminUsersStyles.infoText}>{item.city || 'Sin ubicación'}</Text>
                     </View>
                 </View>
 
-                <View style={styles.infoGrid}>
-                    <View style={styles.infoItem}>
+                <View style={adminUsersStyles.infoGrid}>
+                    <View style={adminUsersStyles.infoItem}>
                         <Ionicons name="calendar" size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>
+                        <Text style={adminUsersStyles.infoText}>
                             {new Date(item.created_at).toLocaleDateString('es-ES')}
                         </Text>
                     </View>
-                    <View style={styles.infoItem}>
+                    <View style={adminUsersStyles.infoItem}>
                         <Ionicons name="alert-circle" size={16} color="#6B7280" />
-                        <Text style={styles.infoText}>
+                        <Text style={adminUsersStyles.infoText}>
                             {item.dispute_count || 0} disputas
                         </Text>
                     </View>
                 </View>
 
                 {/* Actions */}
-                <View style={styles.actions}>
+                <View style={adminUsersStyles.actions}>
                     <TouchableOpacity
-                        style={[styles.actionButton, item.is_admin && styles.actionButtonActive]}
+                        style={[adminUsersStyles.actionButton, item.is_admin && adminUsersStyles.actionButtonActive]}
                         onPress={() => toggleAdmin(item.id, item.is_admin)}
                     >
                         <Ionicons
@@ -193,13 +192,13 @@ export default function AdminUsersScreen({ navigation }) {
                             size={18}
                             color={item.is_admin ? '#fff' : '#8B5CF6'}
                         />
-                        <Text style={[styles.actionButtonText, item.is_admin && styles.actionButtonTextActive]}>
+                        <Text style={[adminUsersStyles.actionButtonText, item.is_admin && adminUsersStyles.actionButtonTextActive]}>
                             {item.is_admin ? 'Remover Admin' : 'Hacer Admin'}
                         </Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                        style={[styles.actionButton, item.problematic_user && styles.actionButtonDanger]}
+                        style={[adminUsersStyles.actionButton, item.problematic_user && adminUsersStyles.actionButtonDanger]}
                         onPress={() => toggleProblematicUser(item.id, item.problematic_user)}
                     >
                         <Ionicons
@@ -207,7 +206,7 @@ export default function AdminUsersScreen({ navigation }) {
                             size={18}
                             color={item.problematic_user ? '#fff' : '#EF4444'}
                         />
-                        <Text style={[styles.actionButtonText, item.problematic_user && styles.actionButtonTextActive]}>
+                        <Text style={[adminUsersStyles.actionButtonText, item.problematic_user && adminUsersStyles.actionButtonTextActive]}>
                             {item.problematic_user ? 'OK' : 'Problemático'}
                         </Text>
                     </TouchableOpacity>
@@ -227,21 +226,21 @@ export default function AdminUsersScreen({ navigation }) {
     });
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={adminUsersStyles.container}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={adminUsersStyles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <Ionicons name="arrow-back" size={24} color="#1F2937" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gestión de Usuarios</Text>
+                <Text style={adminUsersStyles.headerTitle}>Gestión de Usuarios</Text>
                 <View style={{ width: 24 }} />
             </View>
 
             {/* Search */}
-            <View style={styles.searchContainer}>
+            <View style={adminUsersStyles.searchContainer}>
                 <Ionicons name="search" size={20} color="#9CA3AF" />
                 <TextInput
-                    style={styles.searchInput}
+                    style={adminUsersStyles.searchInput}
                     placeholder="Buscar por nombre, email o ciudad..."
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -252,74 +251,74 @@ export default function AdminUsersScreen({ navigation }) {
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
+                style={adminUsersStyles.filtersContainer}
+                contentContainerStyle={adminUsersStyles.filtersContent}
             >
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'all' && styles.filterButtonActive]}
+                    style={[adminUsersStyles.filterButton, filter === 'all' && adminUsersStyles.filterButtonActive]}
                     onPress={() => setFilter('all')}
                 >
-                    <Text style={[styles.filterText, filter === 'all' && styles.filterTextActive]}>
+                    <Text style={[adminUsersStyles.filterText, filter === 'all' && adminUsersStyles.filterTextActive]}>
                         Todos
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'admins' && styles.filterButtonActive]}
+                    style={[adminUsersStyles.filterButton, filter === 'admins' && adminUsersStyles.filterButtonActive]}
                     onPress={() => setFilter('admins')}
                 >
-                    <Text style={[styles.filterText, filter === 'admins' && styles.filterTextActive]}>
+                    <Text style={[adminUsersStyles.filterText, filter === 'admins' && adminUsersStyles.filterTextActive]}>
                         Admins
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'verified' && styles.filterButtonActive]}
+                    style={[adminUsersStyles.filterButton, filter === 'verified' && adminUsersStyles.filterButtonActive]}
                     onPress={() => setFilter('verified')}
                 >
-                    <Text style={[styles.filterText, filter === 'verified' && styles.filterTextActive]}>
+                    <Text style={[adminUsersStyles.filterText, filter === 'verified' && adminUsersStyles.filterTextActive]}>
                         Verificados
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'pending' && styles.filterButtonActive]}
+                    style={[adminUsersStyles.filterButton, filter === 'pending' && adminUsersStyles.filterButtonActive]}
                     onPress={() => setFilter('pending')}
                 >
-                    <Text style={[styles.filterText, filter === 'pending' && styles.filterTextActive]}>
+                    <Text style={[adminUsersStyles.filterText, filter === 'pending' && adminUsersStyles.filterTextActive]}>
                         Pendientes
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.filterButton, filter === 'problematic' && styles.filterButtonActive]}
+                    style={[adminUsersStyles.filterButton, filter === 'problematic' && adminUsersStyles.filterButtonActive]}
                     onPress={() => setFilter('problematic')}
                 >
-                    <Text style={[styles.filterText, filter === 'problematic' && styles.filterTextActive]}>
+                    <Text style={[adminUsersStyles.filterText, filter === 'problematic' && adminUsersStyles.filterTextActive]}>
                         Problemáticos
                     </Text>
                 </TouchableOpacity>
             </ScrollView>
 
             {/* Stats Summary */}
-            <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>{filteredUsers.length}</Text>
-                    <Text style={styles.statLabel}>Total</Text>
+            <View style={adminUsersStyles.statsContainer}>
+                <View style={adminUsersStyles.statItem}>
+                    <Text style={adminUsersStyles.statValue}>{filteredUsers.length}</Text>
+                    <Text style={adminUsersStyles.statLabel}>Total</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminUsersStyles.statItem}>
+                    <Text style={adminUsersStyles.statValue}>
                         {filteredUsers.filter(u => u.is_admin).length}
                     </Text>
-                    <Text style={styles.statLabel}>Admins</Text>
+                    <Text style={adminUsersStyles.statLabel}>Admins</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminUsersStyles.statItem}>
+                    <Text style={adminUsersStyles.statValue}>
                         {filteredUsers.filter(u => u.verification_status === 'approved').length}
                     </Text>
-                    <Text style={styles.statLabel}>Verificados</Text>
+                    <Text style={adminUsersStyles.statLabel}>Verificados</Text>
                 </View>
-                <View style={styles.statItem}>
-                    <Text style={styles.statValue}>
+                <View style={adminUsersStyles.statItem}>
+                    <Text style={adminUsersStyles.statValue}>
                         {filteredUsers.filter(u => u.problematic_user).length}
                     </Text>
-                    <Text style={styles.statLabel}>Problemáticos</Text>
+                    <Text style={adminUsersStyles.statLabel}>Problemáticos</Text>
                 </View>
             </View>
 
@@ -328,14 +327,14 @@ export default function AdminUsersScreen({ navigation }) {
                 data={filteredUsers}
                 keyExtractor={(item) => item.id}
                 renderItem={renderUser}
-                contentContainerStyle={styles.list}
+                contentContainerStyle={adminUsersStyles.list}
                 refreshControl={
                     <RefreshControl refreshing={loading} onRefresh={loadUsers} />
                 }
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
+                    <View style={adminUsersStyles.emptyContainer}>
                         <Ionicons name="people-outline" size={64} color="#9CA3AF" />
-                        <Text style={styles.emptyText}>No hay usuarios</Text>
+                        <Text style={adminUsersStyles.emptyText}>No hay usuarios</Text>
                     </View>
                 }
             />
@@ -343,199 +342,5 @@ export default function AdminUsersScreen({ navigation }) {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F9FAFB',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: '#fff',
-        borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#1F2937',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        margin: 16,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    searchInput: {
-        flex: 1,
-        marginLeft: 8,
-        fontSize: 16,
-        color: '#1F2937',
-    },
-    filtersContainer: {
-        maxHeight: 50,
-        marginBottom: 16,
-    },
-    filtersContent: {
-        paddingHorizontal: 16,
-        gap: 8,
-    },
-    filterButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
-        backgroundColor: '#fff',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-        marginRight: 8,
-    },
-    filterButtonActive: {
-        backgroundColor: '#3B82F6',
-        borderColor: '#3B82F6',
-    },
-    filterText: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    filterTextActive: {
-        color: '#fff',
-        fontWeight: '600',
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
-        marginBottom: 16,
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    list: {
-        padding: 16,
-    },
-    userCard: {
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    userHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: 12,
-    },
-    userHeaderLeft: {
-        flex: 1,
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#1F2937',
-        marginBottom: 4,
-    },
-    userEmail: {
-        fontSize: 14,
-        color: '#6B7280',
-    },
-    badges: {
-        flexDirection: 'row',
-        gap: 6,
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    badgeText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#fff',
-    },
-    infoGrid: {
-        flexDirection: 'row',
-        gap: 16,
-        marginBottom: 8,
-    },
-    infoItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        flex: 1,
-    },
-    infoText: {
-        fontSize: 13,
-        color: '#6B7280',
-    },
-    actions: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 12,
-        paddingTop: 12,
-        borderTopWidth: 1,
-        borderTopColor: '#E5E7EB',
-    },
-    actionButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        paddingVertical: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#8B5CF6',
-        backgroundColor: '#fff',
-    },
-    actionButtonActive: {
-        backgroundColor: '#8B5CF6',
-        borderColor: '#8B5CF6',
-    },
-    actionButtonDanger: {
-        backgroundColor: '#EF4444',
-        borderColor: '#EF4444',
-    },
-    actionButtonText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#8B5CF6',
-    },
-    actionButtonTextActive: {
-        color: '#fff',
-    },
-    emptyContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 64,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#9CA3AF',
-        marginTop: 16,
-    },
-});
+
 

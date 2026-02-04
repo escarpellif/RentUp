@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Image } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import RentalCalendar from '../components/RentalCalendar';
 import { supabase } from '../../supabase';
 import { handleApiError } from '../utils/errorHandler';
 import { withTimeout } from '../utils/apiHelpers';
+import { requestRentalStyles } from '../styles/screens/requestRentalStyles';
 
 export default function RequestRentalScreen({ route, navigation, session }) {
     const { item, ownerProfile, bookingDates, editingRental } = route.params || {};
@@ -440,63 +441,63 @@ export default function RequestRentalScreen({ route, navigation, session }) {
     };
 
     return (
-        <SafeAreaView style={styles.safeContainer}>
+        <SafeAreaView style={requestRentalStyles.safeContainer}>
             <StatusBar barStyle="light-content" backgroundColor="#10B981" />
 
             {/* Header Verde - Mesmo layout do ItemDetailsScreen */}
-            <View style={styles.headerContainer}>
-                <View style={styles.headerTopRow}>
+            <View style={requestRentalStyles.headerContainer}>
+                <View style={requestRentalStyles.headerTopRow}>
                     {/* Botão Voltar + Título */}
-                    <View style={styles.leftHeader}>
+                    <View style={requestRentalStyles.leftHeader}>
                         <TouchableOpacity
-                            style={styles.backButtonCircle}
+                            style={requestRentalStyles.backButtonCircle}
                             onPress={() => navigation.goBack()}
                             activeOpacity={0.7}
                         >
-                            <Text style={styles.backArrow}>←</Text>
+                            <Text style={requestRentalStyles.backArrow}>←</Text>
                         </TouchableOpacity>
-                        <Text style={styles.headerTitle}>{editingRental ? 'Editar Alquiler' : 'Solicitar Alquiler'}</Text>
+                        <Text style={requestRentalStyles.headerTitle}>{editingRental ? 'Editar Alquiler' : 'Solicitar Alquiler'}</Text>
                     </View>
 
                     {/* ALUKO à Direita */}
-                    <View style={styles.logoContainer}>
+                    <View style={requestRentalStyles.logoContainer}>
                         <Image
                             source={require('../../assets/images/app-icon.png')}
-                            style={styles.logoImage}
+                            style={requestRentalStyles.logoImage}
                             resizeMode="contain"
                         />
-                        <Text style={styles.logoText}>ALUKO</Text>
+                        <Text style={requestRentalStyles.logoText}>ALUKO</Text>
                     </View>
                 </View>
             </View>
 
-            <ScrollView style={styles.container}>
-            <View style={styles.content}>
+            <ScrollView style={requestRentalStyles.container}>
+            <View style={requestRentalStyles.content}>
                 {/* Card: Informações do Item */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📦 Artículo</Text>
-                    <Text style={styles.itemTitle}>{item?.title || 'Sin título'}</Text>
-                    <Text style={styles.itemPrice}>€{(parseFloat(item?.price_per_day || 0) * 1.18).toFixed(2)} / día</Text>
-                    <Text style={styles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
+                <View style={requestRentalStyles.card}>
+                    <Text style={requestRentalStyles.cardTitle}>📦 Artículo</Text>
+                    <Text style={requestRentalStyles.itemTitle}>{item?.title || 'Sin título'}</Text>
+                    <Text style={requestRentalStyles.itemPrice}>€{(parseFloat(item?.price_per_day || 0) * 1.18).toFixed(2)} / día</Text>
+                    <Text style={requestRentalStyles.ownerName}>Anunciante: {ownerProfile?.full_name || 'Usuario'}</Text>
                 </View>
 
                 {/* Card: Seleção de Período */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>📅 Período del Alquiler</Text>
+                <View style={requestRentalStyles.card}>
+                    <Text style={requestRentalStyles.cardTitle}>📅 Período del Alquiler</Text>
 
                     {/* Botão para mostrar o calendário */}
                     {!showCalendar && (
                         <TouchableOpacity
-                            style={styles.selectDatesButton}
+                            style={requestRentalStyles.selectDatesButton}
                             onPress={() => setShowCalendar(true)}
                         >
-                            <Text style={styles.selectDatesText}>Seleccionar Fechas en el Calendario</Text>
+                            <Text style={requestRentalStyles.selectDatesText}>Seleccionar Fechas en el Calendario</Text>
                         </TouchableOpacity>
                     )}
 
                     {/* Calendário (mostra apenas quando showCalendar = true) */}
                     {showCalendar && (
-                        <View style={styles.calendarContainer}>
+                        <View style={requestRentalStyles.calendarContainer}>
                             <RentalCalendar
                                 itemId={item.id}
                                 onDateRangeChange={handleDateRangeChange}
@@ -510,54 +511,54 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 
                 {/* Card: Método de Entrega (só mostra se item tiver opção de delivery) */}
                 {item?.delivery_type === 'delivery' && (
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>🚚 Método de Entrega</Text>
+                    <View style={requestRentalStyles.card}>
+                        <Text style={requestRentalStyles.cardTitle}>🚚 Método de Entrega</Text>
 
-                        <View style={styles.deliveryMethodContainer}>
+                        <View style={requestRentalStyles.deliveryMethodContainer}>
                             {/* Opção: Retirar */}
                             <TouchableOpacity
-                                style={[styles.deliveryMethodOption, deliveryMethod === 'pickup' && styles.deliveryMethodActive]}
+                                style={[requestRentalStyles.deliveryMethodOption, deliveryMethod === 'pickup' && requestRentalStyles.deliveryMethodActive]}
                                 onPress={() => setDeliveryMethod('pickup')}
                                 activeOpacity={0.7}
                             >
-                                <Text style={styles.deliveryMethodIcon}>📍</Text>
-                                <Text style={[styles.deliveryMethodText, deliveryMethod === 'pickup' && styles.deliveryMethodTextActive]}>
+                                <Text style={requestRentalStyles.deliveryMethodIcon}>📍</Text>
+                                <Text style={[requestRentalStyles.deliveryMethodText, deliveryMethod === 'pickup' && requestRentalStyles.deliveryMethodTextActive]}>
                                     Recogida en el local
                                 </Text>
                                 {deliveryMethod === 'pickup' && (
-                                    <View style={styles.deliveryMethodCheck}>
-                                        <Text style={styles.deliveryMethodCheckText}>✓</Text>
+                                    <View style={requestRentalStyles.deliveryMethodCheck}>
+                                        <Text style={requestRentalStyles.deliveryMethodCheckText}>✓</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
 
                             {/* Opção: Entrega */}
                             <TouchableOpacity
-                                style={[styles.deliveryMethodOption, deliveryMethod === 'delivery' && styles.deliveryMethodActive]}
+                                style={[requestRentalStyles.deliveryMethodOption, deliveryMethod === 'delivery' && requestRentalStyles.deliveryMethodActive]}
                                 onPress={() => setDeliveryMethod('delivery')}
                                 activeOpacity={0.7}
                             >
-                                <Text style={styles.deliveryMethodIcon}>🚚</Text>
-                                <View style={styles.deliveryMethodTextContainer}>
-                                    <Text style={[styles.deliveryMethodText, deliveryMethod === 'delivery' && styles.deliveryMethodTextActive]}>
+                                <Text style={requestRentalStyles.deliveryMethodIcon}>🚚</Text>
+                                <View style={requestRentalStyles.deliveryMethodTextContainer}>
+                                    <Text style={[requestRentalStyles.deliveryMethodText, deliveryMethod === 'delivery' && requestRentalStyles.deliveryMethodTextActive]}>
                                         Recibir en casa
                                     </Text>
                                     {item?.is_free_delivery ? (
-                                        <Text style={styles.deliveryMethodSubtext}>Gratis</Text>
+                                        <Text style={requestRentalStyles.deliveryMethodSubtext}>Gratis</Text>
                                     ) : (
-                                        <Text style={styles.deliveryMethodSubtext}>+€{parseFloat(item?.delivery_fee || 0).toFixed(2)}</Text>
+                                        <Text style={requestRentalStyles.deliveryMethodSubtext}>+€{parseFloat(item?.delivery_fee || 0).toFixed(2)}</Text>
                                     )}
                                 </View>
                                 {deliveryMethod === 'delivery' && (
-                                    <View style={styles.deliveryMethodCheck}>
-                                        <Text style={styles.deliveryMethodCheckText}>✓</Text>
+                                    <View style={requestRentalStyles.deliveryMethodCheck}>
+                                        <Text style={requestRentalStyles.deliveryMethodCheckText}>✓</Text>
                                     </View>
                                 )}
                             </TouchableOpacity>
                         </View>
 
                         {deliveryMethod === 'delivery' && item?.delivery_distance && (
-                            <Text style={styles.deliveryNote}>
+                            <Text style={requestRentalStyles.deliveryNote}>
                                 📍 El anunciante entrega hasta {item.delivery_distance} km
                             </Text>
                         )}
@@ -565,15 +566,15 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                 )}
 
                 {/* Card: Horários de Retirada e Devolución - SEMPRE MOSTRA */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>⏰ Horarios</Text>
+                <View style={requestRentalStyles.card}>
+                    <Text style={requestRentalStyles.cardTitle}>⏰ Horarios</Text>
 
                         {/* Hora de Retirada */}
-                        <View style={styles.timeContainer}>
-                            <Text style={styles.timeLabel}>Hora de Recogida:</Text>
-                            <View style={styles.timeSelector}>
+                        <View style={requestRentalStyles.timeContainer}>
+                            <Text style={requestRentalStyles.timeLabel}>Hora de Recogida:</Text>
+                            <View style={requestRentalStyles.timeSelector}>
                                 <TouchableOpacity
-                                    style={styles.timeButton}
+                                    style={requestRentalStyles.timeButton}
                                     onPress={() => {
                                         const hours = getAvailableHours();
 
@@ -591,18 +592,18 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                                         );
                                     }}
                                 >
-                                    <Text style={styles.timeIcon}>🕐</Text>
-                                    <Text style={styles.timeValue}>{pickupTime}</Text>
+                                    <Text style={requestRentalStyles.timeIcon}>🕐</Text>
+                                    <Text style={requestRentalStyles.timeValue}>{pickupTime}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
 
                         {/* Hora de Devolución */}
-                        <View style={styles.timeContainer}>
-                            <Text style={styles.timeLabel}>Hora de Devolución:</Text>
-                            <View style={styles.timeSelector}>
+                        <View style={requestRentalStyles.timeContainer}>
+                            <Text style={requestRentalStyles.timeLabel}>Hora de Devolución:</Text>
+                            <View style={requestRentalStyles.timeSelector}>
                                 <TouchableOpacity
-                                    style={styles.timeButton}
+                                    style={requestRentalStyles.timeButton}
                                     onPress={() => {
                                         let hours = getAvailableHours();
 
@@ -623,87 +624,87 @@ export default function RequestRentalScreen({ route, navigation, session }) {
                                         );
                                     }}
                                 >
-                                    <Text style={styles.timeIcon}>🕐</Text>
-                                    <Text style={styles.timeValue}>{returnTime}</Text>
+                                    <Text style={requestRentalStyles.timeIcon}>🕐</Text>
+                                    <Text style={requestRentalStyles.timeValue}>{returnTime}</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
                     </View>
 
                 {/* Resumo do Aluguel */}
-                <View style={styles.summaryCard}>
-                    <Text style={styles.summaryTitle}>Resumen</Text>
+                <View style={requestRentalStyles.summaryCard}>
+                    <Text style={requestRentalStyles.summaryTitle}>Resumen</Text>
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Fecha de inicio:</Text>
-                        <Text style={styles.summaryValue}>{formatDate(startDate)} {pickupTime}</Text>
+                    <View style={requestRentalStyles.summaryRow}>
+                        <Text style={requestRentalStyles.summaryLabel}>Fecha de inicio:</Text>
+                        <Text style={requestRentalStyles.summaryValue}>{formatDate(startDate)} {pickupTime}</Text>
                     </View>
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Fecha de término:</Text>
-                        <Text style={styles.summaryValue}>{formatDate(endDate)} {returnTime}</Text>
+                    <View style={requestRentalStyles.summaryRow}>
+                        <Text style={requestRentalStyles.summaryLabel}>Fecha de término:</Text>
+                        <Text style={requestRentalStyles.summaryValue}>{formatDate(endDate)} {returnTime}</Text>
                     </View>
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Precio por día (con tasa incluida):</Text>
-                        <Text style={styles.summaryValue}>€{(parseFloat(item.price_per_day) * 1.18).toFixed(2)}</Text>
+                    <View style={requestRentalStyles.summaryRow}>
+                        <Text style={requestRentalStyles.summaryLabel}>Precio por día (con tasa incluida):</Text>
+                        <Text style={requestRentalStyles.summaryValue}>€{(parseFloat(item.price_per_day) * 1.18).toFixed(2)}</Text>
                     </View>
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.summaryLabel}>Días de alquiler:</Text>
-                        <Text style={styles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}</Text>
+                    <View style={requestRentalStyles.summaryRow}>
+                        <Text style={requestRentalStyles.summaryLabel}>Días de alquiler:</Text>
+                        <Text style={requestRentalStyles.summaryValue}>{calculateDays()} {calculateDays() === 1 ? 'día' : 'días'}</Text>
                     </View>
 
                     {/* Mostrar desconto aplicado */}
                     {calculateDays() >= 7 && calculateDays() < 30 && item.discount_week && parseFloat(item.discount_week) > 0 && (
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.discountLabel}>🎉 Descuento Semanal ({parseFloat(item.discount_week)}%):</Text>
-                            <Text style={styles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_week) / 100)).toFixed(2)}</Text>
+                        <View style={requestRentalStyles.summaryRow}>
+                            <Text style={requestRentalStyles.discountLabel}>🎉 Descuento Semanal ({parseFloat(item.discount_week)}%):</Text>
+                            <Text style={requestRentalStyles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_week) / 100)).toFixed(2)}</Text>
                         </View>
                     )}
 
                     {calculateDays() >= 30 && item.discount_month && parseFloat(item.discount_month) > 0 && (
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.discountLabel}>🎉 Descuento Mensual ({parseFloat(item.discount_month)}%):</Text>
-                            <Text style={styles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_month) / 100)).toFixed(2)}</Text>
+                        <View style={requestRentalStyles.summaryRow}>
+                            <Text style={requestRentalStyles.discountLabel}>🎉 Descuento Mensual ({parseFloat(item.discount_month)}%):</Text>
+                            <Text style={requestRentalStyles.discountValue}>-€{((parseFloat(item.price_per_day) * 1.18 * calculateDays()) * (parseFloat(item.discount_month) / 100)).toFixed(2)}</Text>
                         </View>
                     )}
 
-                    <View style={styles.divider} />
+                    <View style={requestRentalStyles.divider} />
 
                     {/* Taxa de Entrega (se aplicável) */}
                     {deliveryMethod === 'delivery' && item?.delivery_fee && !item?.is_free_delivery && (
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.summaryLabel}>🚚 Entrega a domicilio:</Text>
-                            <Text style={styles.summaryValue}>€{parseFloat(item.delivery_fee).toFixed(2)}</Text>
+                        <View style={requestRentalStyles.summaryRow}>
+                            <Text style={requestRentalStyles.summaryLabel}>🚚 Entrega a domicilio:</Text>
+                            <Text style={requestRentalStyles.summaryValue}>€{parseFloat(item.delivery_fee).toFixed(2)}</Text>
                         </View>
                     )}
 
                     {deliveryMethod === 'delivery' && item?.is_free_delivery && (
-                        <View style={styles.summaryRow}>
-                            <Text style={styles.freeDeliveryLabel}>🎁 Entrega a domicilio:</Text>
-                            <Text style={styles.freeDeliveryValue}>GRATIS</Text>
+                        <View style={requestRentalStyles.summaryRow}>
+                            <Text style={requestRentalStyles.freeDeliveryLabel}>🎁 Entrega a domicilio:</Text>
+                            <Text style={requestRentalStyles.freeDeliveryValue}>GRATIS</Text>
                         </View>
                     )}
 
-                    <View style={styles.summaryRow}>
-                        <Text style={styles.totalLabel}>Valor Total:</Text>
-                        <Text style={styles.totalValue}>€{calculateTotal()}</Text>
+                    <View style={requestRentalStyles.summaryRow}>
+                        <Text style={requestRentalStyles.totalLabel}>Valor Total:</Text>
+                        <Text style={requestRentalStyles.totalValue}>€{calculateTotal()}</Text>
                     </View>
 
-                    <View style={styles.taxIncludedNote}>
-                        <Text style={styles.taxIncludedText}>✓ Tasa de servicio ya incluida en el precio</Text>
+                    <View style={requestRentalStyles.taxIncludedNote}>
+                        <Text style={requestRentalStyles.taxIncludedText}>✓ Tasa de servicio ya incluida en el precio</Text>
                     </View>
 
                     {/* Depósito */}
                     {item?.deposit_value && item.deposit_value > 0 && (
                         <View>
-                            <View style={styles.divider} />
-                            <View style={styles.depositContainer}>
-                                <Text style={styles.depositLabel}>Depósito de Garantía:</Text>
-                                <Text style={styles.depositValue}>€{parseFloat(item.deposit_value).toFixed(2)}</Text>
+                            <View style={requestRentalStyles.divider} />
+                            <View style={requestRentalStyles.depositContainer}>
+                                <Text style={requestRentalStyles.depositLabel}>Depósito de Garantía:</Text>
+                                <Text style={requestRentalStyles.depositValue}>€{parseFloat(item.deposit_value).toFixed(2)}</Text>
                             </View>
-                            <Text style={styles.depositNote}>
+                            <Text style={requestRentalStyles.depositNote}>
                                 💳 Este valor no saldrá de tu cuenta. Quedará bloqueado en tu tarjeta y será devuelto después de la devolución del artículo al propietario en perfecto estado.
                             </Text>
                         </View>
@@ -712,19 +713,19 @@ export default function RequestRentalScreen({ route, navigation, session }) {
 
                 {/* Botão de Confirmação */}
                 <TouchableOpacity 
-                    style={styles.confirmButton}
+                    style={requestRentalStyles.confirmButton}
                     onPress={handleConfirmRental}
                 >
-                    <Text style={styles.confirmButtonText}>
+                    <Text style={requestRentalStyles.confirmButtonText}>
                         🔑 Solicitar Alquiler
                     </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity 
-                    style={styles.cancelButton}
+                    style={requestRentalStyles.cancelButton}
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.cancelButtonText}>Cancelar</Text>
+                    <Text style={requestRentalStyles.cancelButtonText}>Cancelar</Text>
                 </TouchableOpacity>
 
             <View style={{ height: 30 }} />
@@ -734,362 +735,4 @@ export default function RequestRentalScreen({ route, navigation, session }) {
     );
 }
 
-const styles = StyleSheet.create({
-    safeContainer: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-        paddingTop: Platform.OS === 'android' ? 25 : 0,
-    },
-    headerContainer: {
-        backgroundColor: '#10B981',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-            },
-            android: {
-                elevation: 4,
-            },
-        }),
-    },
-    headerTopRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    leftHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        flex: 1,
-    },
-    backButtonCircle: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    backArrow: {
-        fontSize: 22,
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    logoImage: {
-        width: 24,
-        height: 24,
-        borderRadius: 6,
-    },
-    logoText: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    container: {
-        flex: 1,
-        backgroundColor: '#F5F5F5',
-    },
-    content: {
-        padding: 16,
-    },
-    card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        marginBottom: 16,
-    },
-    itemTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        marginBottom: 8,
-    },
-    itemPrice: {
-        fontSize: 20,
-        color: '#10B981',
-        fontWeight: 'bold',
-        marginBottom: 6,
-    },
-    ownerName: {
-        fontSize: 14,
-        color: '#666',
-    },
-    selectDatesButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#007bff',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 12,
-    },
-    selectDatesText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    calendarContainer: {
-        marginTop: 8,
-    },
-    timeContainer: {
-        marginBottom: 16,
-    },
-    timeLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#2c4455',
-        marginBottom: 10,
-    },
-    timeSelector: {
-        marginTop: 4,
-    },
-    timeButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#F8F9FA',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#10B981',
-        gap: 12,
-    },
-    timeIcon: {
-        fontSize: 24,
-    },
-    timeValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    summaryCard: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
-        borderLeftWidth: 4,
-        borderLeftColor: '#10B981',
-    },
-    summaryTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#2c4455',
-        marginBottom: 16,
-    },
-    summaryRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 10,
-    },
-    summaryLabel: {
-        fontSize: 16,
-        color: '#495057',
-    },
-    summaryValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
-    },
-    discountLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#10B981',
-        flex: 1,
-    },
-    discountValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: '#adb5bd',
-        marginVertical: 15,
-    },
-    totalLabel: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    totalValue: {
-        fontSize: 22,
-        fontWeight: 'bold',
-        color: '#28a745',
-    },
-    taxIncludedNote: {
-        marginTop: 8,
-        padding: 10,
-        backgroundColor: '#E8F5E9',
-        borderRadius: 8,
-        borderLeftWidth: 3,
-        borderLeftColor: '#10B981',
-    },
-    taxIncludedText: {
-        fontSize: 13,
-        color: '#10B981',
-        fontWeight: '600',
-        textAlign: 'center',
-    },
-    depositContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingVertical: 12,
-    },
-    depositLabel: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#FF9800',
-    },
-    depositValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#FF9800',
-    },
-    depositNote: {
-        fontSize: 13,
-        color: '#666',
-        fontStyle: 'italic',
-        lineHeight: 19,
-        marginTop: 8,
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        backgroundColor: '#FFF3E0',
-        borderRadius: 8,
-        borderLeftWidth: 3,
-        borderLeftColor: '#FF9800',
-    },
-    confirmButton: {
-        backgroundColor: '#28a745',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    confirmButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    cancelButton: {
-        backgroundColor: '#fff',
-        padding: 15,
-        borderRadius: 10,
-        alignItems: 'center',
-        borderWidth: 2,
-        borderColor: '#dc3545',
-    },
-    cancelButtonText: {
-        color: '#dc3545',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    deliveryMethodContainer: {
-        flexDirection: 'row',
-        gap: 10,
-        marginBottom: 15,
-    },
-    deliveryMethodOption: {
-        flex: 1,
-        flexDirection: 'column',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        minHeight: 100,
-        justifyContent: 'center',
-    },
-    deliveryMethodActive: {
-        backgroundColor: '#E8F5E9',
-        borderColor: '#10B981',
-    },
-    deliveryMethodIcon: {
-        fontSize: 28,
-        marginBottom: 8,
-    },
-    deliveryMethodTextContainer: {
-        alignItems: 'center',
-    },
-    deliveryMethodText: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#666',
-        textAlign: 'center',
-    },
-    deliveryMethodTextActive: {
-        color: '#10B981',
-    },
-    deliveryMethodSubtext: {
-        fontSize: 11,
-        color: '#999',
-        marginTop: 4,
-    },
-    deliveryMethodCheck: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#10B981',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    deliveryMethodCheckText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-    deliveryNote: {
-        fontSize: 13,
-        color: '#666',
-        fontStyle: 'italic',
-        backgroundColor: '#F8F9FA',
-        padding: 10,
-        borderRadius: 8,
-        borderLeftWidth: 3,
-        borderLeftColor: '#10B981',
-    },
-    freeDeliveryLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#10B981',
-    },
-    freeDeliveryValue: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#10B981',
-    },
-});
+
