@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {View, Text, ScrollView, TouchableOpacity, Platform, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Platform, StatusBar, TextInput, Alert, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
@@ -279,6 +279,49 @@ export default function ProfileScreen({ session, navigation }) {
                         year: 'numeric'
                     })}
                 </Text>
+
+                {/* Botão de Exclusão de Conta */}
+                <View style={profileStyles.dangerZone}>
+                    <Text style={profileStyles.dangerZoneTitle}>⚠️ Zona Peligrosa</Text>
+                    <Text style={profileStyles.dangerZoneText}>
+                        Esta acción es permanente y no se puede deshacer
+                    </Text>
+                    <TouchableOpacity
+                        style={profileStyles.deleteAccountButton}
+                        onPress={() => {
+                            Alert.alert(
+                                '🗑️ Eliminar Cuenta',
+                                'Serás redirigido a un formulario para solicitar la eliminación de tu cuenta.\n\n⚠️ Esta acción es permanente e irreversible.',
+                                [
+                                    {
+                                        text: 'Cancelar',
+                                        style: 'cancel'
+                                    },
+                                    {
+                                        text: 'Continuar',
+                                        style: 'destructive',
+                                        onPress: async () => {
+                                            const deleteUrl = 'https://raw.githubusercontent.com/escarpellif/RentUp/main/delete-account.html';
+                                            const supported = await Linking.canOpenURL(deleteUrl);
+                                            if (supported) {
+                                                await Linking.openURL(deleteUrl);
+                                            } else {
+                                                Alert.alert(
+                                                    'Error',
+                                                    'No se pudo abrir el enlace. Por favor contacta a soporte: fernandoescarpelli@aluko.io'
+                                                );
+                                            }
+                                        }
+                                    }
+                                ]
+                            );
+                        }}
+                    >
+                        <Text style={profileStyles.deleteAccountButtonText}>
+                            🗑️ Solicitar Eliminación de Cuenta
+                        </Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     );

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitud de Eliminación de Cuenta - ALUKO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #2c4455;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .warning-box {
+            background: #fef3cd;
+            border: 2px solid #ffc107;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .warning-box h3 {
+            color: #856404;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+
+        .warning-box li {
+            margin: 8px 0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #2c4455;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .success-message .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .success-message h2 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+
+        .success-message p {
+            color: #155724;
+            line-height: 1.6;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #721c24;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .info-box h4 {
+            color: #0c5460;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .info-box p {
+            color: #0c5460;
+            line-height: 1.6;
+            margin: 5px 0;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🗑️</div>
+            <h1>Solicitud de Eliminación de Cuenta</h1>
+            <p class="subtitle">Lamentamos verte partir. Por favor, lee cuidadosamente antes de continuar.</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form id="deletionForm">
+            <div class="warning-box">
+                <h3>⚠️ Esta acción es irreversible</h3>
+                <p style="margin: 10px 0; color: #856404;">Al eliminar tu cuenta:</p>
+                <ul>
+                    <li>Tu perfil y datos personales serán eliminados permanentemente</li>
+                    <li>Todos tus productos publicados serán removidos</li>
+                    <li>Tus mensajes y conversaciones serán eliminados</li>
+                    <li>Los alquileres activos serán cancelados</li>
+                    <li>No podrás recuperar esta cuenta ni sus datos</li>
+                </ul>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Tu Email *</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="correo@ejemplo.com"
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="reason">¿Por qué quieres eliminar tu cuenta? (Opcional)</label>
+                <select id="reason" name="reason">
+                    <option value="">Selecciona una razón...</option>
+                    <option value="no_longer_needed">Ya no necesito el servicio</option>
+                    <option value="privacy_concerns">Preocupaciones de privacidad</option>
+                    <option value="found_alternative">Encontré una alternativa mejor</option>
+                    <option value="too_complicated">La app es muy complicada</option>
+                    <option value="technical_issues">Problemas técnicos</option>
+                    <option value="other">Otro motivo</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="comments">Comentarios adicionales (Opcional)</label>
+                <textarea
+                    id="comments"
+                    name="comments"
+                    placeholder="Tu feedback nos ayuda a mejorar..."
+                ></textarea>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="confirm" name="confirm" required>
+                <label for="confirm">
+                    Entiendo que esta acción es <strong>permanente e irreversible</strong> y que
+                    todos mis datos serán eliminados de forma definitiva.
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-danger" id="submitBtn">
+                <span id="btnText">🗑️ Eliminar mi cuenta permanentemente</span>
+                <span id="btnLoading" class="loading" style="display: none;"></span>
+            </button>
+
+            <button type="button" class="btn btn-secondary" onclick="window.history.back();">
+                ← Cancelar y volver
+            </button>
+        </form>
+
+        <div id="successMessage" class="success-message">
+            <div class="icon">✅</div>
+            <h2>Solicitud Enviada</h2>
+            <p>
+                Tu solicitud de eliminación de cuenta ha sido registrada exitosamente.
+            </p>
+            <p style="margin-top: 15px;">
+                Procesaremos tu solicitud en las próximas <strong>48 horas hábiles</strong>.
+                Recibirás un email de confirmación cuando se complete el proceso.
+            </p>
+            <p style="margin-top: 15px; font-weight: 600;">
+                Número de solicitud: <span id="requestId"></span>
+            </p>
+        </div>
+
+        <div class="info-box">
+            <h4>📧 Contacto</h4>
+            <p>¿Tienes preguntas? Contáctanos en:</p>
+            <p><strong>fernandoescarpelli@aluko.io</strong></p>
+            <p style="margin-top: 10px;">Tiempo de respuesta: hasta 48 horas hábiles</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('deletionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoading = document.getElementById('btnLoading');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const requestIdSpan = document.getElementById('requestId');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Validar checkbox
+            if (!document.getElementById('confirm').checked) {
+                showError('Por favor, confirma que entiendes que esta acción es irreversible.');
+                return;
+            }
+
+            // Desabilitar botão e mostrar loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+            errorMessage.classList.remove('show');
+
+            const formData = {
+                email: document.getElementById('email').value,
+                reason: document.getElementById('reason').value,
+                comments: document.getElementById('comments').value
+            };
+
+            try {
+                // Aqui você integraria com sua API/Supabase
+                // Por enquanto, vamos simular um envio bem-sucedido
+
+                // Simulação de delay de rede
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                // Simular resposta de sucesso
+                const mockRequestId = 'ADR-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+                // Mostrar mensagem de sucesso
+                form.style.display = 'none';
+                successMessage.classList.add('show');
+                requestIdSpan.textContent = mockRequestId;
+
+                // Enviar dados para o console (para debug)
+                console.log('Solicitud de eliminación:', formData);
+
+                // Opcional: Redirecionar após alguns segundos
+                // setTimeout(() => {
+                //     window.location.href = '/';
+                // }, 5000);
+
+            } catch (error) {
+                showError('Hubo un error al procesar tu solicitud. Por favor, intenta nuevamente.');
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.add('show');
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Validação em tempo real do email
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value;
+            if (email && !isValidEmail(email)) {
+                showError('Por favor, ingresa un email válido.');
+            }
+        });
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+    </script>
+</body>
+</html>

@@ -156,7 +156,18 @@ Usted tiene derecho a:
 - 🚫 **Revocar** permisos concedidos
 - ⛔ **Objetar** al procesamiento de sus datos
 
-Para ejercer estos derechos, contáctenos.
+### Cómo Ejercer Sus Derechos
+
+**Para solicitar la eliminación de su cuenta y datos:**
+1. Acceda a: https://raw.githubusercontent.com/escarpellif/RentUp/main/delete-account.html
+2. Complete el formulario de solicitud
+3. Recibirá confirmación en hasta 48 horas hábiles
+4. Sus datos serán eliminados permanentemente
+
+**Para otros derechos, contáctenos:**
+- Email: fernandoescarpelli@aluko.io
+- Asunto: "Solicitud de Derechos de Privacidad - [Su Derecho]"
+- Tiempo de respuesta: hasta 48 horas hábiles
 
 ---
 

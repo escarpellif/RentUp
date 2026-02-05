@@ -284,4 +284,36 @@ container: {
         color: '#2c4455',
         fontWeight: '600',
     },
+    dangerZone: {
+        marginTop: 24,
+        paddingTop: 20,
+        borderTopWidth: 1,
+        borderTopColor: '#E8E8E8',
+    },
+    dangerZoneTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#dc3545',
+        marginBottom: 8,
+    },
+    dangerZoneText: {
+        fontSize: 13,
+        color: '#666',
+        marginBottom: 16,
+        lineHeight: 18,
+    },
+    deleteAccountButton: {
+        backgroundColor: '#dc3545',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        borderWidth: 2,
+        borderColor: '#c82333',
+    },
+    deleteAccountButtonText: {
+        color: '#fff',
+        fontSize: 15,
+        fontWeight: 'bold',
+    },
 });
