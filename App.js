@@ -88,24 +88,55 @@ export default function App() {
     }, []);
 
     useEffect(() => {
-        // Lógica para checar a sessão (mantida do seu código anterior)
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-            setLoading(false);
-        });
+        console.log('🔐 [DEBUG] Inicializando autenticação...');
 
-        const { data: authListener } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setSession(session);
-                setLoading(false);
-                // Se fez logout, também desativa modo visitante
-                if (!session) {
-                    setIsGuest(false);
+        // Lógica para checar a sessão com tratamento de erros
+        const initAuth = async () => {
+            try {
+                console.log('[Auth] Tentando obter sessão...');
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('[Auth] Erro ao obter sessão:', error);
+                    setSession(null);
+                } else {
+                    console.log('[Auth] Sessão obtida:', !!session);
+                    setSession(session);
                 }
-            }
-        );
 
-        return () => authListener.subscription.unsubscribe();
+                setLoading(false);
+            } catch (error) {
+                console.error('[Auth] Erro crítico ao inicializar autenticação:', error);
+                setSession(null);
+                setLoading(false);
+            }
+        };
+
+        initAuth();
+
+        try {
+            const { data: authListener } = supabase.auth.onAuthStateChange(
+                (_event, session) => {
+                    console.log('[Auth] Estado mudou:', _event, !!session);
+                    setSession(session);
+                    setLoading(false);
+                    // Se fez logout, também desativa modo visitante
+                    if (!session) {
+                        setIsGuest(false);
+                    }
+                }
+            );
+
+            return () => {
+                try {
+                    authListener.subscription.unsubscribe();
+                } catch (error) {
+                    console.error('[Auth] Erro ao desinscrever listener:', error);
+                }
+            };
+        } catch (error) {
+            console.error('[Auth] Erro ao configurar listener:', error);
+        }
     }, []);
 
     // Função para entrar como visitante

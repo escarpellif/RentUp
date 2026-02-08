@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Image, ScrollView, TouchableOpacity, Text } from 'react-native';
+import { View, Image, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { photoCarouselStyles } from '../styles/components/photoCarouselStyles';
 
 export default function PhotoCarousel({ photos, supabaseUrl }) {
     const [activeIndex, setActiveIndex] = useState(0);
 
-    // TEMPORÁRIO: Valor fixo para debug
-    const width = 375;
+    // Usar largura dinâmica da tela (reativa a mudanças)
+    const { width } = useWindowDimensions();
 
     const handleScroll = (event) => {
         try {
@@ -29,10 +29,10 @@ export default function PhotoCarousel({ photos, supabaseUrl }) {
                 style={photoCarouselStyles.scrollView}
             >
                 {photos.map((photo, index) => (
-                    <View key={index} style={photoCarouselStyles.imageContainer}>
+                    <View key={index} style={[photoCarouselStyles.imageContainer, { width }]}>
                         <Image
                             source={{ uri: `${supabaseUrl}/storage/v1/object/public/item_photos/${photo}` }}
-                            style={photoCarouselStyles.image}
+                            style={[photoCarouselStyles.image, { width }]}
                             resizeMode="cover"
                         />
                     </View>

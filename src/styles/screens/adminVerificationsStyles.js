@@ -79,7 +79,7 @@ safeContainer: {
         backgroundColor: '#fff',
         borderRadius: 16,
         padding: 16,
-        width: '100%',
+        alignSelf: 'stretch',
         maxWidth: 300,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },

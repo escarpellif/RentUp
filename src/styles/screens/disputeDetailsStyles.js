@@ -1,4 +1,6 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export const disputeDetailsStyles = StyleSheet.create({
 container: {
@@ -117,7 +119,7 @@ container: {
         position: 'relative',
     },
     photo: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
     },
     photoOverlay: {

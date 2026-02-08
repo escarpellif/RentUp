@@ -79,7 +79,7 @@ safeContainer: {
         shadowRadius: 4,
     },
     noPhotoContainer: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: 300,
         backgroundColor: '#F8F9FA',
         justifyContent: 'center',

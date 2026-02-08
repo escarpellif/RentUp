@@ -32,8 +32,8 @@ export default function MyRentalsScreen({ navigation, session }) {
                 .select(`
                     *,
                     item:items(*),
-                    renter:profiles!rentals_renter_id_fkey(id, username, full_name),
-                    owner:profiles!rentals_owner_id_fkey(id, username, full_name)
+                    renter:renter_id(id, username, full_name),
+                    owner:owner_id(id, username, full_name)
                 `)
                 .order('created_at', { ascending: false });
 
@@ -433,7 +433,7 @@ export default function MyRentalsScreen({ navigation, session }) {
             <View key={rental.id} style={myRentalsStyles.rentalCard}>
                 <View style={myRentalsStyles.rentalHeader}>
                     <Text style={myRentalsStyles.rentalTitle}>{itemTitle}</Text>
-                    <View style={[myRentalsStyles.statusBadge, styles[`status${rental.status.charAt(0).toUpperCase() + rental.status.slice(1)}`]]}>
+                    <View style={myRentalsStyles.statusBadge}>
                         <Text style={myRentalsStyles.statusText}>{rental.status.toUpperCase()}</Text>
                     </View>
                 </View>

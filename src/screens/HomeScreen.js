@@ -10,7 +10,8 @@ import {
     Platform,
     Image,
     StatusBar,
-    ImageBackground
+    ImageBackground,
+    Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
@@ -228,8 +229,7 @@ export default function HomeScreen({navigation, session, isGuest}) {
                         onScroll={(event) => {
                             try {
                                 const scrollPosition = event.nativeEvent.contentOffset.x;
-                                // TEMPORÁRIO: Valor fixo para debug
-                                const screenWidth = 375;
+                                const screenWidth = Dimensions.get('window').width;
                                 const index = Math.round(scrollPosition / screenWidth);
                                 setHeroIndex(index);
                             } catch (error) {

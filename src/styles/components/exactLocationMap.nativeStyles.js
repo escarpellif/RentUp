@@ -6,6 +6,7 @@ container: {
         borderRadius: 12,
         overflow: 'hidden',
         marginVertical: 16,
+        height: 250,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -25,8 +26,9 @@ container: {
         elevation: 3,
     },
     map: {
-        width: '100%',
-        height: 250,
+        flex: 1,
+        minHeight: 250,
+        alignSelf: 'stretch',
     },
     noLocationContainer: {
         padding: 16,

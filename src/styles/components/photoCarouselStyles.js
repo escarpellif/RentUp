@@ -2,23 +2,23 @@ import { StyleSheet } from 'react-native';
 
 export const photoCarouselStyles = StyleSheet.create({
 container: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: 300,
         backgroundColor: '#000',
+        overflow: 'hidden',
     },
     scrollView: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: 300,
     },
     imageContainer: {
-        width: width,
         height: 300,
         justifyContent: 'center',
         alignItems: 'center',
     },
     image: {
-        width: '100%',
-        height: '100%',
+        height: 300,
+        resizeMode: 'cover',
     },
     dotsContainer: {
         position: 'absolute',

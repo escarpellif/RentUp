@@ -145,7 +145,7 @@ export const myAdsScreenStyles = StyleSheet.create({
     marginBottom: 15,
   },
   itemWrapper: {
-    width: '100%',
+    alignSelf: 'stretch',
     marginBottom: 20,
     backgroundColor: '#fff',
     borderRadius: 12,

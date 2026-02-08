@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const continueButtonStyles = StyleSheet.create({
     floatingButtonContainer: {
@@ -9,6 +9,7 @@ export const continueButtonStyles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingHorizontal: 20,
         paddingVertical: 16,
+        paddingBottom: Platform.OS === 'android' ? 50 : 16,
         borderTopWidth: 1,
         borderTopColor: '#E8E8E8',
         shadowColor: '#000',

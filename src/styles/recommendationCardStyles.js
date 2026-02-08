@@ -32,7 +32,7 @@ export const recommendationCardStyles = StyleSheet.create({
         color: '#1B5E20',
         lineHeight: 24,
         textAlign: 'left',
-        width: '100%',
+        alignSelf: 'stretch',
     },
 });
 

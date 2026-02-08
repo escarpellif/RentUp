@@ -22,6 +22,8 @@ export const tipsHeaderStyles = StyleSheet.create({
     backArrow: {
         fontSize: 20,
         color: '#2c4455',
+        textAlign: 'center',
+        lineHeight: 20,
     },
     headerContent: {
         alignItems: 'center',

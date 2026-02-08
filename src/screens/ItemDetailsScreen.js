@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, Platform, StatusBar, I
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../supabase';
 import PhotoCarousel from '../components/PhotoCarousel';
-import ExactLocationMap from '../components/ExactLocationMap';
+// import ExactLocationMap from '../components/ExactLocationMap'; // TEMPORARIAMENTE DESABILITADO
 import { checkUserVerification, handleVerificationAlert } from '../utils/verificationHelper';
 import { requiereAutenticacion } from '../utils/guestCheck';
 import { useTranslation } from 'react-i18next';
@@ -342,11 +342,29 @@ export default function ItemDetailsScreen({ route, navigation, session, isGuest 
                             <Text style={itemDetailsStyles.locationText}>📍 {item.location_full || item.location}</Text>
                         </View>
 
-                        {/* Exact Location Map */}
+                        {/* Exact Location Map - TEMPORARIAMENTE DESABILITADO */}
+                        {/*
                         <ExactLocationMap
                             coordinates={item.coordinates}
                             location={item.location_full || item.location}
                         />
+                        */}
+
+                        {/* Substituto temporário do mapa */}
+                        {item.coordinates && (
+                            <View style={itemDetailsStyles.section}>
+                                <Text style={itemDetailsStyles.sectionTitle}>📍 Coordenadas</Text>
+                                <Text style={itemDetailsStyles.locationText}>
+                                    Lat: {item.coordinates.latitude?.toFixed(6)}
+                                </Text>
+                                <Text style={itemDetailsStyles.locationText}>
+                                    Lng: {item.coordinates.longitude?.toFixed(6)}
+                                </Text>
+                                <Text style={{...itemDetailsStyles.locationText, marginTop: 8, fontStyle: 'italic', color: '#666'}}>
+                                    💡 Mapa será ativado em breve
+                                </Text>
+                            </View>
+                        )}
 
                         {/* Informações do Dono */}
                         <View style={itemDetailsStyles.section}>

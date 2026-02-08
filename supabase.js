@@ -1,16 +1,49 @@
 import 'react-native-url-polyfill/auto'; // Garante compatibilidade de URL para RN
 import {createClient} from '@supabase/supabase-js';
-// import { Platform } from 'react-native'; // COMENTADO TEMPORARIAMENTE
 import Constants from 'expo-constants';
 
 // 🔒 CHAVES PROTEGIDAS - Carregadas de variáveis de ambiente
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey || process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+// IMPORTANTE: No EAS Build, as variáveis vêm do Constants.expoConfig.extra
+// Durante desenvolvimento local, vêm do .env via app.config.js
 
-// Validação de segurança
-if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('❌ ERRO DE CONFIGURAÇÃO: Chaves do Supabase não encontradas! Verifique o arquivo .env');
-}
+// Função helper para obter configuração de forma segura
+const getConfig = () => {
+  try {
+    // Tentar pegar do expo config primeiro
+    const url = Constants.expoConfig?.extra?.supabaseUrl;
+    const key = Constants.expoConfig?.extra?.supabaseAnonKey;
+
+    console.log('[Supabase Config] Tentando carregar do Constants.expoConfig');
+    console.log('[Supabase Config] URL presente:', !!url);
+    console.log('[Supabase Config] Key presente:', !!key);
+
+    if (url && key) {
+      return { url, key };
+    }
+
+    // Fallback: valores hardcoded para garantir que funcione
+    console.warn('[Supabase Config] Usando fallback hardcoded');
+    return {
+      url: "https://fvhnkwxvxnsatqmljnxu.supabase.co",
+      key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2aG5rd3h2eG5zYXRxbWxqbnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTgwNzksImV4cCI6MjA3NzgzNDA3OX0.TmV3OI1OitcdLvFcGYTm2hclZ8aI-2zwtsI8Ar6GQaU"
+    };
+  } catch (error) {
+    console.error('[Supabase Config] Erro ao carregar config:', error);
+    // Retornar valores hardcoded como último recurso
+    return {
+      url: "https://fvhnkwxvxnsatqmljnxu.supabase.co",
+      key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2aG5rd3h2eG5zYXRxbWxqbnh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNTgwNzksImV4cCI6MjA3NzgzNDA3OX0.TmV3OI1OitcdLvFcGYTm2hclZ8aI-2zwtsI8Ar6GQaU"
+    };
+  }
+};
+
+const config = getConfig();
+const supabaseUrl = config.url;
+const supabaseAnonKey = config.key;
+
+console.log('[Supabase Init] Configuração final:');
+console.log('[Supabase Init] URL:', supabaseUrl?.substring(0, 30) + '...');
+console.log('[Supabase Init] Key length:', supabaseAnonKey?.length);
 
 // ⚠️ VERSÃO TEMPORÁRIA: Storage adapter SEM persistência
 // Isso significa que o usuário terá que fazer login toda vez

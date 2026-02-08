@@ -48,7 +48,7 @@ container: {
     },
     errorDetailsContainer: {
         marginTop: 30,
-        width: '100%',
+        alignSelf: 'stretch',
         maxHeight: 200,
         backgroundColor: '#fff',
         borderRadius: 8,

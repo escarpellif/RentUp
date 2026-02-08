@@ -1,15 +1,15 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 export const homeStyles = StyleSheet.create({
 backgroundImage: {
         flex: 1,
-        width: '100%',
-        height: '100%',
+        alignSelf: 'stretch',
     },
     container: {
         flex: 1,
         backgroundColor: '#f2f2f2',
-        paddingTop: Platform.OS === 'android' ? (25 || 0) + 20 : 35,
+        paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 10 : 35,
+        paddingBottom: Platform.OS === 'android' ? 80 : 0, // Espaço para menu do app não ser coberto
     },
     header: {
         flexDirection: 'row',
@@ -49,15 +49,15 @@ backgroundImage: {
         fontWeight: 'bold',
     },
     hamburger: {
-        width: 30,
-        height: 24,
+        width: 28,
+        height: 20,
         justifyContent: 'space-between',
     },
     hamburgerLine: {
-        width: '100%',
-        height: 3,
+        height: 1.5,
+        alignSelf: 'stretch',
         backgroundColor: '#333',
-        borderRadius: 2,
+        borderRadius: 1,
     },
     headerTitleContainer: {
         flexDirection: 'row',
@@ -92,12 +92,12 @@ backgroundImage: {
         flex: 1,
     },
     heroCarouselContainer: {
-        width: '380',
+        width: '500',
         height: 610,
         overflow: 'hidden',
     },
     heroScrollView: {
-        width: '380',
+        width: '500',
         height: 650,
     },
     heroSection: {
@@ -140,6 +140,7 @@ backgroundImage: {
     heroButtonsContainer: {
         flexDirection: 'row',
         marginTop: 50,
+        marginBottom: 10,
         gap: 12,
     },
     heroButton: {
@@ -447,8 +448,8 @@ backgroundImage: {
         backgroundColor: '#fff',
         borderTopWidth: 1,
         borderTopColor: '#E5E7EB',
-        paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-        paddingTop: 8,
+        paddingBottom: Platform.OS === 'android' ? 0 : 0,
+        paddingTop: 5,
         elevation: 8,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -2 },
@@ -458,7 +459,7 @@ backgroundImage: {
     tabButton: {
         flex: 1,
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 6,
         position: 'relative',
     },
     tabLabel: {

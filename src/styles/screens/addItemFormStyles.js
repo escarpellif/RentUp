@@ -236,7 +236,7 @@ safeContainer: {
         aspectRatio: 1,
     },
     photoPlaceholder: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderWidth: 2,
         borderColor: '#E8E8E8',
@@ -267,7 +267,7 @@ safeContainer: {
         fontWeight: '600',
     },
     previewImage: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderRadius: 10,
     },

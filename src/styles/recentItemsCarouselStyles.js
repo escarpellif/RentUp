@@ -43,17 +43,17 @@ export const recentItemsCarouselStyles = StyleSheet.create({
     },
     imageContainer: {
         position: 'relative',
-        width: '100%',
+        alignSelf: 'stretch',
         padding: 10,
         height: 180,
         // backgroundColor: '#F0F0F0',
     },
     image: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
     },
     placeholderImage: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',

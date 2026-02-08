@@ -8,13 +8,30 @@ import { Alert } from 'react-native';
  */
 export async function checkUserVerification(userId) {
     try {
+        console.log('[checkUserVerification] Verificando usuário:', userId);
+
+        if (!userId) {
+            console.error('[checkUserVerification] UserId não fornecido');
+            return { isVerified: false, status: 'error' };
+        }
+
         const { data: profile, error } = await supabase
             .from('profiles')
             .select('verification_status')
             .eq('id', userId)
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[checkUserVerification] Erro ao buscar perfil:', error);
+            throw error;
+        }
+
+        if (!profile) {
+            console.error('[checkUserVerification] Perfil não encontrado');
+            return { isVerified: false, status: 'not_submitted' };
+        }
+
+        console.log('[checkUserVerification] Status do perfil:', profile.verification_status);
 
         // Se o perfil NÃO está aprovado, verificar se há verificação aprovada em user_verifications
         if (profile.verification_status !== 'approved') {
@@ -96,9 +113,22 @@ export function handleVerificationAlert(status, navigation) {
                 ]
             );
             break;
-        
+
+        case 'error':
+            Alert.alert(
+                'Error de Conexión',
+                'No pudimos verificar tu estado. Por favor, verifica tu conexión a internet e intenta de nuevo.',
+                [{ text: 'Entendido' }]
+            );
+            break;
+
         default:
-            Alert.alert('Error', 'Hubo un problema al verificar tu estado. Por favor intenta de nuevo.');
+            console.warn('[handleVerificationAlert] Status desconocido:', status);
+            Alert.alert(
+                'Error',
+                'Hubo un problema al verificar tu estado. Por favor intenta de nuevo o contacta soporte.',
+                [{ text: 'Entendido' }]
+            );
     }
 }
 

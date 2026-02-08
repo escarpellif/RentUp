@@ -15,7 +15,7 @@ modalOverlay: {
     modalContent: {
         backgroundColor: '#fff',
         borderRadius: 20,
-        width: '100%',
+        alignSelf: 'stretch',
         maxWidth: 500,
         shadowColor: '#000',
         shadowOffset: {width: 0, height: 4},

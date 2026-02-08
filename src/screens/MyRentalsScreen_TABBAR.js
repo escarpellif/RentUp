@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../supabase';
 import { useTranslation } from 'react-i18next';
+import { handleApiError } from '../utils/errorHandler';
 import { myRentals_TABBARStyles } from '../styles/screens/myRentals_TABBARStyles';
 
 export default function MyRentalsScreen({ navigation, session }) {
@@ -94,8 +95,8 @@ export default function MyRentalsScreen({ navigation, session }) {
                 .select(`
                     *,
                     item:items(*),
-                    renter:profiles!rentals_renter_id_fkey(id, username, full_name),
-                    owner:profiles!rentals_owner_id_fkey(id, username, full_name)
+                    renter:renter_id(id, username, full_name),
+                    owner:owner_id(id, username, full_name)
                 `)
                 .order('created_at', { ascending: false });
 

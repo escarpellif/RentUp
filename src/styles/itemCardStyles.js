@@ -29,7 +29,7 @@ export const itemCardStyles = StyleSheet.create({
     },
     cardImageContainer: {
         position: 'relative',
-        width: '100%',
+        alignSelf: 'stretch',
         height: 200,
         backgroundColor: '#f5f5f5',
         padding: 0,
@@ -37,12 +37,12 @@ export const itemCardStyles = StyleSheet.create({
         alignItems: 'center',
     },
     cardImage: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderRadius: 0,
     },
     cardImagePlaceholder: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',

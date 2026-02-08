@@ -107,7 +107,7 @@ container: {
         position: 'relative',
     },
     itemImage: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
     },
     noImage: {

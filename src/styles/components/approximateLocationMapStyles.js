@@ -20,7 +20,7 @@ container: {
         paddingBottom: 12,
     },
     mapPlaceholder: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: 250,
         backgroundColor: '#f0e6ff',
         justifyContent: 'center',

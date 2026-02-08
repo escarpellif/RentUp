@@ -247,7 +247,7 @@ export const mainMarketplaceStyles = StyleSheet.create({
     },
     emptyContainer: {
         flex: 1,
-        width: '100%',
+        alignSelf: 'stretch',
         minHeight: 400,
         alignItems: 'center',
         justifyContent: 'center',
@@ -259,7 +259,7 @@ export const mainMarketplaceStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingHorizontal: 40,
-        width: '100%',
+        alignSelf: 'stretch',
         maxWidth: 400,
     },
     emptyIcon: {
@@ -311,7 +311,7 @@ export const mainMarketplaceStyles = StyleSheet.create({
         shadowRadius: 5,
     },
     addButtonInner: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderRadius: 32,
         backgroundColor: '#10B981',

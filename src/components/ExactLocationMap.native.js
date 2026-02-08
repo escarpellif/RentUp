@@ -12,25 +12,31 @@ if (Platform.OS !== 'web') {
 
 export default function ExactLocationMap({ coordinates, location }) {
     const [currentRegion, setCurrentRegion] = useState(null);
+    const [mapError, setMapError] = useState(false);
 
     useEffect(() => {
-        if (coordinates && coordinates.latitude && coordinates.longitude) {
-            setCurrentRegion({
-                latitude: coordinates.latitude,
-                longitude: coordinates.longitude,
-                latitudeDelta: 0.01,
-                longitudeDelta: 0.01,
-            });
+        try {
+            if (coordinates && coordinates.latitude && coordinates.longitude) {
+                setCurrentRegion({
+                    latitude: coordinates.latitude,
+                    longitude: coordinates.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                });
+            }
+        } catch (error) {
+            console.error('[ExactLocationMap] Error setting region:', error);
+            setMapError(true);
         }
     }, [coordinates]);
 
-    // Verificar se temos coordenadas válidas
-    if (!coordinates || !coordinates.latitude || !coordinates.longitude) {
+    // Verificar se temos coordenadas válidas ou se houve erro
+    if (mapError || !coordinates || !coordinates.latitude || !coordinates.longitude) {
         return (
             <View style={exactLocationMapNativeStyles.containerNoMap}>
                 <View style={exactLocationMapNativeStyles.noLocationContainer}>
                     <Text style={exactLocationMapNativeStyles.noLocationText}>
-                        Ubicación no disponible en el mapa
+                        {mapError ? 'Error al cargar el mapa' : 'Ubicación no disponible en el mapa'}
                     </Text>
                 </View>
             </View>
@@ -67,28 +73,46 @@ export default function ExactLocationMap({ coordinates, location }) {
     // Criar uma key única baseada nas coordenadas para forçar re-renderização quando mudar
     const mapKey = `${coordinates.latitude}-${coordinates.longitude}`;
 
-    return (
-        <View style={exactLocationMapNativeStyles.container}>
-            <MapView
-                key={mapKey}
-                style={exactLocationMapNativeStyles.map}
-                region={currentRegion}
-                scrollEnabled={true}
-                zoomEnabled={true}
-                pitchEnabled={false}
-                rotateEnabled={false}
-            >
-                <Marker
-                    coordinate={{
-                        latitude: coordinates.latitude,
-                        longitude: coordinates.longitude,
+    // Renderizar mapa com proteção contra erros
+    try {
+        return (
+            <View style={exactLocationMapNativeStyles.container}>
+                <MapView
+                    key={mapKey}
+                    style={exactLocationMapNativeStyles.map}
+                    region={currentRegion}
+                    scrollEnabled={true}
+                    zoomEnabled={true}
+                    pitchEnabled={false}
+                    rotateEnabled={false}
+                    onError={(error) => {
+                        console.error('[MapView] Error:', error);
+                        setMapError(true);
                     }}
-                    title={location || 'Ubicación del artículo'}
-                    description="Lugar de recogida"
-                />
-            </MapView>
-        </View>
-    );
+                >
+                    <Marker
+                        coordinate={{
+                            latitude: coordinates.latitude,
+                            longitude: coordinates.longitude,
+                        }}
+                        title={location || 'Ubicación del artículo'}
+                        description="Lugar de recogida"
+                    />
+                </MapView>
+            </View>
+        );
+    } catch (error) {
+        console.error('[ExactLocationMap] Render error:', error);
+        return (
+            <View style={exactLocationMapNativeStyles.containerNoMap}>
+                <View style={exactLocationMapNativeStyles.noLocationContainer}>
+                    <Text style={exactLocationMapNativeStyles.noLocationText}>
+                        Error al mostrar el mapa
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 }
 
 

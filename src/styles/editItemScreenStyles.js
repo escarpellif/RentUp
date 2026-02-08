@@ -111,7 +111,7 @@ export const styles = StyleSheet.create({
         aspectRatio: 1,
     },
     photoPlaceholder: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderWidth: 2,
         borderColor: '#ccc',
@@ -143,7 +143,7 @@ export const styles = StyleSheet.create({
         fontWeight: '600',
     },
     previewImage: {
-        width: '100%',
+        alignSelf: 'stretch',
         height: '100%',
         borderRadius: 8,
         resizeMode: 'cover',

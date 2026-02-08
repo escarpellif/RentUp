@@ -8,7 +8,7 @@ modalOverlay: {
         alignItems: 'center',
     },
     keyboardView: {
-        width: '100%',
+        alignSelf: 'stretch',
         justifyContent: 'center',
         alignItems: 'center',
     },
